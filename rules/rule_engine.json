@@ -1,79 +1,87 @@
 {
-  "version": "2026-04-11",
+  "version": "2026-04-21",
   "description": "链路A规则短路引擎 — 用于高频确定性场景的零LLM直出",
-  "note": "规则从真实流量数据自动沉淀（采纳率>=90%且匹配频率Top-N），初始版本为预置的direct_reply场景",
+  "note": "精度门槛 >= 90% 才进入。旧版 RULE_001-004 因 skill 细分后误判率过高（16-70%），于 2026-04-21 精度复核时下架，让 LLM Router 处理。保留的规则在 2846 golden 上均通过复核。",
   "rules": [
     {
       "rule_id": "RULE_001",
-      "skill_id": "repayment_method_inquiry",
-      "name": "咨询还款方式",
-      "match_type": "keyword",
-      "keywords": ["怎么还款", "还款方式", "如何还款", "还款途径", "主动还款", "自动还款"],
-      "exclude_keywords": ["还款失败", "还不上", "逾期", "没扣", "扣款"],
-      "template_variant": "first_contact",
-      "expires": "2026-07-11",
-      "accept_rate_threshold": 0.85,
-      "source": "preset"
-    },
-    {
-      "rule_id": "RULE_002",
-      "skill_id": "card_rebinding",
-      "name": "换绑银行卡",
-      "match_type": "keyword",
-      "keywords": ["换绑银行卡", "换卡", "更换银行卡", "绑定银行卡", "换绑卡", "改银行卡"],
-      "exclude_keywords": ["还款失败", "扣款失败"],
-      "template_variant": "first_contact",
-      "expires": "2026-07-11",
-      "accept_rate_threshold": 0.85,
-      "source": "preset"
-    },
-    {
-      "rule_id": "RULE_003",
-      "skill_id": "member_consultation",
-      "name": "会员咨询",
-      "match_type": "keyword",
-      "keywords": ["什么是会员", "会员是什么", "会员权益", "会员有什么用", "会员服务", "开通会员"],
-      "exclude_keywords": ["取消会员", "退会员", "退费"],
-      "template_variant": "first_contact",
-      "expires": "2026-07-11",
-      "accept_rate_threshold": 0.85,
-      "source": "preset"
-    },
-    {
-      "rule_id": "RULE_004",
-      "skill_id": "quota_consultation",
-      "name": "额度咨询",
-      "match_type": "keyword",
-      "keywords": ["额度多少", "我的额度", "查询额度", "额度是多少", "借款额度", "可用额度"],
-      "exclude_keywords": ["没有额度", "额度为0", "为什么没额度", "额度冻结"],
-      "template_variant": "first_contact",
-      "expires": "2026-07-11",
-      "accept_rate_threshold": 0.85,
-      "source": "preset"
-    },
-    {
-      "rule_id": "RULE_005",
       "skill_id": "stop_marketing",
       "name": "停止营销",
       "match_type": "keyword",
       "keywords": ["别打电话了", "不要再打电话", "停止营销", "不要推销", "别推销了", "不需要贷款"],
       "exclude_keywords": ["催收", "逾期", "还款提醒"],
       "template_variant": "first_contact",
-      "expires": "2026-07-11",
+      "expires": "2026-07-21",
       "accept_rate_threshold": 0.85,
-      "source": "preset"
+      "source": "preset",
+      "_note": "0 hits on golden — kept as-is because keywords are unambiguous for marketing-only context. Revisit after production traffic data."
     },
     {
-      "rule_id": "RULE_006",
+      "rule_id": "RULE_002",
       "skill_id": "value_added_service_inquiry",
       "name": "增值服务咨询",
       "match_type": "keyword",
       "keywords": ["增值服务是什么", "什么是增值服务", "赋强公证", "安心保障", "增值服务有什么用"],
       "exclude_keywords": ["取消增值", "退增值", "退费"],
       "template_variant": "first_contact",
-      "expires": "2026-07-11",
+      "expires": "2026-07-21",
       "accept_rate_threshold": 0.85,
-      "source": "preset"
+      "source": "preset",
+      "_note": "0 hits on golden — kept as-is. Long-form keywords already restrict matches to explicit service inquiry."
+    },
+    {
+      "rule_id": "RULE_003",
+      "skill_id": "clearance_certificate",
+      "name": "开具结清证明",
+      "match_type": "keyword",
+      "keywords": ["结清证明", "还清证明", "还款证明", "开具证明", "贷款结清", "结清了需要证明", "已还完需要证明"],
+      "exclude_keywords": ["逾期证明", "非恶意逾期", "放款凭证", "催收", "核实", "协商还款", "协商方案", "解绑", "解除绑定", "绑定银行卡"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-21",
+      "accept_rate_threshold": 0.85,
+      "source": "derived-from-golden",
+      "_stats": {
+        "golden_freq": 47,
+        "simulated_hits": 43,
+        "simulated_precision": 1.0,
+        "simulated_recall": 0.915
+      }
+    },
+    {
+      "rule_id": "RULE_004",
+      "skill_id": "account_cancellation",
+      "name": "注销账户",
+      "match_type": "keyword",
+      "keywords": ["注销账户", "注销账号", "注销我的账号", "取消账户", "删除账号", "想注销", "要注销", "我要注销"],
+      "exclude_keywords": ["已经注销", "注销了", "注销后怎么", "结清证明", "提前结清"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-21",
+      "accept_rate_threshold": 0.85,
+      "source": "derived-from-golden",
+      "_stats": {
+        "golden_freq": 65,
+        "simulated_hits": 46,
+        "simulated_precision": 0.913,
+        "simulated_recall": 0.646
+      }
+    },
+    {
+      "rule_id": "RULE_005",
+      "skill_id": "member_cancel",
+      "name": "取消会员",
+      "match_type": "keyword",
+      "keywords": ["取消会员", "关闭会员", "退订会员", "不要会员", "取消会员服务"],
+      "exclude_keywords": ["退会员费", "会员退款", "什么是会员", "注销账户"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-21",
+      "accept_rate_threshold": 0.85,
+      "source": "derived-from-golden",
+      "_stats": {
+        "golden_freq": 42,
+        "simulated_hits": 18,
+        "simulated_precision": 0.944,
+        "simulated_recall": 0.405
+      }
     }
   ]
 }
