@@ -1,0 +1,88 @@
+---
+skill_id: cancel_value_added_service
+name: 取消增值服务
+description: 处理客户申请取消增值服务（主要为加速卡）的场景。需核身后查询系统中增值服务状态，优先询问取消原因并进行挽留，挽留失败则协助处理。放款失败/加速失败时订单默认关闭不扣款，引导刷新页面；未扣款前可取消；已放款且加速成功后不支持退款（升级主管处理）。
+domain: 活动
+intent_hierarchy:
+  l1: 营销活动
+  l2: 取消增值服务
+  l3: 活动
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 取消增值服务
+    - 取消加速卡
+    - 不要这个服务
+    - 关闭服务
+    - 取消这个
+    - 不需要服务
+    - 取消订单服务
+  examples:
+    - 我怎么取消这个服务
+    - 我不想要加速卡了，帮我取消
+    - 没有加速成功你们给我取消
+    - 我根本没有点击过这个服务，帮我取消
+    - 有短信通知我要扣款，我不需要，给我取消
+  exclude_keywords:
+    - 退费
+    - 退款
+    - 退钱
+    - 轻享卡
+    - 停止营销
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_membership_service_info
+
+templates:
+  first_contact:
+    script: "为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_items}？"
+    required_slots:
+      - verification_items
+    next_step: verify_identity
+  follow_up:
+    script: "{customer_name}，您好，请问您是什么原因想要取消这个服务呢？我们也希望能为您提供更优质的服务哦。"
+    required_slots:
+      - customer_name
+    next_step: retention_then_process
+
+branch_conditions:
+  - hint: 放款失败或加速失败
+    variant: already_closed_no_charge
+    note: 告知放款失败/加速失败系统默认关闭订单不扣款，引导在APP端刷新或重新登录查看，无需操作取消
+  - hint: 未扣款且未到期自动取消前，客户坚持取消
+    variant: cancel_before_charge
+    note: 挽留无果支持取消，告知加速卡服务可为贷款加速，建议考虑保留
+  - hint: 已放款且加速成功，未批扣成功
+    variant: pending_deduction_dispute
+    note: 权益已生效，客户要求取消，建超权限工单升级主管处理，沟通无果可申请退款
+  - hint: 挽留成功
+    variant: retention_success
+    note: 说明加速卡权益价值，确认客户保留
+compliance:
+  forbidden_expressions:
+    - 肯定帮您取消
+    - 保证不扣款
+    - 无条件退款
+  required_disclaimer: 在您申请借款时，加速卡相关权益均有展示，参加前请确认需求
+  must_include_when:
+    - condition: 放款失败场景
+      text: 放款失败、加速失败系统默认关闭订单，不会扣款，建议刷新APP页面查看
+
+escalation:
+  - trigger: 已放款且加速成功但未批扣，客户强烈要求取消，建超权限工单升级主管
+  - trigger: 客户对服务有强烈异议，升级处理
+
+fallback:
+  answer: "{customer_name}，您好，查看到您开通了加速卡服务，目前暂时还未扣款。加速卡服务可以为您加速放款，建议您考虑保留下。如您确实不需要，客服可为您协助取消。"
+  next_step: confirm_cancellation_intent
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  verification_items: llm:verification_items
+escalation_signals: []

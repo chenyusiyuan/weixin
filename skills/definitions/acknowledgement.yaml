@@ -1,0 +1,71 @@
+---
+skill_id: acknowledgement
+name: 应答确认
+description: 客户的简短应答或确认（嗯、对、好的、可以、明白了等），非实质性业务内容。坐席通常继续原话题或推进问题了解。
+domain: 会话流程
+intent_hierarchy:
+  l1: 会话流程
+  l2: 应答确认
+  l3: 通用
+route_mode: direct_reply
+risk_level: low
+priority: 5
+
+triggers:
+  keywords:
+    - 嗯
+    - 对
+    - 好的
+    - 可以
+    - 明白
+    - 知道了
+    - 是的
+    - 没错
+  examples:
+    - 嗯
+    - 嗯嗯
+    - 对的
+    - 好的
+    - 可以
+    - 明白了
+    - 对对对
+    - 是是是
+    - 没错
+  exclude_keywords:
+    - 没有
+    - 没办法
+    - 不行
+
+tools:
+  required: []
+  optional: []
+
+templates:
+  first_contact:
+    script: |
+      好的。那请问您具体想咨询的是什么问题呢？
+    required_slots: []
+    next_step: elicit_business_query
+  follow_up:
+    script: |
+      好的，那我们继续刚才的问题。
+    required_slots: []
+    next_step: continue_previous_skill
+
+branch_conditions: []
+
+compliance:
+  forbidden_expressions:
+    - 那就这样吧
+    - 你还有事吗
+  required_disclaimer: ""
+  must_include_when: []
+
+escalation: []
+escalation_signals: []
+
+fallback:
+  answer: 好的。
+  next_step: continue_previous_skill
+
+slot_sources: {}

@@ -1,0 +1,107 @@
+---
+skill_id: refund_value_added_service
+name: 退增值服务费
+description: 处理客户申请退还增值服务费用的场景，覆盖：赋强公证退费（可退120元关怀金+引导清贷退60元保证金）、加速卡退费（已使用权益原则上不支持退费，坚持可建超权限工单）、拒就返退费（按权益状态分流）、天创信用/众惠保险退费（引导联系第三方服务商）。
+domain: 活动
+intent_hierarchy:
+  l1: 营销活动
+  l2: 退增值服务费
+  l3: 活动
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 退增值服务费
+    - 退服务费
+    - 退赋强公证
+    - 退加速卡费用
+    - 退钱
+    - 退费
+    - 扣了我的钱
+    - 莫名扣费
+    - 我要退款
+  examples:
+    - 把赋强公证的钱退给我
+    - 你们收取的赋强公证费用不合理，要退款
+    - 我不需要这个加速卡服务，你们必须退费
+    - 这个服务为什么扣我的钱，给我退了
+    - 我要退增值服务费用
+  exclude_keywords:
+    - 取消增值服务
+    - 取消加速卡
+    - 轻享卡退费
+    - 停止营销
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_membership_service_info
+    - get_refund_history
+    - query_ticket
+
+templates:
+  first_contact:
+    script: "为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_items}？"
+    required_slots:
+      - verification_items
+    next_step: verify_identity
+  follow_up:
+    script: "{customer_name}，您好，请问您是什么原因想要退这项服务费用呢？我们也希望能为您提供更优质的服务哦~"
+    required_slots:
+      - customer_name
+    next_step: retention_and_process
+
+branch_conditions:
+  - hint: 赋强公证退费，客户坚持退款
+    variant: fuqiang_partial_refund
+    note: 婉拒后仍坚持，可申请退120元关怀金（建"营业外支出工单"）；60元在订单结清后自动退回；若客户要求全退，解释120+60结构，引导先结清贷款拿回60元
+  - hint: 赋强公证费用违法质疑
+    variant: explain_legal_compliance
+    note: 告知系统展示协议，客户自愿勾选同意，赋强公证由政府公证处收取，合法合规
+  - hint: 加速卡已放款且加速成功，要求退费
+    variant: acceleration_card_refund_dispute
+    note: 婉拒：权益已生效不支持退费；坚持：建"超权限工单"升级主管，沟通无果可申请退款，1-4个工作日原路退回
+  - hint: 拒就返权益状态：成功
+    variant: jujufan_success_refund
+    note: 一线婉拒，坚持则升二线；二线评估风险需退费：退费金额=已付金额-已赔付金额
+  - hint: 拒就返权益状态：失败
+    variant: jujufan_failed_refund
+    note: 一线婉拒，坚持升二线；二线评估风险可退费
+  - hint: 权益状态：申请中/处理中
+    variant: pending_status
+    note: 告知权益尚在处理中，耐心等待确认权益使用结果后再进一步沟通
+  - hint: 天创信用/贷前必查/借钱必查退费
+    variant: tianchuang_credit_refund
+    note: 非我司收费，引导联系天创信用服务方，客服热线4001812600
+  - hint: 众惠保险退费
+    variant: zhonghui_insurance_refund
+    note: 引导联系众惠财产相互保险客服热线4008106088
+compliance:
+  forbidden_expressions:
+    - 保证全额退款
+    - 这笔费用可以全退
+    - 不用担心肯定退
+  required_disclaimer: 赋强公证费用在申请贷款时的补充协议中有说明，需客户本人签署认可后才收取，合法合规
+  must_include_when:
+    - condition: 赋强公证退费120元
+      text: 60元保证费在借款结清后会自动退回至借款人银行卡中
+    - condition: 加速卡退费
+      text: 加速卡履约成功后才自动发起扣款，权益已生效原则上不支持退费
+
+escalation:
+  - trigger: 赋强公证退费，需建"营业外支出工单"，作业组提交OA处理
+  - trigger: 加速卡坚持退费，建"超权限工单"升级主管处理
+  - trigger: 拒就返退费，一线升级二线评估风险
+  - trigger: 客户反映未绑定银行卡被扣款，建议查看流水确认扣款方；若有赋强公证协议则为强制执行，建议按时还款
+
+fallback:
+  answer: "{customer_name}，您消消气，对于您的退费诉求，客服会为您反馈专员处理，预计24小时内专员会以021开头的座机号码与您联系，请您保持电话畅通耐心等待，在此期间无需重复进线哦~"
+  next_step: submit_escalation_ticket
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  verification_items: llm:verification_items
+escalation_signals: []

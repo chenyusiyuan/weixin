@@ -1,0 +1,109 @@
+---
+skill_id: credit_modification
+name: 修改征信
+description: 处理客户要求修改或删除征信记录的诉求，明确征信修改需有正当原因，区分自营机构和非自营机构处理路径，严格合规操作
+domain: 业务办理
+intent_hierarchy:
+  l1: 业务办理
+  l2: 修改征信
+  l3: 业务办理
+route_mode: tool_only
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 修改征信
+    - 删除征信
+    - 消除征信
+    - 征信有问题
+    - 征信不良记录
+    - 纠正征信
+    - 征信异议
+    - 撤销征信
+    - 征信错误
+  examples:
+    - 我要你们帮我改征信
+    - 帮我删除征信上的逾期记录
+    - 我的征信上有错误记录，帮我修改
+    - 你们把我的征信给弄坏了，赶紧帮我改好
+    - 我征信有逾期记录，能不能帮我消除
+  exclude_keywords:
+    - 征信查询
+    - 征信咨询
+    - 注销授信额度
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，感谢您的配合。请问您征信上显示的对应管理机构是哪家的呢？
+      另外，冒昧了解下，您是因为什么原因逾期的呢？
+    required_slots:
+      - customer_name
+    next_step: 明确征信管理机构，判断是自营还是非自营，了解逾期原因
+  follow_up:
+    script: >
+      {customer_name}，您好，征信记录是依据您实际的还款情况如实上报的，
+      征信修改需要有正当合理的原因，如确实存在非本人原因导致的错误记录，
+      可申请征信异议。请问您认为征信记录存在错误的具体原因是什么呢？
+    required_slots:
+      - customer_name
+    next_step: 根据逾期原因和机构类型确定处理路径
+
+branch_conditions:
+  - expr: institution_type == self_operated
+    variant: self_operated
+    note: 自营机构（上海小贷、成都小贷、维仕担保）——建征信问题工单，内部处理
+  - expr: institution_type == non_self_operated
+    variant: non_self_operated
+    note: 非自营机构——说明需联系对应资方处理，提供资方联系方式
+  - expr: overdue_reason == genuine_error
+    variant: genuine_error
+    note: 确属系统错误或非本人原因——协助提交征信异议申请，1-3工作日处理
+  - expr: overdue_reason == customer_own_fault
+    variant: own_fault
+    note: 客户自身逾期导致——解释征信如实记录原则，婉拒修改，告知还清后影响逐步减轻
+  - expr: overdue_reason == major_illness_or_disaster
+    variant: special_circumstances
+    note: 重大疾病/自然灾害等特殊情况——收集证明材料，上报审核，有一定开绿灯可能性
+compliance:
+  forbidden_expressions:
+    - 可以帮您删除征信记录
+    - 保证征信可以修改
+    - 花钱可以消除征信
+    - 征信黑名单可以撤销
+    - 逾期记录可以洗白
+  required_disclaimer: 征信记录依据实际还款情况如实上报，修改需有正当原因并经过审核，我司严格按照人民银行征信管理规定操作。
+  must_include_when:
+    - condition: modification_refused
+      text: 征信记录是根据您实际还款情况如实反映的，如无正当原因无法修改，建议您按时还款，保持良好信用记录
+    - condition: anomaly_confirmed
+      text: 您的征信问题已收到，后续会由专业人员与您联系处理，请保持电话畅通
+
+escalation:
+  - trigger: 客户提供证据证明征信记录确属错误
+  - trigger: 客户声称将向人民银行或监管机构投诉
+  - trigger: 涉及重大疾病或自然灾害等特殊情况需上级审批
+
+fallback:
+  answer: >
+    {customer_name}，非常抱歉，征信记录修改需要经过严格审核流程。
+    客服已记录您的诉求，将提交相关部门核实，如确认存在错误记录，
+    将按照规定流程为您处理，预计3-5个工作日内会有专员与您联系。
+  next_step: 提交征信问题工单，注明诉求类型和原因
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals:
+  - 删除征信
+  - 消除征信
+  - 修改征信
+  - 征信异议

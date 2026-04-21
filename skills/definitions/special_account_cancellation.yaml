@@ -1,0 +1,88 @@
+---
+skill_id: special_account_cancellation
+name: 特殊场景注销账户
+description: 处理智信贷已转让或华通已转让订单客户要求注销账户的特殊场景。智信贷逾期订单债权已出售给第三方债转公司，华通转让订单对应湖北小蚁资产管理有限公司。客户须联系对应受让方结清并提供结清证明后方可申请注销；一线收集凭证后建"其他工单"反馈作业处理，预计3-5个工作日。
+domain: 账户
+intent_hierarchy:
+  l1: 信息维护
+  l2: 特殊注销
+  l3: 账户
+route_mode: tool_only
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 智信贷
+    - 华通
+    - 已转让
+    - 债转
+    - 转让后注销
+    - 转让公司
+    - 结清证明
+  examples:
+    - 我的智信贷订单已经转让了，我想注销账户
+    - 华通的贷款转让给其他公司了，我要注销
+    - 债权转让了我还能注销账号吗
+    - 我已经结清了转让的贷款，请帮我注销账号
+    - 我联系了转让方，拿到了结清证明，可以注销了吗
+  exclude_keywords:
+    - 普通注销
+    - 正常注销
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: "{customer_name}，您好，我查询了下您的账单还未结清，请问您已经结清了吗？"
+    required_slots:
+      - customer_name
+    next_step: check_settlement_status
+  follow_up:
+    script: "{customer_name}，您的凭证已收到，客服为您反馈处理，预计3-5个工作日处理完成。处理完成后会有专员以021开头的座机号码通知您，请耐心等待，保持电话畅通，在此期间，无需重复进线哦~"
+    required_slots:
+      - customer_name
+    next_step: create_other_ticket
+
+branch_conditions:
+  - hint: 智信贷已转让，客户表示未结清
+    variant: direct_to_debt_company
+    note: 引导联系对应债权受让方结清，客服热线4006162978，工作日9:00-12:00 13:30-17:30；APP查询路径：我的-借款记录-已转让
+  - hint: 智信贷已转让，客户表示已结清但系统显示未结清
+    variant: request_settlement_proof
+    note: 需客户提供债权受让方开具的结清证明，收集凭证后发"其他工单"，作业组按每周一统一提交OA申请
+  - hint: 客户已上传结清证明凭证
+    variant: submit_other_ticket
+    note: 建"其他工单"反馈作业处理，预计3-5个工作日，处理完成电话通知客户
+  - hint: 华通已转让订单
+    variant: direct_to_huatong_company
+    note: 告知联系"湖北小蚁资产管理有限公司"，电话4006163978；注销处理流程同智信贷已转让
+compliance:
+  forbidden_expressions:
+    - 我们可以直接帮您注销
+    - 不需要结清证明
+    - 马上帮您处理
+  required_disclaimer: 智信贷/华通已转让订单我司不受理还款问题，包含足额还款；系统账单不再更新状态
+  must_include_when:
+    - condition: 引导联系债转公司
+      text: APP查询路径：我的-借款记录-默认调为已转让-查看对应订单
+    - condition: 收到结清证明后
+      text: 预计需要3-5个工作日处理完成，处理完成会有电话通知
+
+escalation:
+  - trigger: 客户提供完整结清证明，建"其他工单"反馈作业处理
+  - trigger: 客户对处理结果不满或超时未处理，升级投诉流程
+
+fallback:
+  answer: "{customer_name}，您好，由于您的订单已被转让，注销账户需要先联系对应公司结清账单并开具结清证明后，再联系客服为您协助申请处理哦~"
+  next_step: provide_company_contact
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []
+priority: 30

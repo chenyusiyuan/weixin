@@ -1,0 +1,98 @@
+---
+skill_id: clearance_certificate
+name: 开具结清证明
+description: 协助客户办理贷款结清证明的开具，判断订单结清状态及结清时间，引导APP自助开具或代为办理
+domain: 业务办理
+intent_hierarchy:
+  l1: 业务办理
+  l2: 开具结清证明
+  l3: 业务办理
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 结清证明
+    - 还清证明
+    - 还款证明
+    - 开具证明
+    - 贷款结清
+    - 结清了需要证明
+    - 已还完需要证明
+  examples:
+    - 我需要开个结清证明
+    - 我已经还完了，需要一个证明
+    - 帮我开具一张结清证明
+    - 我贷款已经结清了，怎么开证明
+    - 买房需要结清证明
+  exclude_keywords:
+    - 逾期证明
+    - 非恶意逾期
+    - 放款凭证
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，请问您需要确认哪笔订单的呢？
+      客服查询一下该笔订单的结清状态。
+    required_slots:
+      - customer_name
+    next_step: 查询订单结清状态，判断处理路径
+  follow_up:
+    script: >
+      {customer_name}，您好，经查询，这笔订单您可以在APP自行申请开具哦，
+      客服给您发一个APP开具结清证明的路径短信，您查收一下哦。
+      路径：APP-我的-借款记录-查看详情-结清证明。
+    required_slots:
+      - customer_name
+    next_step: 发送路径短信，确认客户收到
+
+branch_conditions:
+  - expr: order_not_cleared
+    variant: not_cleared
+    note: 订单未结清——告知需结清后次日才可在APP开具，引导先还款
+  - expr: order_cleared and cleared_within_2_years
+    variant: self_service
+    note: 结清2年内——优先引导APP自助开具，发路径短信
+  - expr: order_cleared and cleared_over_2_years
+    variant: agent_assist
+    note: 结清超2年——客服协助开具，需提供邮箱，1-3工作日发送
+  - expr: customer_refuses_self_service or customer_requires_official_seal
+    variant: official_issuance
+    note: 不接受自助或需要资方章——客服协助申请，1-5工作日发至邮箱
+  - expr: system_issuance_failed
+    variant: system_failed
+    note: 系统提示开具失败——按升级流程处理
+compliance:
+  forbidden_expressions:
+    - 马上就能开好
+    - 保证当天到
+    - 不用提供邮箱
+  required_disclaimer: 结清证明将发送至您提供的邮箱，请确保邮箱地址正确且正常使用。
+  must_include_when:
+    - condition: agent_assist_issuance
+      text: 申请开具后会在1-3个工作日内发送到您指定邮箱，期间无需来电，请您留意查收
+    - condition: order_not_cleared
+      text: 待您后期还完，之后次日就可以在APP里自行开具，客服给您发一个路径短信
+
+escalation:
+  - trigger: 系统开具失败且无法通过其他方式处理
+  - trigger: 客户明确要求加盖资方公章且客服系统无法操作
+
+fallback:
+  answer: >
+    {customer_name}，非常抱歉，当前系统遇到问题，客服已记录您的需求，
+    请您提供常用邮箱，客服将申请为您开具，预计1-5个工作日内发送，请注意查收。
+  next_step: 收集客户邮箱，提交开具申请工单
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

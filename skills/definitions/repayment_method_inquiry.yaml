@@ -1,0 +1,85 @@
+---
+skill_id: repayment_method_inquiry
+name: 咨询还款方式
+description: 解答客户关于还款方式的咨询，说明自动还款和主动还款两种方式
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 还款方式咨询
+  l3: 还款
+route_mode: direct_reply
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 还款方式
+    - 怎么还款
+    - 如何还款
+    - 还款方法
+    - 还款流程
+    - 自动还款
+    - 主动还款
+  examples:
+    - 你们还款方式有哪些
+    - 怎么还款的
+    - 我怎么还钱
+    - 有哪些还款方式
+    - 怎么主动还款
+    - 我想通过微信还款，请帮我发送还款二维码
+    - 我的银行卡被冻结了，能否使用支付宝还款
+    - 麻烦你给我发一个对公还款账号
+    - 银行卡不能用了，有没有其他办法还款
+    - 请发一个二维码给我
+  exclude_keywords:
+    - 还款失败
+    - 还款记录
+    - 还款结果
+    - 提前还款
+    - 换绑银行卡
+
+tools:
+  required: []
+  optional:
+    - get_customer_profile
+
+templates:
+  first_contact:
+    script: |
+      为了更好地与您沟通，请问怎么称呼您呢？
+    required_slots: []
+    next_step: explain_repayment_methods
+  follow_up:
+    script: |
+      {customer_name}，您好。目前支持自动还款和主动还款哦。
+      自动还款是绑定银行卡后从银行卡上自动划扣的；
+      主动还款是通过APP上点击还款即可哦。
+      若您在还款时遇到问题，可在平台服务时间（8:00-21:00）联系客服协助处理的哦。
+    required_slots:
+      - customer_name
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 客户询问自动还款细节
+    variant: auto_deduction_detail
+    note: 说明绑定银行卡后系统自动扣款机制
+  - hint: 客户询问主动还款操作路径
+    variant: manual_repayment_path
+    note: 引导客户在APP上操作主动还款
+compliance:
+  forbidden_expressions:
+    - 保证还款成功
+    - 不会有任何问题
+    - 百分百到账
+  required_disclaimer: "如有疑问请在服务时间内联系客服"
+  must_include_when: []
+
+escalation:
+  - trigger: 客户反映还款遇到问题需要具体处理
+
+fallback:
+  answer: 关于还款方式，目前支持自动还款（绑定银行卡自动划扣）和主动还款（APP点击还款）两种方式，如有其他问题请在服务时间8:00-21:00联系客服。
+  next_step: ask_other_questions
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

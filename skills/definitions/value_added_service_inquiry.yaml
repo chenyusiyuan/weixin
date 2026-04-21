@@ -1,0 +1,98 @@
+---
+skill_id: value_added_service_inquiry
+name: 增值服务咨询
+description: 处理客户咨询平台增值服务内容的场景，包括：赋强公证（含法律依据、费用构成）、加速卡（优先放款资方）、拒就返（全部被拒后申请返现）、天创信用风险自查、众惠财产保险等。属于低风险业务，仅需询问姓氏，无需完整核身。
+domain: 活动
+intent_hierarchy:
+  l1: 营销活动
+  l2: 增值服务咨询
+  l3: 活动
+route_mode: direct_reply
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 增值服务
+    - 赋强公证
+    - 加速卡
+    - 拒就返
+    - 安心保障
+    - 这个服务是什么
+    - 有什么用
+    - 服务内容
+    - 天创信用
+    - 众惠保险
+    - 权益是什么
+  examples:
+    - 什么是赋强公证
+    - 加速卡有什么用
+    - 我看到一个拒就返活动，这是什么
+    - 这个增值服务有什么好处
+    - 信用风险自查活动是什么
+  exclude_keywords:
+    - 取消增值服务
+    - 退增值服务费
+    - 不需要这个服务
+
+tools:
+  required: []
+  optional:
+    - get_customer_profile
+    - get_membership_service_info
+
+templates:
+  first_contact:
+    script: "为了更好的与您沟通，请问怎么称呼您呢？"
+    required_slots: []
+    next_step: ask_specific_service
+  follow_up:
+    script: "好的，{customer_name}，请问您具体遇到什么问题了呢？"
+    required_slots:
+      - customer_name
+    next_step: explain_service_content
+
+branch_conditions:
+  - hint: 客户咨询赋强公证是什么
+    variant: explain_fuqiang_notary
+    note: 赋予债权文书强制执行效力公证，费用180元（120元公证处费用+60元保证金，借款结清后自动退回）
+  - hint: 客户咨询赋强公证法律依据
+    variant: explain_legal_basis
+    note: 引用《公证法》第37条、司发通2000年107号、最高法相关批复
+  - hint: 法信-赋强公证费用咨询
+    variant: faxin_notary_fee
+    note: 收费金额以APP端显示为准
+  - hint: 客户咨询加速卡
+    variant: explain_acceleration_card
+    note: 参加后对应借款订单提现可享受优先放款资方福利，加速卡履约成功后自动发起扣款
+  - hint: 客户咨询拒就返
+    variant: explain_ju_jiu_fan
+    note: 符合条件用户，在平台提供的借款渠道全部被拒后可申请返现，3天内处理，最高500元，以实际申请结果为准
+  - hint: 客户咨询天创信用/贷前必查/借钱必查
+    variant: explain_tianchuang_credit
+    note: 第三方合作风险自查活动，客服热线4001812600，工作日9:30-12:00，13:30-18:30
+  - hint: 客户咨询众惠保险
+    variant: explain_zhonghui_insurance
+    note: 第三方合作保险活动，众惠财产相互保险客服热线4008106088
+  - hint: 客户反映活动权益变化
+    variant: explain_activity_change
+    note: 不同阶段活动权益构成有所差异，以客户权益页面展示为准
+compliance:
+  forbidden_expressions:
+    - 保证返现成功
+    - 一定能拿到权益
+    - 费用会全退
+  required_disclaimer: 具体权益请以您权益页面展示为准；第三方服务内容及规则请联系服务方确认
+  must_include_when:
+    - condition: 介绍赋强公证费用
+      text: 180元由120元（公证处办理费）+60元（保证费，借款结清后自动退回至银行卡）组成
+
+escalation:
+  - trigger: 客户对增值服务内容有强烈异议，要求退费，转退费流程处理
+
+fallback:
+  answer: "{customer_name}，您好，感谢您的关注，请问您具体想了解哪项增值服务的内容呢？客服为您详细解答。"
+  next_step: clarify_service_name
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

@@ -1,0 +1,133 @@
+---
+skill_id: fee_refund_tier2
+name: 要求退费（二线/高阶内诉）
+description: 二线及高阶坐席处理复杂退费内诉，深入了解退费诉求依据，提出合规让步方案，必要时提交工单进行特殊退费处理
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 要求退费(二线)
+  l3: 费用
+route_mode: tool_rag
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 内诉退费
+    - 投诉退款
+    - 坚持退费
+    - 一线不处理
+    - 找上级退费
+    - 法院起诉
+    - 律师函
+    - 消费者协会
+    - 退全部费用
+  examples:
+    - 一线说不能退我要找上级
+    - 我要投诉你们必须退费
+    - 我已经联系了律师
+    - 我要去消费者协会投诉
+    - 这个费用明显违法你们必须退
+  exclude_keywords:
+    - 退费进度
+    - 退费到账
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - get_membership_service_info
+    - get_refund_history
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: |
+      {customer_name}，您好，我是{agent_name}，专门负责处理复杂诉求。
+      感谢您的耐心等待，我会认真了解您的情况，尽力为您提供帮助。
+      请问您具体希望退还哪笔费用，退费的原因是什么呢？
+    required_slots:
+      - agent_name
+      - customer_name
+    next_step: understand_refund_basis
+  follow_up:
+    script: |
+      {customer_name}，我已仔细了解了您的情况。
+      关于您申请退还{fee_type}（{fee_amount}元）的诉求，
+      我们高度重视您的反馈，会按照相关规定认真审核您的申请。
+      {resolution_proposal}
+    required_slots:
+      - customer_name
+      - fee_amount
+      - fee_type
+      - resolution_proposal
+    next_step: confirm_resolution
+
+branch_conditions:
+  - hint: 客户提出部分退费诉求，可协商
+    variant: partial_refund_negotiation
+    note: |
+      充分理解客户诉求后，评估是否可提供部分退费作为让步方案。需在系统权限范围内操作，超出权限需提交工单。
+  - hint: 客户提出全额退费，评估合理性
+    variant: full_refund_evaluation
+    note: |
+      核实退费依据，如客户有合理诉求（如误操作、系统错误等），按流程提交工单申请全额退费审批。
+  - hint: 客户有会员权益可抵扣
+    variant: membership_offset
+    note: 查询客户会员信息，评估是否可用会员权益抵扣部分费用
+  - hint: 客户声称遭遇诈骗或非本人操作
+    variant: fraud_claim_refund
+    note: |
+      需核实客户陈述，收集相关证据（报案记录等），提交工单走特殊退费审批流程。
+  - hint: 客户经充分协商后接受方案
+    variant: customer_accepts_proposal
+    note: 确认方案，发起退费申请，告知退费时效和退款路径
+  - hint: 客户拒绝所有方案，坚持全额退费
+    variant: no_agreement_reached
+    note: |
+      告知客户已尽力协商，保留投诉权利，记录通话内容作为后续处理依据，必要时上报主管处理。
+compliance:
+  forbidden_expressions:
+    - 我们肯定给您退
+    - 随时可以退
+    - 这个费用本来就不该收
+    - 我们收错了
+    - 保证全退
+  required_disclaimer: 退费申请需经审核，具体退费金额及时效以审核结果为准，退款将退回原支付账户。
+  must_include_when:
+    - condition: 提交退费工单时
+      text: 退费申请已提交审核，审核时效一般为3-5个工作日，结果将以短信通知您。
+    - condition: 客户提及法律行动时
+      text: 我们尊重您的权利，同时也请您相信我们会依法合规处理您的诉求。
+    - condition: 涉及诈骗声称时
+      text: 如确认为诈骗行为，建议您及时向公安机关报案，并提供报案证明配合我们处理。
+
+escalation:
+  - trigger: 客户声称已聘请律师或提起诉讼
+  - trigger: 涉及媒体曝光或集体投诉
+  - trigger: 退费金额超出二线处理权限
+
+fallback:
+  answer: 关于退费诉求，我们会认真核实您的情况，按照相关规定为您处理。请提供具体的退费原因和相关凭证，以便我们尽快为您处理。
+  next_step: understand_refund_basis
+slot_sources:
+  agent_name: system:agent_name
+  customer_name: tool:get_customer_profile.name
+  fee_amount: tool:get_bill_and_repayment_plan.fee
+  fee_type: tool:get_bill_and_repayment_plan.fee
+  resolution_proposal: llm:resolution_proposal
+escalation_signals:
+  - 律师
+  - 法院
+  - 起诉
+  - 消费者协会
+  - 消协
+  - 媒体
+  - 投诉到底
+  - 找上级
+  - 坚持退费
+  - 内诉
+priority: 20

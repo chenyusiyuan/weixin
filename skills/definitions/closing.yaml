@@ -1,0 +1,65 @@
+---
+skill_id: closing
+name: 结束语
+description: 客户表示通话即将结束的场景（"没别的了"、"谢谢"、"再见"等）。坐席礼貌结束通话。
+domain: 会话流程
+intent_hierarchy:
+  l1: 会话流程
+  l2: 结束语
+  l3: 通用
+route_mode: direct_reply
+risk_level: low
+priority: 5
+
+triggers:
+  keywords:
+    - 没别的了
+    - 没其他问题了
+    - 谢谢
+    - 再见
+    - 拜拜
+    - 先这样
+    - 挂了
+    - 就这样
+  examples:
+    - 没别的了
+    - 谢谢
+    - 再见
+    - 就这样
+    - 没其他问题
+    - 先这样吧
+    - 好的谢谢再见
+    - 挂了
+  exclude_keywords:
+    - 投诉
+    - 退费
+    - 不满意
+
+tools:
+  required: []
+  optional: []
+
+templates:
+  first_contact:
+    script: |
+      好的，感谢您的来电，祝您生活愉快，再见。
+    required_slots: []
+    next_step: end_conversation
+
+branch_conditions: []
+
+compliance:
+  forbidden_expressions:
+    - 快挂了吧
+    - 别再打来
+  required_disclaimer: ""
+  must_include_when: []
+
+escalation: []
+escalation_signals: []
+
+fallback:
+  answer: 感谢您的来电，再见。
+  next_step: end_conversation
+
+slot_sources: {}

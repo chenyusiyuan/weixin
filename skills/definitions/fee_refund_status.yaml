@@ -1,0 +1,100 @@
+---
+skill_id: fee_refund_status
+name: 退费未到账情况咨询
+description: 处理客户已申请退费但款项未到账的咨询，查询退费进度并说明时效
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 退费进度
+  l3: 费用
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 退费没到账
+    - 退款未到账
+    - 退款什么时候到
+    - 退款进度
+    - 退费到账了吗
+    - 退钱没收到
+    - 退款多久到
+  examples:
+    - 退费未到账是怎么回事
+    - 我申请了退费什么时候到账
+    - 退款还没到账
+    - 已经申请退款了为什么还没收到钱
+    - 退费进度查询
+  exclude_keywords:
+    - 要求退费
+    - 申请退费
+
+tools:
+  required:
+    - get_customer_profile
+    - get_refund_history
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已为您查询了退费记录。
+      您于{refund_apply_date}申请的{refund_amount}元退费，目前状态为{refund_status}。
+      退款将退回您的原支付账户，一般处理时效为3-7个工作日。
+      {additional_info}
+      如超过时效仍未到账，请保留相关凭证并再次联系我们处理。
+    required_slots:
+      - additional_info
+      - customer_name
+      - refund_amount
+      - refund_apply_date
+      - refund_status
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 退费申请处理中，未超时效
+    variant: refund_processing
+    note: 告知处理中，预计时效3-7个工作日，请耐心等待
+  - hint: 退费已处理，打款中
+    variant: refund_remitted
+    note: 告知已打款，到账时效取决于银行处理速度，一般1-3个工作日
+  - hint: 退费已到账
+    variant: refund_completed
+    note: 告知退费已完成，请查看对应银行卡或账户
+  - hint: 退费超时效仍未到账
+    variant: refund_overdue
+    note: 需升级处理，核查退费状态并推进处理
+compliance:
+  forbidden_expressions:
+    - 保证今天到账
+    - 马上到
+    - 立刻到账
+  required_disclaimer: 退款时效一般为3-7个工作日，到账时间受银行处理速度影响，请以实际到账为准。
+  must_include_when:
+    - condition: 退费超时效时
+      text: 如超过7个工作日仍未到账，请保留退费凭证并联系客服，我们会协助您核查处理。
+
+escalation:
+  - trigger: 退费超过7个工作日仍未到账
+  - trigger: 退费金额与申请不符
+
+fallback:
+  answer: 关于退费未到账，需要查询您的退费申请记录，请先配合核实身份信息。退款一般处理时效为3-7个工作日。
+  next_step: verify_identity
+slot_sources:
+  additional_info: llm:additional_info
+  customer_name: tool:get_customer_profile.name
+  refund_amount: llm:refund_amount
+  refund_apply_date: llm:refund_apply_date
+  refund_status: llm:refund_status
+  verification_info: derived:verification_info
+escalation_signals: []

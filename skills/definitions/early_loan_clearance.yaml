@@ -1,0 +1,129 @@
+---
+skill_id: early_loan_clearance
+name: 提前清贷需求
+description: 处理客户提前清贷请求，包括核身验证、挽留流程、清贷卡控标签处理及协助清贷扣款
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 提前清贷
+  l3: 还款
+route_mode: tool_only
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 提前还款
+    - 提前清贷
+    - 提前结清
+    - 一次性还清
+    - 全部还清
+    - 结清贷款
+  examples:
+    - 我要提前还款
+    - 我想一次性还完
+    - 我要提前结清所有账单
+    - 帮我办理提前清贷
+    - 我要全部还完
+  exclude_keywords:
+    - 还款失败
+    - 还款方式
+    - 延期
+    - 延期还款
+    - 过段时间再还
+    - 晚点还
+    - 缓几天还
+    - 还不上
+    - 协商还款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - get_quota_service_info
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      您好，跟您确认一下是否是{loan_amount}的订单呢？
+    required_slots:
+      - loan_amount
+    next_step: check_clearance_support
+
+branch_conditions:
+  - hint: 放款当天，不支持提前清贷
+    variant: not_support_disbursement_day
+    note: |
+      今天是你的放款日，您的款项已经放款成功。毕竟申请一次也不容易，您也花了不少时间，建议您继续使用，后续按照账单周期按时还款即可。如果您确实需要提前清贷，建议您过几天通过APP进行申请。
+  - hint: 账单日当天及前后两天，不建议清贷
+    variant: not_support_near_bill_date
+    note: |
+      马上就要到您的账单日了，您可以根据实际账单来还款，如果您确实需要提前清贷，建议您账单出来后过几天通过APP进行申请。
+  - hint: 最后一期账单日及以后，不建议清贷
+    variant: not_support_last_installment
+    note: |
+      您的账单已经是最后一期并且已经出了账单，建议您按照还款日正常还款即可，可以先把钱用在其他您需要的地方。
+  - hint: 支持清贷，客户原因为资金充裕
+    variant: retention_sufficient_funds
+    note: |
+      {customer_name}，您好，相信您申请借款时也是因为资金需要周转，这边建议您可以按照还款计划按期归还，减少短期一次性还款的压力。现在您资金充足了，以免后续有资金需求哦，建议您这边再考虑看看呢。
+  - hint: 支持清贷，客户原因为费率高
+    variant: retention_high_rate
+    note: |
+      {customer_name}，您好，感谢您的反馈，我们平台是严格遵守国家法律法规，我们的费用标准也都是合法合规的，请您放心。App上面也是明确显示金额的，您这边可以查看金额后再考虑下，毕竟一次性结清短期还款压力还是比较大的，这边建议您可以按照还款计划按期归还呢。
+  - hint: 支持清贷，客户原因为额度不满意
+    variant: retention_quota_dissatisfied
+    note: |
+      {customer_name}，您好，额度方面您不用担心的，是由系统自动审核的，目前的小额度是为您之后的额度做铺垫的，如果您后续按时还款，积累下信用，额度提升起来还是很方便快捷的，建议您这边可以继续分期还款哦。
+  - hint: 支持清贷，客户因催收频繁
+    variant: retention_frequent_collection
+    note: |
+      如果您的账单在逾期状态的话，可能是会有工作人员联系您。主要也是建议您尽快还款，避免因为欠款时间过长，影响到您的个人征信及产生一些不必要的费用，若您不希望被打扰，建议可以及时周转将逾期部分款项还款即可，入账后就不会有人再联系您了。
+  - hint: 无清贷卡控标签，挽留失败，协助清贷
+    variant: assist_clearance_no_tag
+    note: |
+      {customer_name}，您好。这笔账单今日结清金额是{clearance_amount}元，从您尾号为{bank_card_last4}的{bank_name}银行卡进行扣款，您这张银行卡余额充足吗？充足的话，客服这边可以帮您扣款的哦。
+  - hint: 有清贷卡控标签，首次挽留
+    variant: card_control_first_attempt
+    note: |
+      {customer_name}，您好，为防范金融交易风险，确保您的账户安全。目前还在审核中，类似于房贷一样，申请提前结清时需进行审核。您发起申请后，系统会为您审核，请耐心等待。
+  - hint: 有清贷卡控标签且有挽留无效关闭卡控标签，协助关闭卡控
+    variant: card_control_close_tag
+    note: |
+      为了给您提供更好的服务，本次已为您申请处理。因为也是为了防范金融交易风险，确保您的账户安全。仅限为您申请加急一次，感谢您的理解与支持。还是建议您按期还款，也有助于减少您的资金压力。
+compliance:
+  forbidden_expressions:
+    - 保证退款
+    - 一定能结清
+    - 马上办好
+    - 没有任何费用
+    - 免费结清
+  required_disclaimer: 提前清贷操作不可撤销，请确认银行卡余额充足后再进行操作。
+  must_include_when:
+    - condition: 协助清贷扣款时
+      text: 正常处理时效是1-2小时，成功会发送业务办理成功的短信。
+    - condition: 客户询问提前清贷费用
+      text: 提前结清金额以系统显示为准，请查看APP账单详情。
+
+escalation:
+  - trigger: 客户二次进线要求清贷且有卡控标签
+  - trigger: 客户扬言投诉且有卡控标签
+  - trigger: 清贷扣款失败需人工处理
+
+fallback:
+  answer: 关于提前清贷，需要先为您核实账户信息，请稍等。
+  next_step: verify_identity
+slot_sources:
+  loan_amount: tool:get_loan_service_info.loan
+  verification_info: derived:verification_info
+escalation_signals: []

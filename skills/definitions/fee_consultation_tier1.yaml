@@ -1,0 +1,116 @@
+---
+skill_id: fee_consultation_tier1
+name: 费用咨询（一线）
+description: 一线客服解答客户费用相关咨询，包括担保费、担保咨询服务费、利息、综合费率等费用说明；客户不接受时升级至二线
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 费用咨询
+  l3: 费用
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 担保费
+    - 担保咨询服务费
+    - 收费
+    - 费用
+    - 利息
+    - 费率
+    - IRR
+    - 综合费率
+    - 为什么收费
+    - 费用合法吗
+  examples:
+    - 为什么要收担保费
+    - 担保费是什么
+    - 担保费有什么作用
+    - 你们收费合法吗
+    - IRR费率是什么
+    - 为什么收担保咨询服务费
+    - 担保费收取违规
+  exclude_keywords:
+    - 退费
+    - 退款
+    - 要求退
+    - 费用明细查询
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好！首先我们的收费都是合法合规的。
+      根据相关法律法规，担保公司可以收取与担保业务有关的融资咨询、财务顾问等中介服务费用。
+      因为您本次借款是没有任何抵押的，金融机构为了控制风险，综合借款人的信用状况，需要有资质的担保公司对借款人提供担保增信。
+      担保服务咨询费是担保公司根据您的申请条件帮您筛选评估合适的担保公司而收取的费用，该费用由担保公司收取，与您贷款的利息无关。
+      我们所有的费用都是根据合同约定的内容收取，需本人签字认可后才会放款。
+    required_slots:
+      - customer_name
+    next_step: check_customer_acceptance
+
+branch_conditions:
+  - hint: 客户质疑担保费违法
+    variant: guarantee_fee_legality
+    note: |
+      {customer_name}，请您放心所有担保费用收取都是合法合规并且都是由有资质的融资担保公司收取，具体收费主体您可以查看对应合同。
+  - hint: 客户质疑担保公司与平台为同一主体
+    variant: same_entity_query
+    note: |
+      担保公司与平台公司是两家独立的主体，经营过程中依法独立运作，并按照监管规定开展业务。利息由放款方收取，担保费由担保公司收取，各项费用的收取均在合同中明确列示，符合国家法律及合同的约定，不存在变相加息的情况。
+  - hint: 客户质疑捆绑销售
+    variant: bundled_sales_query
+    note: |
+      在您申请贷款的时候，如果涉及到有担保方的贷款，是为了提高您贷款增信的要求而设定的。担保合同是依赖贷款合同（主合同）而存在的从属合同，不能独立存在，两者是相互依存不能分割的，并不是将两种可以独立存在的产品绑定在一起，所以并不涉及捆绑销售。
+  - hint: 客户询问IRR费率
+    variant: irr_rate_explanation
+    note: |
+      根据相关法律要求，我司所有借款均使用IRR计算方式，为了缓解借款人的还款压力，拆分到了每一期账单分期偿还，但请您放心，综合利率都是在法律允许的范围内。
+  - hint: 客户质疑费用未提前告知
+    variant: undisclosed_fee_query
+    note: |
+      关于借款过程中重要信息，比如借款金额、还款计划、逾期影响等，在您借款时有对应的特别提示函，重点提醒您的，具体明细您也可以查看对应借款签署的合同，我司在借款中已经做到了应尽的提醒业务。
+  - hint: 客户坚持不接受费用解释，要求升级
+    variant: escalate_to_tier2
+    note: 转接二线或高阶坐席进行内诉处理
+compliance:
+  forbidden_expressions:
+    - 费用可以不收
+    - 可以给您免除
+    - 这个费用确实有问题
+    - 我们收贵了
+    - 可以帮您退
+  required_disclaimer: 所有费用均在借款合同中明确列示，需本人签字认可后放款，请查阅您的合同了解详情。
+  must_include_when:
+    - condition: 解释任何费用时
+      text: 所有费用收取均合法合规，具体以签署的合同条款为准。
+    - condition: 客户质疑费用合法性时
+      text: 我们平台严格遵守国家法律法规，所有费用的收取都是合法合规的。
+
+escalation:
+  - trigger: 客户坚持认为费用违法且不接受解释
+  - trigger: 客户要求退费
+  - trigger: 客户情绪激动扬言投诉
+
+fallback:
+  answer: 关于费用问题，我们的收费都是合法合规的，具体费用明细可在您签署的合同中查看。如有疑问欢迎进一步咨询。
+  next_step: ask_other_questions
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  verification_info: derived:verification_info
+escalation_signals: []
+priority: 10

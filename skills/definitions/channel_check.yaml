@@ -1,0 +1,59 @@
+---
+skill_id: channel_check
+name: 通话状态确认
+description: 客户询问通话是否畅通、坐席是否能听到（"能听到吗"、"喂喂"等）。坐席确认收听状态并引导继续。
+domain: 会话流程
+intent_hierarchy:
+  l1: 会话流程
+  l2: 通话确认
+  l3: 通用
+route_mode: direct_reply
+risk_level: low
+priority: 5
+
+triggers:
+  keywords:
+    - 能听到吗
+    - 听得到吗
+    - 听见吗
+    - 喂喂
+    - 在吗
+    - 人还在吗
+    - 信号
+  examples:
+    - 能听到吗
+    - 喂喂？
+    - 听得到吗
+    - 你还在吗
+    - 信号不好
+  exclude_keywords: []
+
+tools:
+  required: []
+  optional: []
+
+templates:
+  first_contact:
+    script: |
+      您好，可以听到的，请您说。
+    required_slots: []
+    next_step: wait_business_query
+
+branch_conditions: []
+
+compliance:
+  forbidden_expressions:
+    - 不听
+    - 你说话大声点
+  required_disclaimer: ""
+  must_include_when: []
+
+escalation:
+  - trigger: 信号持续中断，客户反复询问是否能听到
+escalation_signals: []
+
+fallback:
+  answer: 您好，信号听得到，请您继续讲。
+  next_step: wait_business_query
+
+slot_sources: {}

@@ -1,0 +1,115 @@
+---
+skill_id: credit_inquiry
+name: 征信问题咨询
+description: 处理客户关于征信查询授权、上报规则、逾期影响、多次查询记录等各类征信咨询问题，提供专业解释并安抚客户
+domain: 业务办理
+intent_hierarchy:
+  l1: 业务办理
+  l2: 征信咨询
+  l3: 业务办理
+route_mode: tool_rag
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 征信
+    - 征信查询
+    - 信用报告
+    - 上报征信
+    - 影响征信
+    - 征信记录
+    - 征信问题
+    - 查征信
+    - 征信授权
+    - 人行征信
+    - 征信评分
+  examples:
+    - 你们有没有上报征信
+    - 今天还款会影响我征信吗
+    - 我都没有授权，为什么会查我的征信
+    - 为什么我只是一次借款，给我整理好几条查征记录
+    - 我的征信上有你们的记录，想了解一下
+    - 逾期了会不会影响我的房贷
+  exclude_keywords:
+    - 修改征信
+    - 注销征信
+    - 删除征信记录
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - get_quota_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，感谢您的配合。您具体是遇到什么问题了呢？
+      请您详细描述一下，客服将为您专业解答。
+    required_slots:
+      - customer_name
+    next_step: 了解征信问题具体类型，提供针对性解释
+  follow_up:
+    script: >
+      {customer_name}，您好，请您先不要着急，我完全理解您对个人征信信息的重视和担忧。
+      首先请您放心，我司绝对不存在任何未授权私自查询您征信的行为。
+      所有查询行为都必须经过您本人的明确授权方可进行，这是我司严格遵守的法律法规要求。
+    required_slots:
+      - customer_name
+    next_step: 根据具体征信问题类型提供详细解释
+
+branch_conditions:
+  - expr: inquiry_type == unauthorized_query
+    variant: unauthorized_query
+    note: 未授权查征信——解释所有查询均需授权，引导确认授权记录，安抚情绪
+  - expr: inquiry_type == multiple_queries
+    variant: multiple_queries
+    note: 多次查征记录——解释匹配多资方需多次查询，属正常流程，不影响最终授信
+  - expr: inquiry_type == overdue_impact
+    variant: overdue_impact
+    note: 逾期影响征信——说明逾期上报规则，宽限期规则，建议按时足额还款
+  - expr: inquiry_type == reporting_rules
+    variant: reporting_rules
+    note: 征信上报规则咨询——说明还款日当天显示逾期属系统延迟，实际未逾期不影响征信
+  - expr: inquiry_type == credit_score
+    variant: credit_score
+    note: 征信评分咨询——解释评分影响因素，提供改善建议
+  - expr: inquiry_type == credit_freeze
+    variant: credit_inquiry_general
+    note: 其他征信问题——详细了解情况后针对性解答
+compliance:
+  forbidden_expressions:
+    - 征信没问题
+    - 逾期不影响征信
+    - 我们不上报征信
+    - 保证不影响房贷
+    - 征信记录可以删除
+  required_disclaimer: 征信记录按照人民银行相关规定进行上报，具体影响以人行征信系统为准。
+  must_include_when:
+    - condition: overdue_credit_impact
+      text: 逾期将被上报至人行征信系统，影响您的信用记录，建议尽快还款以减少影响
+    - condition: query_authorization_dispute
+      text: 所有征信查询均需您的明确授权，如确有异议可向人民银行征信中心申请异议处理
+
+escalation:
+  - trigger: 客户声称征信存在错误记录需要更正
+  - trigger: 客户威胁向监管部门投诉征信问题
+  - trigger: 涉及多资方征信纠纷无法单方面解决
+
+fallback:
+  answer: >
+    {customer_name}，您好，关于您反映的征信问题，客服已详细记录，
+    将转交专业部门核实处理。如您有征信异议，也可直接向中国人民银行征信中心
+    或相关金融机构提出异议申请。
+  next_step: 提交征信问题工单，告知客户处理时效
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals:
+  - 征信投诉
+  - 人行投诉
+  - 征信异议
+  - 征信错误

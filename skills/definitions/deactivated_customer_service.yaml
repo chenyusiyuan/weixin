@@ -1,0 +1,89 @@
+---
+skill_id: deactivated_customer_service
+name: 已注销客户进线服务
+description: 处理已注销账户客户进线咨询业务的场景。账户已注销意味着个人信息已删除，系统无法查询相关信息。一线客服无需核身，须优先婉拒客户查询请求；发票/征信等可举证场景可推送异议处理短信；其他场景再次婉拒后仍不接受则推送短信由专员处理。
+domain: 账户
+intent_hierarchy:
+  l1: 信息维护
+  l2: 已注销客户
+  l3: 账户
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 已注销
+    - 注销了
+    - 账户注销
+    - 注销账号
+    - 注销后
+  examples:
+    - 我之前注销了账号，现在想查一下账单
+    - 我的账户已经注销了，能帮我查一下征信问题吗
+    - 我注销了但是发票还没开，怎么办
+    - 账户注销之后我的借款记录还能查到吗
+    - 我注销账号了还能办理业务吗
+  exclude_keywords:
+    - 想要注销
+    - 申请注销
+    - 怎么注销
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: "{customer_name}，您好，根据您提供的信息，没有查询到您的账户，请问您的账户已经注销了吗？如果注销了的话，目前是查询不到您的账户信息的哦~"
+    required_slots:
+      - customer_name
+    next_step: confirm_issue
+  follow_up:
+    script: "{customer_name}，很抱歉，一旦注销账户就意味着您的个人账户信息将不被保留，我们确实无法再提供该注销账号的相关咨询和售后服务了。请问您具体遇到什么问题了呢？"
+    required_slots:
+      - customer_name
+    next_step: classify_issue
+
+branch_conditions:
+  - hint: 客户反映发票或可举证问题
+    variant: send_dispute_sms
+    note: 推送【异议处理】短信，告知客户由专员联系处理，短信时效72小时
+  - hint: 客户反映征信问题
+    variant: credit_report_flow
+    note: 一线可优先询问办理事项，正常受理征信问题流程
+  - hint: 客户无法举证其他场景
+    variant: reject_and_escalate
+    note: 再次婉拒，客户不接受可推送【异议处理】短信，由专员处理
+  - hint: 注销后重新注册客户进线
+    variant: handle_current_order_only
+    note: 仅受理当前注册业务，一线无法查询相关订单直接升级
+compliance:
+  forbidden_expressions:
+    - 您的信息我们都有
+    - 我们可以帮您查到
+    - 保证能处理
+  required_disclaimer: 账户注销后个人信息已删除，无法提供相关账号的咨询和售后服务
+  must_include_when:
+    - condition: 推送异议处理短信
+      text: 短信时效72小时，超时失效；短信发送后生成注销服务工单，处理时效24小时
+    - condition: 短信无法收到
+      text: 可参考投诉升级流程
+
+escalation:
+  - trigger: 客户反映征信问题，需正常受理征信流程
+  - trigger: 客户坚持要求处理且无法举证，推送异议处理短信后仍不接受
+  - trigger: 注销后重新注册且一线无法查询到相关订单
+
+fallback:
+  answer: "{customer_name}，非常抱歉，由于您的账户已经注销，相关信息已无法查询。如您有疑问，我可以为您发送异议处理短信，会有专员在24小时内联系您。"
+  next_step: offer_dispute_sms
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []
+priority: 20

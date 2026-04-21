@@ -1,0 +1,32 @@
+# 高频混淆簇判别规则
+# 用于 SkillRouter 动态拼接到 prompt，只在候选列表包含簇内 ≥2 个 skill 时才注入该簇规则
+# 可由运营人员直接编辑，无需改代码
+
+clusters:
+  - name: 扣款簇
+    skills:
+      deduction_issues: "客户质疑异常/陌生/多笔扣款（关键词：为什么扣、怎么又扣、重复扣款、多扣、其他平台扣款）"
+      repayment_status_issue: "客户自己发起的还款出问题（失败/未更新/部分扣款）。特征：明确说『我还款了...』、『扣款失败』、『还完没更新』"
+      bill_deduction_query: "客户查本期应扣/已扣的账单状态（关键词：账单扣了吗、查账单、本期扣款）"
+      fee_detail_query: "客户问扣款构成明细（关键词：这是什么费用、利息多少、本金和利息、担保费、服务费）"
+    tie_breaker: "判别顺序：费用构成(fee_detail_query) → 异常扣款(deduction_issues) → 自己还款出问题(repayment_status_issue) → 常规查账单(bill_deduction_query)"
+
+  - name: 催收簇
+    skills:
+      stop_collection: "客户明确要求停止未来的催收电话（请停止催收、不要再打电话催、别给我打了）；**不涉及**投诉催收品质或营销话术"
+      collection_complaint: "客户对已发生的催收行为不满/投诉（特征：态度差、骚扰、频繁、威胁、爆通讯录、已经还了还在催）。情绪化/指责语气是强信号"
+      post_loan_verification: "客户**质疑/核实**催收员或账号真伪（特征：是不是你们员工、工号XXXX、对公账号真的吗、调解员靠谱吗）。诉求是'辨真伪'而非投诉或停电话"
+      stop_marketing: "停止**营销/推销**电话或短信（非催收，无逾期背景）。关键词：老给我打电话贷款、推销、营销短信、让我借钱"
+    tie_breaker: "判别顺序：核实身份(post_loan_verification) → 投诉品质(collection_complaint) → 停止营销(stop_marketing) → 要求停催(stop_collection)"
+
+  - name: 还款结果簇
+    skills:
+      repayment_result_query: "客户**查询**还款结果/是否成功（中性语气，不断言失败）。关键词：查一下、到账了吗、确认一下、怎么查"
+      repayment_status_issue: "客户**断言**还款出了问题（失败/未更新/部分扣款/重复扣款）。关键词：还款失败、没更新、只扣了一部分、已经还了还在催"
+    tie_breaker: "判别顺序：若句中有'失败/没更新/只扣/重复扣/扣错'等异常断言 → repayment_status_issue；若只是中性查询 → repayment_result_query"
+
+  - name: 还款方式簇
+    skills:
+      repayment_method_inquiry: "客户问有哪些还款方式/怎么还（包括请发二维码/对公账号）"
+      card_rebinding: "客户明确要换/更换/绑定银行卡"
+      repayment_status_issue: "客户用现有方式还款失败要处理问题"

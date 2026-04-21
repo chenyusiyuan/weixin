@@ -1,0 +1,82 @@
+---
+skill_id: remote_disbursement
+name: 异地放款
+description: 处理客户投诉合作放款方存在违规异地放款的场景。需核身后查询客户贷款订单，第一时间确认客户实际诉求，坚持告知放款方为持牌金融机构、放款不存在违规。若客户可提供完整证据链且异地放款四要素（身份证前六位、户籍地址、正常IP地址、APP填写居住地）均不符合，则上报消保团队处理。
+domain: 贷款
+intent_hierarchy:
+  l1: 申请咨询
+  l2: 异地放款
+  l3: 贷款
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 异地放款
+    - 违规放款
+    - 跨地区放款
+    - 放款方违规
+    - 不是本地放款
+    - 异地
+    - 放款方所在地
+  examples:
+    - 你们合作的放款方违规异地放款了
+    - 为什么是外地的机构给我放款
+    - 放款方不在我所在地，这不是异地放款吗
+    - 我要投诉你们异地放款违规
+    - 你们放款方有没有异地放款的资质
+  exclude_keywords:
+    - 放款进度
+    - 什么时候放款
+    - 取消贷款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_loan_service_info
+  optional:
+    - get_bill_and_repayment_plan
+
+templates:
+  first_contact:
+    script: "{customer_name}，您好，您放心，我们合作的放款方都是持牌金融机构，放款会经过重重审核的，不会存在违规的情况，并且您这笔贷款也不存在异地放款的情况，请问您目前是碰到什么问题了呢？"
+    required_slots:
+      - customer_name
+    next_step: understand_actual_demand
+  follow_up:
+    script: "{customer_name}，您好，帮您核实了一下，您这笔贷款不存在异地放款的情况，我相信您投诉也是为了解决问题，您可以告诉我您的诉求，看看我能不能帮您解决。"
+    required_slots:
+      - customer_name
+    next_step: resolve_actual_demand
+
+branch_conditions:
+  - hint: 客户坚持要求提供放款方可异地放款的凭证
+    variant: firm_denial_with_best_offer
+    note: 告知贷款不存在异地放款情况，建议客户考虑我司给到的最优方案
+  - hint: 客户询问如何核实异地放款
+    variant: explain_verification_criteria
+    note: 告知如有疑问可提供凭证，客服帮助核实；四要素：身份证前六位对应地区、户籍地址、正常IP地址、APP自行填写的居住地
+  - hint: 客户提供完整证据链且四要素均不符合
+    variant: escalate_to_consumer_protection
+    note: 告知已收到凭证，情况特殊，帮助核实后回复；上报消保团队处理
+compliance:
+  forbidden_expressions:
+    - 我们承认有异地放款
+    - 放款方可能存在违规
+    - 我们无法确认是否合规
+  required_disclaimer: 我司合作资方均按照监管要求进行相关报备，给您放款经过重重资质审核，合法合规
+  must_include_when:
+    - condition: 客户提供凭证
+      text: 凭证收到后核实情况，后续给到回复；上报消保团队处理
+
+escalation:
+  - trigger: 客户提供完整证据链且四要素均不符合，上报消保团队（联系人：费雯）
+  - trigger: 客户强烈投诉且无法安抚，升级二线处理
+
+fallback:
+  answer: "{customer_name}，能理解您的心情，如果对这笔贷款有疑问的话可以提供凭证给我们，我们帮您做进一步核实。"
+  next_step: request_evidence_from_customer
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

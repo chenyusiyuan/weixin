@@ -1,0 +1,102 @@
+---
+skill_id: fee_refund_tier1
+name: 要求退费（一线）
+description: 一线客服处理客户退费诉求，查询账单信息，说明费用收取合理性，能退则按流程处理，不能退则告知理由；复杂退费升级二线
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 要求退费
+  l3: 费用
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 退费
+    - 退款
+    - 要求退
+    - 退钱
+    - 把钱退给我
+    - 退担保费
+    - 退利息
+    - 申请退款
+  examples:
+    - 我要退担保费
+    - 帮我申请退款
+    - 我要求退费
+    - 你们把钱退给我
+    - 这个费用不合理要退
+    - 我要退全部费用
+  exclude_keywords:
+    - 退费进度
+    - 退费到账
+    - 溢余退款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - get_refund_history
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已为您查询了账单信息。
+      请问您希望申请退还哪笔费用呢？具体是哪一期、哪项费用？
+      我们会根据您的情况，按照相关规定为您核实处理。
+    required_slots:
+      - customer_name
+    next_step: evaluate_refund_eligibility
+
+branch_conditions:
+  - hint: 客户退费诉求符合退费规则
+    variant: refund_eligible
+    note: 按流程发起退费申请，告知退费时效
+  - hint: 客户退费诉求不符合退费规则
+    variant: refund_not_eligible
+    note: |
+      {customer_name}，关于您申请退还{fee_type}的诉求，根据我们的合同约定和相关规定，该费用{refund_denial_reason}，目前暂时无法为您退还。
+      所有费用均是您在签署合同时确认的，是合法合规的收费。
+  - hint: 客户情绪激动，坚持退费
+    variant: persistent_demand_escalate
+    note: 一线解释后客户仍坚持，转接二线处理
+  - hint: 客户接受解释，放弃退费
+    variant: customer_accepts_no_refund
+    note: 感谢理解，询问是否有其他问题
+compliance:
+  forbidden_expressions:
+    - 肯定能退
+    - 我帮您退
+    - 这个费用确实不合理
+    - 我们收错了
+  required_disclaimer: 退费申请需按照合同约定及相关规定执行，具体退费条件以实际审核结果为准。
+  must_include_when:
+    - condition: 告知不能退费时
+      text: 所有费用均在您签署的合同中明确列示，是您本人签字确认后生效的合法收费。
+    - condition: 发起退费申请时
+      text: 退费申请已提交，退款时效一般为3-7个工作日，届时将退回您的原支付账户。
+
+escalation:
+  - trigger: 客户坚持退费且一线无法处理
+  - trigger: 客户扬言投诉或采取法律行动
+  - trigger: 退费金额较大需上级审批
+
+fallback:
+  answer: 关于退费诉求，需要为您查询账单详情评估退费条件，请先配合核实身份信息。
+  next_step: verify_identity
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  verification_info: derived:verification_info
+escalation_signals: []
+priority: 10

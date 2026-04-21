@@ -1,0 +1,101 @@
+---
+skill_id: disbursement_progress
+name: 放款进度查询
+description: 处理客户查询贷款放款进度的场景。需核身后查询系统中贷款状态，覆盖：审核通过放款中（预计1-10个工作日）、放款失败/已解约、放款延迟、导流产品放款疑问、被诈骗后要求本金结清等多种子场景。超T+1工作日仍在放款中需发运维工单。
+domain: 贷款
+intent_hierarchy:
+  l1: 申请咨询
+  l2: 放款进度
+  l3: 贷款
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 放款进度
+    - 什么时候放款
+    - 到账了吗
+    - 贷款到账
+    - 放款多久
+    - 还没收到钱
+    - 放款方
+    - 放款慢
+    - 审核通过
+    - 放款中
+  examples:
+    - 我申请了一笔贷款，帮我看下现在到哪一步了
+    - 我的贷款还没收到钱，是还没到吗
+    - 你们放款怎么这么慢
+    - 为什么到现在还没有放款
+    - 你们到底什么时候才能放款
+  exclude_keywords:
+    - 取消贷款
+    - 解约
+    - 注销
+
+tools:
+  required:
+    - get_customer_profile
+    - get_loan_service_info
+  optional:
+    - get_bill_and_repayment_plan
+    - get_quota_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: "为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_items}？"
+    required_slots:
+      - verification_items
+    next_step: verify_identity
+  follow_up:
+    script: "{customer_name}，您好，查询到您的这笔{loan_amount}元的款项已经审核通过，当前是在放款中，从审核通过第二天开始，预计1-10个工作日内到账，最晚到账为{latest_date}（除放款延迟的情况），周末及节假日不放款，请您耐心等待。"
+    required_slots:
+      - customer_name
+      - latest_date
+      - loan_amount
+    next_step: close_or_further_assist
+
+branch_conditions:
+  - hint: 系统查询已审核通过，放款中
+    variant: disbursing_status
+    note: 告知预计1-10个工作日到账，最晚到账日期；T+1工作日内安抚等待，超T+1发运维工单
+  - hint: 系统显示已解约/放款失败
+    variant: failed_disbursement
+    note: 告知系统综合评估未申请成功，会有短信提醒，提现入口关闭，后续可重新尝试
+  - hint: 放款延迟
+    variant: delayed_disbursement
+    note: 安抚客户，告知系统自动放款无法确认具体时间，加急反馈处理
+  - hint: 导流产品放款（非豆豆钱直接放款）
+    variant: partner_disbursement
+    note: 告知合作平台均为持牌金融机构，合法合规，客户已签署协议
+  - hint: 客户反映被诈骗，要求本金结清
+    variant: fraud_victim
+    note: 引导提供报警回执单，发信息安全工单报备；需减免清贷则升级二线
+compliance:
+  forbidden_expressions:
+    - 保证今天到账
+    - 明天一定放款
+    - 具体到账时间是XX
+  required_disclaimer: 款项由系统自动安排放款，无法为客户保障具体到账时间
+  must_include_when:
+    - condition: 放款中状态
+      text: 周末及节假日不放款，请关注银行卡到账情况
+    - condition: 被诈骗场景
+      text: 需提供报警回执单，发信息安全工单报备
+
+escalation:
+  - trigger: 超T+1工作日仍在放款中，发运维工单，工单分类"放款延迟"
+  - trigger: 客户反映被诈骗，需减免清贷，升级二线处理
+  - trigger: 客户强烈投诉放款问题，升级主管
+
+fallback:
+  answer: "{customer_name}，您好，非常抱歉给您带来不好的感受，我理解您肯定是比较着急的，我也会帮您加急反馈记录，但是款项是系统自动安排放款的，我们确实无法为您保障具体到账的时间，请您再耐心等待一下，实在非常抱歉。"
+  next_step: submit_ops_ticket_if_overdue
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  latest_date: llm:latest_date
+  loan_amount: tool:get_loan_service_info.loan
+  verification_items: llm:verification_items
+escalation_signals: []

@@ -1,0 +1,104 @@
+---
+skill_id: no_quota_issue
+name: 无额度问题
+description: 客户反映申请贷款后无额度、额度为零或无法获取额度的问题处理场景。需要核身验证并查询系统，属于中风险查询类业务，需结合客户信息和贷款记录进行综合判断和解释。
+domain: 额度
+intent_hierarchy:
+  l1: 产品与信息
+  l2: 额度问题
+  l3: 无额度
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 没有额度
+    - 无额度
+    - 额度为零
+    - 申请了没有额度
+    - 贷款没有额度
+    - 额度消失
+    - 额度不见了
+    - 额度激活超时
+    - 信用认证超时
+  examples:
+    - 我申请了一笔贷款，怎么没有额度？
+    - 为什么我申请你们的贷款没有额度？
+    - 我之前有额度，现在怎么没了？
+    - 额度一直显示激活中是怎么回事？
+    - 信用认证超时怎么办？
+  exclude_keywords:
+    - 额度咨询
+    - 最高额度
+    - 可以贷多少
+
+tools:
+  required:
+    - get_customer_profile
+    - get_quota_service_info
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的姓名和{verify_question}？
+    required_slots:
+      - verify_question
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}先生/女士，您好，请问您是通过什么渠道办理的贷款呢？客服暂未查询到相关信息，建议您再核实下哦。
+
+      （系统查询到贷款信息时）请问是{loan_date}申请的贷款吗？请问您具体是遇到什么问题了呢？
+
+      关于无额度问题：系统额度评估是根据您的综合资质进行的，如暂时未能获得额度，建议您保持良好的信用记录，过段时间再尝试申请。
+    required_slots:
+      - customer_name
+      - loan_date
+    next_step: explain_and_resolve
+
+branch_conditions:
+  - hint: 系统中未查询到贷款信息
+    variant: no_loan_record
+    note: 询问客户贷款渠道，建议再核实
+  - hint: 系统中查询到贷款信息
+    variant: has_loan_record
+    note: 与客户核实贷款日期，进一步了解具体问题
+  - hint: 额度获取显示激活中/超时，未超过3天
+    variant: wait_activation
+    note: 告知耐心等待，同时检查身份证是否过期
+  - hint: 额度获取超过3天且身份证未过期
+    variant: ops_ticket
+    note: 发运维工单处理
+  - hint: 预约借款相关问题
+    variant: reserved_loan
+    note: 说明预约借款机制，放款金额以实际为准
+compliance:
+  forbidden_expressions:
+    - 保证有额度
+    - 一定能贷到
+    - 肯定会审批通过
+    - 额度马上就有
+  required_disclaimer: 额度评估结果由系统根据您的综合资质决定，客服无法干预或承诺。
+  must_include_when:
+    - condition: 客户质疑额度评估不公平
+      text: 系统评估是根据您的综合信用资质进行的，结果公平客观，具体以系统为准。
+
+escalation:
+  - trigger: 额度获取超过3天且身份证未过期，发运维工单
+  - trigger: APP显示另一台设备进行额度召唤，收集错误截图发运维工单
+  - trigger: 召唤额度多次显示手机报告查询失败，建议等待重试，多次失败升级处理
+  - trigger: 客户情绪激动且坚持投诉，转接主管处理
+
+fallback:
+  answer: 您好，关于无额度问题，系统评估需要一定时间，建议您登录APP查看最新状态。如3个工作日后仍无变化，请再次联系客服，我们将为您进一步核实处理。
+  next_step: create_ticket
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  loan_date: tool:get_loan_service_info.loan
+  verify_question: system:verify_question
+escalation_signals: []

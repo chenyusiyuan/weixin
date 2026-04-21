@@ -1,0 +1,99 @@
+---
+skill_id: contract_retrieval
+name: 调取合同
+description: 协助客户调取查看贷款合同，挖掘调取原因并处理，引导APP自助查看，账户注销情况下说明法规依据
+domain: 业务办理
+intent_hierarchy:
+  l1: 业务办理
+  l2: 调取合同
+  l3: 业务办理
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 调取合同
+    - 查看合同
+    - 贷款合同
+    - 合同复印件
+    - 合同原件
+    - 电子合同
+    - 合同查看
+    - 借款合同
+  examples:
+    - 我要调合同
+    - 我要看我的合同
+    - 你们把我之前的贷款合同帮我调取下吧
+    - 我需要一份贷款合同的复印件
+    - 帮我查一下我的借款合同
+  exclude_keywords:
+    - 结清证明
+    - 发票
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，非常抱歉，能冒昧问下您是因为什么原因需要调取合同吗？
+      客服了解一下您的具体需求，看看能否帮您直接解决问题。
+    required_slots:
+      - customer_name
+    next_step: 了解调取原因，尝试直接解决问题
+  follow_up:
+    script: >
+      {customer_name}，您好，您可以在APP端自助查看合同哦，路径是：
+      我的 - 借款记录 - 查看合同。
+      如果您是因为其他原因需要合同，请告知客服，我们会尽力协助您处理。
+    required_slots:
+      - customer_name
+    next_step: 引导APP自助查看，若客户坚持则按一线/二线路径处理
+
+branch_conditions:
+  - expr: loan_status == active and no_overdue
+    variant: tier1_active
+    note: 还款中未逾期（一线）——询问原因，尝试解决，引导APP查看路径【我的-借款记录-查看合同】
+  - expr: loan_status == active and has_overdue
+    variant: tier1_overdue
+    note: 还款中已逾期（一线）——询问原因，引导APP查看，坚持则升级二线
+  - expr: loan_status == cleared
+    variant: tier2_cleared
+    note: 已结清订单（二线）——发送电子合同至邮箱，1-3工作日处理
+  - expr: account_cancelled
+    variant: account_cancelled
+    note: 账户已注销——依据《国家标准GB/T 35273-2020》第8.5条说明，数据已处理，无法提供
+  - expr: customer_requires_paper_copy
+    variant: paper_copy
+    note: 要求纸质合同——说明只提供电子版，纸质如有需要引导线下公证
+compliance:
+  forbidden_expressions:
+    - 合同已经销毁
+    - 没有这份合同
+    - 不提供合同
+  required_disclaimer: 合同为电子版，可通过APP自助查看或申请发送至邮箱。
+  must_include_when:
+    - condition: account_cancelled_data_deleted
+      text: 根据《国家标准GB/T 35273-2020信息安全技术个人信息安全规范》第8.5条，账户注销后已对个人信息进行删除或匿名化处理
+    - condition: contract_sent_by_email
+      text: 合同将发送至您的邮箱，请提供常用邮箱地址，1-3个工作日内发送，请注意查收
+
+escalation:
+  - trigger: 客户涉及法律诉讼需要原始合同作为证据
+  - trigger: 一线无法满足客户需求需升级二线处理
+  - trigger: 客户账户已注销且坚持要求提供合同
+
+fallback:
+  answer: >
+    {customer_name}，您好，客服已记录您的合同调取申请，将转交相关部门处理，
+    预计1-3个工作日内会通过邮件方式发送给您，请提供您的常用邮箱地址。
+  next_step: 收集邮箱，提交合同调取工单
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

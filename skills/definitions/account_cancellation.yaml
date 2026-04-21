@@ -1,0 +1,90 @@
+---
+skill_id: account_cancellation
+name: 注销账户
+description: 处理客户主动申请注销账户的场景。需先核实客户身份（高风险业务），了解注销原因并进行针对性挽留，若客户坚持则协助办理。豆豆钱优先引导APP自助注销或发送短信链接，卡卡贷可人工操作注销。注销前须确认所有欠款已结清、无申请中借款。
+domain: 账户
+intent_hierarchy:
+  l1: 信息维护
+  l2: 注销账户
+  l3: 账户
+route_mode: tool_only
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 注销账户
+    - 注销账号
+    - 注销我的账号
+    - 取消账户
+    - 想注销
+    - 要注销
+    - 删除账号
+  examples:
+    - 我不想用了，帮我注销账号
+    - 我要注销账户，不需要这个平台了
+    - 怎么把我的账号删掉
+    - 帮我关闭账号
+    - 我要永久注销
+  exclude_keywords:
+    - 已经注销
+    - 注销了
+    - 注销后怎么
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: "{customer_name}，非常抱歉，请问您是什么原因想要注销账户呢？"
+    required_slots:
+      - customer_name
+    next_step: retention_flow
+  follow_up:
+    script: "{customer_name}，您好，建议您再考虑一下，因为后续可能您还会有贷款的需求，那么您在我们这边已经有过的贷款记录有助于提升再次贷款的额度，另外您对我们的放款和还款的流程也比较熟悉，如果去找一家新的平台这些都需要重新适应学习，在我们这里贷款会更方便的。如果注销了，账户的信息我们都会删除，如果您再来贷款的话，作为初始贷款额度相对不会很高，您看账户还是做个保留比较好，对吧。"
+    required_slots:
+      - customer_name
+    next_step: confirm_cancellation_or_retain
+
+branch_conditions:
+  - hint: 客户坚持注销（豆豆钱）
+    variant: doudouqian_self_service
+    note: 优先引导APP自助操作"我的-设置-注销账户"或发送短信链接；坚持人工操作且提及投诉则升级二线
+  - hint: 客户坚持注销（卡卡贷/维信闪贷）
+    variant: kakaday_manual_cancel
+    note: 可操作人工注销，需客户提供身份证号，告知注销事项后确认执行
+  - hint: 客户有未结清欠款
+    variant: cannot_cancel_outstanding
+    note: 告知所有欠款结清后方可注销
+  - hint: 客户提及投诉（豆豆钱）
+    variant: escalate_to_tier2
+    note: 建"投诉工单-内部"升级二线处理
+compliance:
+  forbidden_expressions:
+    - 不能注销
+    - 您的账户无法注销
+    - 用注销账号解决其他问题
+  required_disclaimer: 注销前须告知：所有欠款已结清、零钱包/优惠券/积分等数据清空无法恢复、无法开具结清证明及发票、无法查看历史合同及借还款记录
+  must_include_when:
+    - condition: 协助注销前
+      text: 请确认所有借款已结清，且没有申请中的借款，否则无法注销该账号
+
+escalation:
+  - trigger: 豆豆钱客户坚持人工注销且提及投诉，建"投诉工单-内部"升级二线
+  - trigger: 客户有未结清贷款或账单无法注销
+  - trigger: 非我司APP进线要求注销账户，升级处理
+
+fallback:
+  answer: >-
+    {customer_name}，您先消消气，您可以打开APP，点击"我的-设置-注销账户"尝试申请注销哦。如果您需要客服协助，请提供您的身份证号码，我们将为您处理。
+  next_step: collect_id_for_manual_cancel
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []
+priority: 10

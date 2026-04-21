@@ -1,0 +1,80 @@
+---
+skill_id: card_rebinding
+name: 换绑银行卡
+description: 指导客户在APP中更换绑定的还款银行卡，纯操作指引无需工具调用
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 换绑银行卡
+  l3: 还款
+route_mode: direct_reply
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 换绑银行卡
+    - 更换银行卡
+    - 换卡
+    - 重新绑卡
+    - 换还款卡
+    - 更换还款账户
+    - 绑定新银行卡
+  examples:
+    - 如何换绑银行卡
+    - 我想换一张银行卡还款
+    - 怎么更换绑定的银行卡
+    - 我的银行卡换了，怎么改
+    - 换绑还款卡怎么操作
+  exclude_keywords:
+    - 还款失败
+    - 还款方式
+    - 提前清贷
+
+tools:
+  required: []
+  optional:
+    - get_customer_profile
+
+templates:
+  first_contact:
+    script: |
+      为了更好地与您沟通，请问怎么称呼您呢？
+    required_slots: []
+    next_step: guide_card_rebinding
+  follow_up:
+    script: |
+      {customer_name}，您好。换绑银行卡可以通过APP进行操作，操作路径如下：
+      APP首页 → 我的 → 我的银行卡 → 选择需要更换的银行卡右上角的三个点"..." → 更换银行卡
+      按照页面提示完成新银行卡的绑定即可。如绑卡过程中遇到问题，欢迎在服务时间（8:00-21:00）再次联系我们。
+    required_slots:
+      - customer_name
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 客户反映APP操作找不到入口
+    variant: app_path_not_found
+    note: 再次详细说明路径：我的 → 我的银行卡 → 右上角三个点
+  - hint: 客户反映换卡失败
+    variant: card_rebinding_failed
+    note: 告知可在服务时间联系客服协助处理，转人工或记录工单
+compliance:
+  forbidden_expressions:
+    - 随便换
+    - 什么卡都可以
+    - 保证绑卡成功
+  required_disclaimer: "具体支持银行卡类型以APP显示为准"
+  must_include_when:
+    - condition: 客户询问支持哪些银行卡
+      text: 具体支持的银行卡类型请在APP绑卡页面查看，不同产品支持的银行卡范围可能有所差异。
+
+escalation:
+  - trigger: 客户多次尝试换绑失败
+  - trigger: 客户反映APP无换绑入口
+
+fallback:
+  answer: 换绑银行卡请在APP中操作：我的 → 我的银行卡 → 选择银行卡右上角"..." → 更换银行卡。如有问题请在服务时间8:00-21:00联系客服。
+  next_step: ask_other_questions
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

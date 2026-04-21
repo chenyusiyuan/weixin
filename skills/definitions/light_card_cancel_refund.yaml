@@ -1,0 +1,95 @@
+---
+skill_id: light_card_cancel_refund
+name: 轻享卡取消退费
+description: 处理客户申请取消轻享卡续费或退轻享卡费用的场景。轻享卡为平台与第三方服务商（400-018-9000）合作推出的增值服务。优先挽留说明权益价值，坚持取消续费引导在APP关闭（我的卡券-权益券包-管理-续费管理）或联系服务商；坚持退费引导联系服务商；风险客户不方便联系则协助反馈，1-3个工作日处理。
+domain: 活动
+intent_hierarchy:
+  l1: 营销活动
+  l2: 轻享卡取消退费
+  l3: 活动
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 轻享卡
+    - 轻享卡续费
+    - 轻享卡扣费
+    - 取消轻享卡
+    - 退轻享卡
+    - 轻享卡退费
+    - 轻享卡不要了
+  examples:
+    - 怎么有个轻享卡扣费，你给我查一下退掉
+    - 我收到短信说是轻享卡续费扣款，我不需要
+    - 我要取消轻享卡
+    - 退轻享卡的费用
+    - 轻享卡我没有开通过，怎么扣费了
+  exclude_keywords:
+    - 增值服务
+    - 加速卡
+    - 赋强公证
+    - 停止营销
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_membership_service_info
+    - get_refund_history
+    - query_ticket
+
+templates:
+  first_contact:
+    script: "为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_items}？"
+    required_slots:
+      - verification_items
+    next_step: verify_identity
+  follow_up:
+    script: "{customer_name}，您好，这是平台与三方服务商合作为客户推出的增值服务哦，具体权益内容可联系服务商了解下哦~服务商客服热线：400-018-9000，人工服务时间是：9:00-21:00~"
+    required_slots:
+      - customer_name
+    next_step: retention_or_guide_cancel
+
+branch_conditions:
+  - hint: 客户收到续费扣款短信，坚持取消续费
+    variant: guide_self_cancel_renewal
+    note: 引导通过豆豆钱APP【我的卡券-权益券包-管理-续费管理】关闭续费；或联系服务商400-018-9000（9:00-21:00）
+  - hint: 客户要求取消轻享卡，坚持退费，愿意联系服务商
+    variant: provide_vendor_contact
+    note: 提供服务商联系方式：400-018-9000，人工服务时间9:00-21:00
+  - hint: 客户不接受联系服务商，非风险客户
+    variant: non_risk_firm_decline
+    note: 告知这是平台与三方服务商合作服务，需联系服务商协商，我司无法直接操作退费
+  - hint: 客户不接受联系服务商，风险客户
+    variant: risk_client_assist
+    note: 协助反馈给服务商处理，预计1-3个工作日，保持电话畅通
+  - hint: 客户已联系供应商但不处理或对处理结果不满
+    variant: escalate_vendor_dispute
+    note: 协助反馈服务商沟通处理，预计1-3个工作日，请耐心等待保持电话畅通
+compliance:
+  forbidden_expressions:
+    - 我们可以直接退费
+    - 保证退款成功
+    - 服务商一定会退
+  required_disclaimer: 轻享卡为平台与第三方服务商合作推出的增值服务，退费事宜需联系服务商协商处理
+  must_include_when:
+    - condition: 引导联系服务商
+      text: 服务商客服热线：400-018-9000，人工服务时间：9:00-21:00
+    - condition: 协助反馈处理
+      text: 预计处理时间1-3个工作日，建议耐心等待，保持电话畅通
+
+escalation:
+  - trigger: 风险客户不方便联系服务商，协助反馈，1-3个工作日处理
+  - trigger: 客户已联系服务商但不满意处理结果，协助反馈服务商沟通
+  - trigger: 客户强烈投诉，升级投诉处理流程
+
+fallback:
+  answer: "{customer_name}，您消消气，如您确实不需要这项服务，客服可以提供对应服务商的联系方式及工作时间给您，在您方便时可联系服务商沟通下哦~服务商客服热线：400-018-9000，人工服务时间：9:00-21:00~"
+  next_step: provide_vendor_contact_and_close
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  verification_items: llm:verification_items
+escalation_signals: []

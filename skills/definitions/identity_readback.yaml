@@ -1,0 +1,69 @@
+---
+skill_id: identity_readback
+name: 核身信息回答
+description: 客户回答身份核验问题的场景，如回答姓名、手机号、身份证号、绑定银行、借款金额等。坐席需要确认收到并推进业务问题了解。
+domain: 会话流程
+intent_hierarchy:
+  l1: 会话流程
+  l2: 核身回答
+  l3: 通用
+route_mode: direct_reply
+risk_level: low
+priority: 5
+
+triggers:
+  keywords:
+    - 建设银行
+    - 工商银行
+    - 农业银行
+    - 中国银行
+    - 招商银行
+    - 交通银行
+    - 邮政银行
+    - 身份证
+    - 我叫
+    - 我是
+    - 姓名
+  examples:
+    - 李春花
+    - 我叫李春花
+    - 建设银行的
+    - 工商银行
+    - 我的身份证号是
+    - 我的手机号是
+    - 我是王先生
+  exclude_keywords:
+    - 还款失败
+    - 退费
+    - 催收
+
+tools:
+  required: []
+  optional: []
+
+templates:
+  first_contact:
+    script: |
+      好的，{customer_name}，信息已收到。请问您今天联系我们主要是想处理什么问题呢？
+    required_slots:
+      - customer_name
+    next_step: elicit_business_query
+
+branch_conditions: []
+
+compliance:
+  forbidden_expressions:
+    - 不用核实了
+    - 随便说
+  required_disclaimer: ""
+  must_include_when: []
+
+escalation: []
+escalation_signals: []
+
+fallback:
+  answer: 好的，信息已记录。请问您具体想咨询什么问题？
+  next_step: elicit_business_query
+
+slot_sources:
+  customer_name: user_input:customer_name

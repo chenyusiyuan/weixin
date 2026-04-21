@@ -1,0 +1,96 @@
+---
+skill_id: stop_marketing
+name: 停止营销
+description: 处理客户投诉频繁收到营销电话/短信，要求关闭营销服务的场景。属于低风险业务，仅需询问姓氏。优先挽留说明活动价值，客户坚持则申请停止营销（含人工、短信等），生效时间一个工作日。已注销账户收到营销则提醒谨防诈骗；未注册客户收到营销则发其他工单反馈查询。
+domain: 活动
+intent_hierarchy:
+  l1: 营销活动
+  l2: 停止营销
+  l3: 活动
+route_mode: direct_reply
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 停止营销
+    - 关闭营销
+    - 不要打电话
+    - 推销电话
+    - 营销短信
+    - 骚扰电话
+    - 不要发短信
+    - 取消营销
+    - 停止推销
+    - 关闭推销
+  examples:
+    - 你们豆豆钱怎么老是给我打电话让我贷款，给我关了
+    - 我不需要贷款，停止给我发营销短信
+    - 你们一直打电话骚扰我，帮我取消营销服务
+    - 已经申请过停止营销了，但还是有电话
+    - 我已经注销了账号，为什么还有营销电话
+  exclude_keywords:
+    - 增值服务
+    - 取消增值服务
+    - 轻享卡
+    - 逾期
+    - 催收
+    - 还款
+    - 账单
+
+tools:
+  required: []
+  optional:
+    - query_ticket
+    - get_customer_profile
+templates:
+  first_contact:
+    script: "{customer_name}，您好，平台会不定期开展相关活动，如果有电话联系到您，也是希望将活动信息同步给您，看您是否有资金上的需求哦~"
+    required_slots:
+      - customer_name
+    next_step: retention_or_stop
+  follow_up:
+    script: "{customer_name}，您消消气，请您提供联系方式，客服将会为您申请停止营销服务电话哦。"
+    required_slots:
+      - customer_name
+    next_step: collect_phone_and_stop
+
+branch_conditions:
+  - hint: 客户坚持停止，提供联系方式
+    variant: execute_stop_marketing
+    note: 申请停止营销服务电话（含人工、短信等），生效时间一个工作日；实际系统操作天数不可告知客户
+  - hint: 已操作停止营销但未生效（生效期内）
+    variant: pending_effective
+    note: 告知停止营销生效时间需一个工作日，建议耐心等待
+  - hint: 已操作停止营销且已生效，仍收到营销
+    variant: already_stopped_still_receiving
+    note: 告知我司不会对已停止营销客户提供营销服务，提醒谨防诈骗
+  - hint: 已注销账户反映收到营销电话
+    variant: deactivated_received_marketing
+    note: 告知已注销账户不会收到我司营销，提醒谨防诈骗；客户坚持则请提供凭证（截图），建"信息安全"工单
+  - hint: 未注册客户反映收到营销
+    variant: unregistered_received_marketing
+    note: 发其他工单反馈处理；若已加入黑名单告知即可；无拨打记录则引导提供凭证，反馈信息安全，预计1-3个工作日回复
+  - hint: 客户咨询卡卡贷营销电话是否为我司
+    variant: kakaday_is_our_product
+    note: 告知卡卡贷也是我司产品，如有资金需求可通过豆豆钱或卡卡贷APP申请
+compliance:
+  forbidden_expressions:
+    - 不可以停止营销
+    - 营销是正常的必须接受
+    - 我们不负责营销电话
+  required_disclaimer: 停止营销生效时间为一个工作日；实际系统操作的停止营销时间天数不可告知客户
+  must_include_when:
+    - condition: 停止营销成功
+      text: 生效时间是一个工作日，您可以关注一下哦；如后续有资金需求，可以下载豆豆钱或卡卡贷APP尝试申请
+
+escalation:
+  - trigger: 客户提供凭证反映已注销但仍收到营销，建"信息安全"工单
+  - trigger: 未注册客户提供凭证，发其他工单反馈处理，预计1-3个工作日回复
+
+fallback:
+  answer: "{customer_name}，客服已经帮您申请停止营销服务电话（含人工、短信等）了，生效时间是一个工作日，您可以关注一下哦~如果后续您有资金需求，可以下载豆豆钱或卡卡贷APP尝试申请的哦~"
+  next_step: confirm_stop_and_close
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

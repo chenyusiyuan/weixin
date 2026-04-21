@@ -1,0 +1,372 @@
+{
+  "_comment": "Maps 清洗后数据1/2.xlsx '小结名称' (level-3 intent label) to skill_id. Used to build few-shot retrieval corpus from 303 dialogs. Review each line. Set skill_id to null to exclude. _support is the count across both xlsx files (deduped).",
+  "_system_skills_reference": "See skills/registry.json — 54 skills across 11 domains (includes 会话流程)",
+  "mappings": [
+    {
+      "level3": "催收相关/协商还款/逾期",
+      "support": 51,
+      "skill_id": "overdue_negotiation",
+      "notes": ""
+    },
+    {
+      "level3": "催收相关/协商还款/未逾期",
+      "support": 4,
+      "skill_id": "overdue_negotiation",
+      "notes": "未逾期但想协商延期，仍归协商还款"
+    },
+    {
+      "level3": "催收相关/要求停催/客户来电停催本人",
+      "support": 20,
+      "skill_id": "stop_collection",
+      "notes": ""
+    },
+    {
+      "level3": "催收相关/要求停催/客户来电停催联系人",
+      "support": 5,
+      "skill_id": "stop_collection",
+      "notes": ""
+    },
+    {
+      "level3": "催收相关/投诉催收/投诉频繁骚扰",
+      "support": 4,
+      "skill_id": "collection_complaint",
+      "notes": ""
+    },
+    {
+      "level3": "催收相关/投诉催收/投诉催收品质",
+      "support": 3,
+      "skill_id": "collection_complaint",
+      "notes": ""
+    },
+    {
+      "level3": "催收相关/投诉催收/投诉联系三方",
+      "support": 1,
+      "skill_id": "collection_complaint",
+      "notes": ""
+    },
+    {
+      "level3": "催收相关/核实催收信息/核实收到的催收信息",
+      "support": 4,
+      "skill_id": "post_loan_verification",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/存对公还款/存对公咨询",
+      "support": 21,
+      "skill_id": "repayment_method_inquiry",
+      "notes": "客户咨询对公还款方式（还款过程中需要对公账号），非退溢余"
+    },
+    {
+      "level3": "还款相关/存对公还款/银行卡问题对公还款",
+      "support": 11,
+      "skill_id": "repayment_method_inquiry",
+      "notes": "银行卡异常时改用对公还款，属于还款方式咨询"
+    },
+    {
+      "level3": "还款相关/提前清贷/提前清贷卡控",
+      "support": 16,
+      "skill_id": "early_loan_clearance",
+      "notes": "提前清贷被风控拦截"
+    },
+    {
+      "level3": "还款相关/提前清贷/提前清贷-资金充裕",
+      "support": 9,
+      "skill_id": "early_loan_clearance",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/提前清贷/提前清贷-需要结清证明",
+      "support": 1,
+      "skill_id": "early_loan_clearance",
+      "notes": "可能和 clearance_certificate 并存"
+    },
+    {
+      "level3": "还款相关/提前清贷/提前清贷-额度/期数不满意",
+      "support": 1,
+      "skill_id": "early_loan_clearance",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/提前清贷/清贷部分扣款",
+      "support": 1,
+      "skill_id": "early_loan_clearance",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/提前清贷/银行卡异常清贷失败",
+      "support": 1,
+      "skill_id": "early_loan_clearance",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/还款咨询/银行卡异常还款失败",
+      "support": 14,
+      "skill_id": "repayment_status_issue",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/还款咨询/余额不足还款失败",
+      "support": 10,
+      "skill_id": "repayment_status_issue",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/还款咨询/通道原因还款失败",
+      "support": 1,
+      "skill_id": "repayment_status_issue",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/还款咨询/还款中",
+      "support": 5,
+      "skill_id": "repayment_result_query",
+      "notes": "还款进行中查询"
+    },
+    {
+      "level3": "还款相关/还款咨询/还款后未更新",
+      "support": 1,
+      "skill_id": "repayment_status_issue",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/还款咨询/还当期部分扣款",
+      "support": 1,
+      "skill_id": "repayment_status_issue",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/还款咨询/账单冻结",
+      "support": 1,
+      "skill_id": "repayment_status_issue",
+      "notes": "账单冻结可能需要 override"
+    },
+    {
+      "level3": "还款相关/还款咨询/不支持提前还当期",
+      "support": 1,
+      "skill_id": "early_loan_clearance",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/账单信息查询/未结清查询账单",
+      "support": 8,
+      "skill_id": "fee_detail_query",
+      "notes": "查账单金额/明细，非查扣款"
+    },
+    {
+      "level3": "还款相关/账单信息查询/已结清查询账单",
+      "support": 6,
+      "skill_id": "fee_detail_query",
+      "notes": "查账单金额/明细，非查扣款"
+    },
+    {
+      "level3": "还款相关/账单信息查询/还款结果",
+      "support": 7,
+      "skill_id": "repayment_result_query",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/账单信息查询/还款银行卡",
+      "support": 1,
+      "skill_id": "card_rebinding",
+      "notes": ""
+    },
+    {
+      "level3": "还款相关/聚合码还款问题",
+      "support": 7,
+      "skill_id": "repayment_method_inquiry",
+      "notes": "聚合码支付方式咨询"
+    },
+    {
+      "level3": "业务办理/账户注销/注销原因：无资金需求",
+      "support": 9,
+      "skill_id": "account_cancellation",
+      "notes": ""
+    },
+    {
+      "level3": "业务办理/账户注销/注销原因：无额度",
+      "support": 1,
+      "skill_id": "account_cancellation",
+      "notes": ""
+    },
+    {
+      "level3": "业务办理/结清证明/办理申请",
+      "support": 8,
+      "skill_id": "clearance_certificate",
+      "notes": ""
+    },
+    {
+      "level3": "业务办理/征信相关/修改征信",
+      "support": 6,
+      "skill_id": "credit_modification",
+      "notes": ""
+    },
+    {
+      "level3": "业务办理/征信相关/注销授信额度",
+      "support": 3,
+      "skill_id": "cancel_credit_authorization",
+      "notes": ""
+    },
+    {
+      "level3": "业务办理/征信相关/咨询是否影响个人征信",
+      "support": 1,
+      "skill_id": "credit_inquiry",
+      "notes": ""
+    },
+    {
+      "level3": "业务办理/发票开具/办理申请",
+      "support": 2,
+      "skill_id": "invoice_issuance",
+      "notes": ""
+    },
+    {
+      "level3": "业务办理/合同调取/未结清合同调取",
+      "support": 1,
+      "skill_id": "contract_retrieval",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/会员退费/先享后付-月卡",
+      "support": 6,
+      "skill_id": "member_refund",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/会员退费/月卡关闭自动续费",
+      "support": 4,
+      "skill_id": "member_cancel",
+      "notes": "关闭自动续费=取消，不退费"
+    },
+    {
+      "level3": "营销活动/会员退费/取消先享后付（扣款前）",
+      "support": 3,
+      "skill_id": "member_cancel",
+      "notes": "扣款前取消=纯取消"
+    },
+    {
+      "level3": "营销活动/会员咨询/非先享后付会员",
+      "support": 1,
+      "skill_id": "member_consultation",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/新活动咨询/优享卡",
+      "support": 1,
+      "skill_id": "premium_card_inquiry",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/新活动咨询/优享卡：当前订单已联系过供应商",
+      "support": 2,
+      "skill_id": "premium_card_inquiry",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/新活动咨询/优享卡：当前订单引导成功",
+      "support": 2,
+      "skill_id": "premium_card_inquiry",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/新活动咨询/优享卡取消订单",
+      "support": 1,
+      "skill_id": "premium_card_cancel",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/新活动咨询/轻享卡",
+      "support": 1,
+      "skill_id": "light_card_cancel_refund",
+      "notes": ""
+    },
+    {
+      "level3": "营销活动/新活动咨询/其他",
+      "support": 2,
+      "skill_id": "value_added_service_inquiry",
+      "notes": ""
+    },
+    {
+      "level3": "费用相关/要求退费/退利息",
+      "support": 2,
+      "skill_id": "fee_refund_tier1",
+      "notes": ""
+    },
+    {
+      "level3": "费用相关/要求退费/退溢余",
+      "support": 2,
+      "skill_id": "overpayment_refund",
+      "notes": "退溢余专用 skill"
+    },
+    {
+      "level3": "费用相关/费用咨询/担保类费用咨询",
+      "support": 2,
+      "skill_id": "fee_consultation_tier1",
+      "notes": ""
+    },
+    {
+      "level3": "费用相关/费用咨询/咨询利息",
+      "support": 1,
+      "skill_id": "fee_consultation_tier1",
+      "notes": ""
+    },
+    {
+      "level3": "费用相关/退费进度/退溢余进度",
+      "support": 2,
+      "skill_id": "fee_refund_status",
+      "notes": ""
+    },
+    {
+      "level3": "费用相关/退费进度/退费未到账",
+      "support": 1,
+      "skill_id": "fee_refund_status",
+      "notes": ""
+    },
+    {
+      "level3": "申请咨询/额度获取咨询/如何获取额度",
+      "support": 7,
+      "skill_id": "quota_consultation",
+      "notes": ""
+    },
+    {
+      "level3": "申请咨询/贷款咨询/申请方式",
+      "support": 1,
+      "skill_id": "loan_consultation",
+      "notes": ""
+    },
+    {
+      "level3": "申请咨询/放款时效/放款进度",
+      "support": 1,
+      "skill_id": "disbursement_progress",
+      "notes": ""
+    },
+    {
+      "level3": "申请咨询/放款结果/放款失败",
+      "support": 1,
+      "skill_id": "disbursement_progress",
+      "notes": "放款失败归放款进度 skill"
+    },
+    {
+      "level3": "申请咨询/预约借款/取消预约借款",
+      "support": 1,
+      "skill_id": "loan_termination",
+      "notes": ""
+    },
+    {
+      "level3": "信息维护/资料信息修改/紧急联系人查询",
+      "support": 1,
+      "skill_id": null,
+      "notes": "紧急联系人管理，当前 skill 库无对应"
+    },
+    {
+      "level3": "产品与信息/非我司产品/合作/导流产品",
+      "support": 6,
+      "skill_id": null,
+      "notes": "非本平台业务"
+    },
+    {
+      "level3": "产品与信息/非我司产品/非我司产品",
+      "support": 3,
+      "skill_id": null,
+      "notes": "非本平台业务"
+    }
+  ]
+}

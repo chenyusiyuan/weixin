@@ -1,0 +1,133 @@
+---
+skill_id: collection_complaint
+name: 投诉催收
+description: |
+  处理客户对催收行为的投诉，包括催收态度恶劣、催收频次过高、暴力催收、爆通讯录等诉求，优先安抚并按停催方案处理。
+  关键信号："态度/骚扰/频繁/威胁/已经还了还在催/协商后还打电话"。
+  与 stop_collection 的区别：本场景是客户投诉"催收品质有问题"（抱怨事件已发生），stop_collection 是客户单纯请求"别打电话"（前瞻性请求，不涉及品质投诉）。
+  与 overdue_negotiation 的区别：本场景主诉是投诉（情绪化/指责语气），overdue_negotiation 主诉是协商（理性提方案）。
+domain: 逾期
+intent_hierarchy:
+  l1: 催收相关
+  l2: 投诉催收
+  l3: 逾期
+route_mode: tool_rag
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 投诉催收
+    - 催收骚扰
+    - 催收态度
+    - 暴力催收
+    - 打电话太多
+    - 爆通讯录
+    - 上门催收
+    - 威胁
+    - 恐吓
+    - 催收违法
+    - 催收人员
+    - 已经还了还在催
+    - 已经在协商
+    - 协商了还打电话
+    - 还款了还打电话
+    - 还完了还打电话
+    - 天天打电话
+    - 拼命打电话
+    - 账单处理完了还在打
+    - 电话响一声就挂断
+    - 你们一天打我十几次
+  examples:
+    - 你们一天打我电话十几次，对我造成了严重骚扰
+    - 你们催收的态度太差了
+    - 催收人员威胁我说要上门
+    - 你们催收人员爆我通讯录
+    - 我要投诉你们催收人员态度恶劣
+    - 你们这种催收行为是违法的
+    - 我的账单已经处理完了，为什么还在打电话
+    - 为什么平台在催我还款，但我已经没有借款了
+    - 电话响一声就挂断是不是催收
+  exclude_keywords:
+    - 要求停催
+    - 协商还款
+    - 工号核实
+    - 对公账号核实
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - get_call_history
+    - get_stop_collection_history
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，所有催收行为都是在合法合规的情况下进行的，基于您逾期行为，
+      还款专员也是希望能和您取得联系正面沟通还款事宜。如果您觉得影响到了您的正常生活，
+      客服帮您反馈对应的工作人员转达您的诉求。请问您具体遇到了什么问题，可以跟我描述一下吗？
+    required_slots:
+      - customer_name
+    next_step: 核实系统记录，了解客户具体诉点
+  follow_up:
+    script: >
+      {customer_name}，您好，担心长时期逾期对您产生征信或费用方面影响，故还款专员有进行联系沟通。
+      毕竟还款专员与客服有所差异，可能沟通说话会比较直接，有给您造成不好的感受，非常抱歉。
+      但您能主动联系我司，说明您也是有还款意愿的。客服这边已为您记录投诉信息，
+      同时可以协助您申请停止催收，请问您希望停催几天呢？
+    required_slots:
+      - customer_name
+    next_step: 根据客户诉点协商停催本人或三方，不接受则提交催收投诉工单
+
+branch_conditions:
+  - expr: complaint_type == frequency
+    variant: high_frequency
+    note: 催收频次过高——核实系统记录，解释催收合理性，协商停催方案
+  - expr: complaint_type == attitude
+    variant: bad_attitude
+    note: 态度恶劣——安抚为主，收集凭证（如录音），提交催收投诉工单
+  - expr: complaint_type == violence
+    variant: violent_collection
+    note: 暴力催收/上门/威胁——严肃处理，明确公司立场，收集证据，发催收投诉工单并升级
+  - expr: complaint_type == expose_contacts
+    variant: expose_contacts
+    note: 爆通讯录——明确告知公司无法获取通讯录，属虚假投诉则解释，属真实则升级处理
+compliance:
+  forbidden_expressions:
+    - 催收没有问题
+    - 您必须还款
+    - 不还款后果自负
+    - 我们有权上门
+    - 联系您的联系人是合法的
+  required_disclaimer: 我司所有催收行为均在法律法规框架内进行，严禁暴力催收、骚扰通讯录等违规行为。
+  must_include_when:
+    - condition: complaint_verified
+      text: 客服已记录您的投诉信息，将在1-3个工作日内核实处理，请保持电话畅通
+    - condition: expose_contacts_claimed
+      text: 我们无法获取到您的通讯录信息，不会有爆通讯录的行为
+
+escalation:
+  - trigger: 客户投诉暴力催收且有录音证据
+  - trigger: 客户声称已向监管机构投诉
+  - trigger: 催收人员上门引发纠纷
+  - trigger: 客户要求催收人员道歉且坚持不还款
+
+fallback:
+  answer: >
+    {customer_name}，您先消消气，客服会将您反映的问题详细记录并提交给相关部门核实处理，
+    预计1-3个工作日会有工作人员与您联系。建议您保持电话畅通，在此期间无需重复进线。
+  next_step: 提交催收投诉工单，备注详细情况
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals:
+  - 投诉催收
+  - 催收违规
+  - 骚扰
+  - 威胁
+  - 爆通讯录
+  - 监管投诉

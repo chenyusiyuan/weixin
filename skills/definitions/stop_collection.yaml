@@ -1,0 +1,123 @@
+---
+skill_id: stop_collection
+name: 要求停催
+description: |
+  处理客户要求停止催收电话的诉求，核实逾期状态，按权限执行停催操作，说明停催规则及还款义务。
+  适用条件：客户明确表达"不要再打电话"、"停止联系"、"别找我/联系人"；**不涉及**还款方案或延期诉求。
+  与 overdue_negotiation 的区别：本场景只处理"要求停止催收电话"；一旦客户提出延期/分期/协商还款方案，应走 overdue_negotiation。
+  与 collection_complaint 的区别：本场景是客户诉求"停电话"，collection_complaint 是客户投诉"电话太多/态度差/违规催收"等催收品质问题。
+domain: 逾期
+intent_hierarchy:
+  l1: 催收相关
+  l2: 要求停催
+  l3: 逾期
+route_mode: tool_rag
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 停催
+    - 停止打电话
+    - 不要再打电话
+    - 停止催收
+    - 不要催我
+    - 关闭催收
+    - 停呼
+    - 不接催收电话
+  examples:
+    - 你们老给我打电话催我还款，能不能不要打了
+    - 我有钱会还的，不要一直催
+    - 你们给我关了，我会去还款的
+    - 我不想再给你们催收的电话了
+    - 能不能停止催收，我会在XX号还清
+    - 请停止催收，包括发送短信和威胁
+    - 请停止催收我
+    - 帮我把催收电话停了
+  exclude_keywords:
+    - 投诉催收
+    - 协商还款
+    - 预提醒
+    - 态度恶劣
+    - 骚扰
+    - 爆通讯录
+    - 工号核实
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - get_call_history
+    - get_stop_collection_history
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您别着急，目前联系您的都是系统AI联系的，只是正常提醒您还款的，
+      避免产生征信和费用问题。客服可以协助您操作停催，请问您希望停催几天呢？
+      另外请问您大概什么时候能够还款，客服这边也记录一下您的还款计划。
+    required_slots:
+      - customer_name
+    next_step: 根据客户逾期状态和停催天数诉求判断权限
+  follow_up:
+    script: >
+      {customer_name}，客服已为您处理停催申请，停催{stop_days}天，到期后如仍未还款系统将恢复催收。
+      请注意逾期仍会持续产生逾期费用并影响您的征信记录，建议您尽快安排还款。
+      如有还款问题随时联系我们，我们也可以协助记录您的还款计划。
+    required_slots:
+      - customer_name
+      - stop_days
+    next_step: 确认停催操作完成，提醒还款义务
+
+branch_conditions:
+  - expr: collection_type == AI and overdue_days <= 3
+    variant: ai_collection_early
+    note: AI催收阶段（还款日及账单日后3天内）——有停催权限，不支持降频，仅联系本人
+  - expr: collection_type == IVR
+    variant: ivr_collection
+    note: IVR催收——可操作停催，按客户诉求操作
+  - expr: stop_days_requested <= 15 and target == self
+    variant: normal_stop
+    note: 本人停催15天内——客服直接操作
+  - expr: stop_days_requested > 15 and stop_days_requested <= 30
+    variant: supervisor_stop
+    note: 本人停催15-30天——发超权限工单给主管操作，无需回电
+  - expr: stop_days_requested > 30
+    variant: escalate_stop
+    note: 超过30天——超主管权限，需升级处理
+compliance:
+  forbidden_expressions:
+    - 可以永久停催
+    - 停催就不用还款了
+    - 停催后不影响征信
+    - 保证不再打电话
+  required_disclaimer: 停催期间逾期费用继续计算，征信影响持续存在，停催到期后系统将恢复催收。
+  must_include_when:
+    - condition: stop_collection_processed
+      text: 停催到期后如仍未还款，系统将恢复催收，请务必按时还款
+    - condition: customer_requests_third_party_stop
+      text: 三方停催需征得客户同意，解除停催时本人和三方将同时解除
+
+escalation:
+  - trigger: 客户要求停催天数超过客服权限范围
+  - trigger: 停催中客户再次来电要求协商且客服无法满足
+  - trigger: 客户坚持只与贷后人员谈判
+
+fallback:
+  answer: >
+    {customer_name}，客服已将您的停催诉求记录，由于您的申请超出当前处理权限，
+    已提交给主管处理，预计会在1-2个工作日内处理完毕，请保持电话畅通。
+  next_step: 提交超权限工单给主管
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  stop_days: llm:stop_days
+escalation_signals:
+  - 停催
+  - 停止催收
+  - 法院
+  - 起诉
+  - 律师函

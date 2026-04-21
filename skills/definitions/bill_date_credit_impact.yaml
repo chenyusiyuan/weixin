@@ -1,0 +1,95 @@
+---
+skill_id: bill_date_credit_impact
+name: 账单日还款是否影响征信
+description: 解答客户关于还款行为对个人征信影响的疑问，说明逾期与正常还款对征信的不同影响
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 征信影响
+  l3: 还款
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 征信
+    - 影响征信
+    - 信用记录
+    - 上征信
+    - 征信查询
+    - 还款日
+    - 账单日
+    - 逾期征信
+  examples:
+    - 账单日还款是否影响征信
+    - 逾期会影响征信吗
+    - 我的还款行为会上征信吗
+    - 征信有没有记录
+    - 几天逾期会影响征信
+  exclude_keywords:
+    - 还款方式
+    - 换绑银行卡
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。关于征信影响的问题说明如下：
+      按时在还款日前完成还款，不会对您的征信产生负面影响，正常还款记录有助于积累良好信用。
+      若发生逾期未还，我们会按照监管要求向征信机构上报逾期记录，可能影响您的个人征信。
+      您目前的账单还款日为{due_date}，当前账单状态为{bill_status}，请在还款日前确保银行卡余额充足。
+    required_slots:
+      - bill_status
+      - customer_name
+      - due_date
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 客户询问正常还款是否上征信
+    variant: normal_repayment_credit
+    note: 说明正常按时还款有积累良好征信的作用
+  - hint: 客户询问逾期多久上征信
+    variant: overdue_credit_reporting
+    note: 说明逾期会按监管要求上报，建议按时还款
+  - hint: 客户已有逾期，询问如何消除征信记录
+    variant: existing_overdue_credit_repair
+    note: 建议尽快还清逾期款项，征信记录保留期限按央行规定执行
+compliance:
+  forbidden_expressions:
+    - 不会上征信
+    - 保证不影响征信
+    - 逾期没关系
+    - 征信不重要
+  required_disclaimer: 征信上报规则以中国人民银行相关规定为准，具体影响请以征信机构出具的报告为准。
+  must_include_when:
+    - condition: 客户有逾期风险时
+      text: 逾期将影响个人征信记录，建议您在还款日前确保银行卡余额充足，按时完成还款。
+    - condition: 客户询问征信查询次数影响时
+      text: 贷款申请会产生征信查询记录，短期内多次查询可能影响信用评估。
+
+escalation:
+  - trigger: 客户投诉征信上报有误
+  - trigger: 客户要求删除征信记录
+
+fallback:
+  answer: 关于征信影响，按时还款不会有负面影响，逾期会按监管要求上报征信。建议您在还款日前确保账户余额充足。
+  next_step: ask_other_questions
+slot_sources:
+  bill_status: tool:get_bill_and_repayment_plan.status
+  customer_name: tool:get_customer_profile.name
+  due_date: tool:get_bill_and_repayment_plan.due_date
+  verification_info: derived:verification_info
+escalation_signals: []

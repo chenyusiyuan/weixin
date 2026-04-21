@@ -1,0 +1,91 @@
+---
+skill_id: early_deduction
+name: 未到还款日被提前扣款
+description: 解释提前扣款机制，说明不同产品的扣款日规则，消除客户疑虑
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 提前扣款
+  l3: 还款
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 提前扣款
+    - 未到还款日
+    - 提前扣了
+    - 没到还款日就扣
+    - 提前划扣
+    - 早扣了
+    - 还没到期就扣
+  examples:
+    - 还没到还款日为什么扣款了
+    - 我的还款日是15号但是今天就扣了
+    - 为什么提前扣款
+    - 没有到还款日被扣款怎么回事
+    - 提前扣款是什么情况
+  exclude_keywords:
+    - 还款失败
+    - 还款方式
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已为您查询了扣款记录。
+      关于您反映的提前扣款情况，我们的产品采用自动扣款机制，系统会根据您的账单周期和绑定银行卡情况自动发起扣款。
+      您本次扣款日期为{deduction_date}，扣款金额为{deduction_amount}元，这是正常的自动扣款操作。
+      不同产品的扣款日期规则可能有所不同，具体以您签署的合同条款为准。
+    required_slots:
+      - customer_name
+      - deduction_amount
+      - deduction_date
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 扣款日期确实早于合同约定还款日
+    variant: genuine_early_deduction
+    note: 需升级处理，核查系统扣款规则是否有异常
+  - hint: 扣款日期符合产品规则（如提前N天预扣）
+    variant: product_rule_deduction
+    note: 解释该产品的扣款规则，如提前1-3天预扣属于正常机制
+  - hint: 客户误解还款日与扣款日的区别
+    variant: misunderstanding_due_date
+    note: 说明账单日、还款日、扣款日三者的区别
+compliance:
+  forbidden_expressions:
+    - 这是我们系统的问题
+    - 我们扣错了
+    - 保证退款
+  required_disclaimer: 具体扣款规则以您签署的借款合同为准，如有疑问请查阅合同相关条款。
+  must_include_when:
+    - condition: 扣款确实异常时
+      text: 如确认为系统异常扣款，我们会为您申请退款处理，请保留相关凭证。
+
+escalation:
+  - trigger: 确认扣款日期早于合同约定还款日且金额有误
+  - trigger: 客户投诉被重复扣款
+
+fallback:
+  answer: 关于提前扣款的问题，需要为您查询账单详情，请先配合核实身份信息。
+  next_step: verify_identity
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  deduction_amount: tool:get_bill_and_repayment_plan.deduction
+  deduction_date: tool:get_bill_and_repayment_plan.deduction
+  verification_info: derived:verification_info
+escalation_signals: []

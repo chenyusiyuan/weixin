@@ -1,0 +1,107 @@
+"""FastAPI application entry point and component assembly."""
+
+from __future__ import annotations
+
+import sys
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI
+
+# Ensure project root is in sys.path for tools.* imports
+_project_root = Path(__file__).resolve().parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
+from fin_copilot.agents.compliant_generator import CompliantGenerator
+from fin_copilot.agents.confidence_auditor import ConfidenceAuditor
+from fin_copilot.agents.longtail_reasoner import LongtailReasoner
+from fin_copilot.compliance.rule_checker import RuleComplianceChecker
+from fin_copilot.config import Settings, get_settings
+from fin_copilot.context.context_manager import ContextManager
+from fin_copilot.llm.client import LLMClient
+from fin_copilot.orchestrator import Orchestrator
+from fin_copilot.routers.gateway import router, set_orchestrator
+from fin_copilot.routing.domain_classifier import DomainClassifier
+from fin_copilot.routing.rule_engine import RuleEngine
+from fin_copilot.routing.skill_router import SkillRouter
+from fin_copilot.skills.loader import SkillLoader
+
+
+def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
+    """Wire all components together and return (orchestrator, llm_client)."""
+    skill_loader = SkillLoader(
+        str(settings.resolve_path(settings.SKILL_DEFINITIONS_DIR)),
+        str(settings.resolve_path(settings.SKILL_REGISTRY_PATH)),
+    )
+    context_mgr = ContextManager(settings)
+    rule_engine = RuleEngine(
+        str(settings.resolve_path(settings.RULE_ENGINE_PATH)),
+        skill_loader,
+    )
+    domain_classifier = DomainClassifier()
+
+    llm_client = LLMClient(
+        base_url=settings.LLM_API_URL,
+        api_key=settings.LLM_API_KEY,
+        model=settings.LLM_MODEL,
+        timeout=settings.LLM_TIMEOUT,
+    )
+
+    skill_router = SkillRouter(
+        llm_client,
+        skill_loader,
+        str(settings.resolve_path(settings.SKILL_PROMPTS_DIR) / "skill_routing.md"),
+    )
+    confidence_auditor = ConfidenceAuditor(
+        threshold=settings.CONFIDENCE_THRESHOLD,
+    )
+    compliant_generator = CompliantGenerator(
+        llm_client,
+        str(settings.resolve_path(settings.SKILL_PROMPTS_DIR) / "compliant_gen.md"),
+    )
+    compliance_checker = RuleComplianceChecker(
+        str(settings.resolve_path(settings.FORBIDDEN_WORDS_PATH)),
+        str(settings.resolve_path(settings.KEY_RULES_PATH)),
+        str(settings.resolve_path(settings.LONGTAIL_CONSTRAINTS_PATH)),
+    )
+    longtail_reasoner = LongtailReasoner(
+        llm_client=llm_client,
+        prompt_path=str(settings.resolve_path(settings.SKILL_PROMPTS_DIR) / "longtail_reasoning.md"),
+    )
+
+    orchestrator = Orchestrator(
+        context_mgr=context_mgr,
+        rule_engine=rule_engine,
+        domain_classifier=domain_classifier,
+        skill_router=skill_router,
+        skill_loader=skill_loader,
+        confidence_auditor=confidence_auditor,
+        compliant_generator=compliant_generator,
+        compliance_checker=compliance_checker,
+        longtail_reasoner=longtail_reasoner,
+    )
+    return orchestrator, llm_client
+
+
+_llm_client: LLMClient | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _llm_client
+    settings = get_settings()
+    orchestrator, _llm_client = build_orchestrator(settings)
+    set_orchestrator(orchestrator)
+    yield
+    if _llm_client:
+        await _llm_client.close()
+
+
+app = FastAPI(
+    title="Financial Copilot",
+    description="金融客服坐席话术推荐系统",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+app.include_router(router)

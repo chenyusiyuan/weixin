@@ -1,0 +1,644 @@
+{
+  "version": "2026-04-18-merge-repayment",
+  "total_skills": 54,
+  "domains": {
+    "会话流程": {
+      "skills": [
+        {
+          "skill_id": "greeting_opening",
+          "name": "开场寒暄",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "喂",
+            "你好",
+            "您好"
+          ]
+        },
+        {
+          "skill_id": "identity_readback",
+          "name": "核身信息回答",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "建设银行",
+            "我叫",
+            "身份证"
+          ]
+        },
+        {
+          "skill_id": "acknowledgement",
+          "name": "应答确认",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "嗯",
+            "对",
+            "好的"
+          ]
+        },
+        {
+          "skill_id": "channel_check",
+          "name": "通话状态确认",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "能听到吗",
+            "喂喂",
+            "在吗"
+          ]
+        },
+        {
+          "skill_id": "closing",
+          "name": "结束语",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "没别的了",
+            "谢谢",
+            "再见"
+          ]
+        }
+      ]
+    },
+    "账户": {
+      "skills": [
+        {
+          "skill_id": "account_cancellation",
+          "name": "注销账户",
+          "risk_level": "high",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "注销账户",
+            "注销账号",
+            "注销我的账号"
+          ]
+        },
+        {
+          "skill_id": "deactivated_customer_service",
+          "name": "已注销客户进线服务",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "已注销",
+            "注销了",
+            "账户注销"
+          ]
+        },
+        {
+          "skill_id": "special_account_cancellation",
+          "name": "特殊场景注销账户",
+          "risk_level": "high",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "智信贷",
+            "华通",
+            "已转让"
+          ]
+        }
+      ]
+    },
+    "还款": {
+      "skills": [
+        {
+          "skill_id": "bill_date_credit_impact",
+          "name": "账单日还款是否影响征信",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "征信",
+            "影响征信",
+            "信用记录"
+          ]
+        },
+        {
+          "skill_id": "card_rebinding",
+          "name": "换绑银行卡",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "换绑银行卡",
+            "更换银行卡",
+            "换卡"
+          ]
+        },
+        {
+          "skill_id": "deduction_issues",
+          "name": "扣款相关问题咨询",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "扣款",
+            "扣款时间",
+            "什么时候扣款"
+          ]
+        },
+        {
+          "skill_id": "early_deduction",
+          "name": "未到还款日被提前扣款",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "提前扣款",
+            "未到还款日",
+            "提前扣了"
+          ]
+        },
+        {
+          "skill_id": "early_loan_clearance",
+          "name": "提前清贷需求",
+          "risk_level": "high",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "提前还款",
+            "提前清贷",
+            "提前结清"
+          ]
+        },
+        {
+          "skill_id": "repayment_method_inquiry",
+          "name": "咨询还款方式",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "还款方式",
+            "怎么还款",
+            "如何还款"
+          ]
+        },
+        {
+          "skill_id": "repayment_result_query",
+          "name": "查询还款结果",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "查询还款结果",
+            "还款成功了吗",
+            "还款到账了吗"
+          ]
+        },
+        {
+          "skill_id": "repayment_status_issue",
+          "name": "还款状态异常",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "还款失败",
+            "还款没更新",
+            "部分扣款"
+          ]
+        }
+      ]
+    },
+    "费用": {
+      "skills": [
+        {
+          "skill_id": "bill_deduction_query",
+          "name": "查询账单扣款情况",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "账单扣款",
+            "扣款情况",
+            "账单状态"
+          ]
+        },
+        {
+          "skill_id": "fee_consultation_tier1",
+          "name": "费用咨询（一线）",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "担保费",
+            "担保咨询服务费",
+            "收费"
+          ]
+        },
+        {
+          "skill_id": "fee_consultation_tier2",
+          "name": "费用咨询（二线/高阶内诉）",
+          "risk_level": "medium",
+          "route_mode": "tool_rag",
+          "keywords_preview": [
+            "内诉",
+            "投诉",
+            "违法收费"
+          ]
+        },
+        {
+          "skill_id": "fee_detail_query",
+          "name": "查询费用明细及综合费率",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "费用明细",
+            "费用详情",
+            "综合费率"
+          ]
+        },
+        {
+          "skill_id": "fee_refund_status",
+          "name": "退费未到账情况咨询",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "退费没到账",
+            "退款未到账",
+            "退款什么时候到"
+          ]
+        },
+        {
+          "skill_id": "fee_refund_tier1",
+          "name": "要求退费（一线）",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "退费",
+            "退款",
+            "要求退"
+          ]
+        },
+        {
+          "skill_id": "fee_refund_tier2",
+          "name": "要求退费（二线/高阶内诉）",
+          "risk_level": "high",
+          "route_mode": "tool_rag",
+          "keywords_preview": [
+            "内诉退费",
+            "投诉退款",
+            "坚持退费"
+          ]
+        },
+        {
+          "skill_id": "loan_dispute_refund",
+          "name": "借款争议特殊场景退费",
+          "risk_level": "high",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "借款争议",
+            "非本人借款",
+            "未授权借款"
+          ]
+        },
+        {
+          "skill_id": "overpayment_refund",
+          "name": "客户对公转账出错退溢余",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "溢余",
+            "退溢余",
+            "对公转账"
+          ]
+        }
+      ]
+    },
+    "业务办理": {
+      "skills": [
+        {
+          "skill_id": "cancel_credit_authorization",
+          "name": "注销授信额度",
+          "risk_level": "high",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "注销授信",
+            "注销额度",
+            "关闭授信"
+          ]
+        },
+        {
+          "skill_id": "clearance_certificate",
+          "name": "开具结清证明",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "结清证明",
+            "还清证明",
+            "还款证明"
+          ]
+        },
+        {
+          "skill_id": "contract_retrieval",
+          "name": "调取合同",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "调取合同",
+            "查看合同",
+            "贷款合同"
+          ]
+        },
+        {
+          "skill_id": "credit_inquiry",
+          "name": "征信问题咨询",
+          "risk_level": "high",
+          "route_mode": "tool_rag",
+          "keywords_preview": [
+            "征信",
+            "征信查询",
+            "信用报告"
+          ]
+        },
+        {
+          "skill_id": "credit_modification",
+          "name": "修改征信",
+          "risk_level": "high",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "修改征信",
+            "删除征信",
+            "消除征信"
+          ]
+        },
+        {
+          "skill_id": "invoice_issuance",
+          "name": "发票开具",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "开发票",
+            "发票开具",
+            "需要发票"
+          ]
+        },
+        {
+          "skill_id": "other_certificate",
+          "name": "开具其他证明",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "逾期证明",
+            "非恶意逾期",
+            "非恶意拖欠证明"
+          ]
+        }
+      ]
+    },
+    "活动": {
+      "skills": [
+        {
+          "skill_id": "cancel_value_added_service",
+          "name": "取消增值服务",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "取消增值服务",
+            "取消加速卡",
+            "不要这个服务"
+          ]
+        },
+        {
+          "skill_id": "light_card_cancel_refund",
+          "name": "轻享卡取消退费",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "轻享卡",
+            "轻享卡续费",
+            "轻享卡扣费"
+          ]
+        },
+        {
+          "skill_id": "refund_value_added_service",
+          "name": "退增值服务费",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "退增值服务费",
+            "退服务费",
+            "退赋强公证"
+          ]
+        },
+        {
+          "skill_id": "stop_marketing",
+          "name": "停止营销",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "停止营销",
+            "关闭营销",
+            "不要打电话"
+          ]
+        },
+        {
+          "skill_id": "value_added_service_inquiry",
+          "name": "增值服务咨询",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "增值服务",
+            "赋强公证",
+            "加速卡"
+          ]
+        }
+      ]
+    },
+    "逾期": {
+      "skills": [
+        {
+          "skill_id": "close_pre_reminder",
+          "name": "关闭预提醒服务",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "预提醒",
+            "关闭提醒",
+            "不要提醒"
+          ]
+        },
+        {
+          "skill_id": "collection_complaint",
+          "name": "投诉催收",
+          "risk_level": "high",
+          "route_mode": "tool_rag",
+          "keywords_preview": [
+            "投诉催收",
+            "催收骚扰",
+            "催收态度"
+          ]
+        },
+        {
+          "skill_id": "overdue_negotiation",
+          "name": "协商还款",
+          "risk_level": "high",
+          "route_mode": "tool_rag",
+          "keywords_preview": [
+            "协商还款",
+            "延期还款",
+            "还不上"
+          ]
+        },
+        {
+          "skill_id": "post_loan_verification",
+          "name": "核实贷后信息",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "核实",
+            "贷后人员",
+            "对公账号"
+          ]
+        },
+        {
+          "skill_id": "stop_collection",
+          "name": "要求停催",
+          "risk_level": "high",
+          "route_mode": "tool_rag",
+          "keywords_preview": [
+            "停催",
+            "停止打电话",
+            "不要再打电话"
+          ]
+        }
+      ]
+    },
+    "贷款": {
+      "skills": [
+        {
+          "skill_id": "disbursement_progress",
+          "name": "放款进度查询",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "放款进度",
+            "什么时候放款",
+            "到账了吗"
+          ]
+        },
+        {
+          "skill_id": "loan_consultation",
+          "name": "贷款咨询",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "怎么贷款",
+            "贷款条件",
+            "贷款要求"
+          ]
+        },
+        {
+          "skill_id": "loan_termination",
+          "name": "贷款解约",
+          "risk_level": "high",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "取消贷款",
+            "解约",
+            "不想要了"
+          ]
+        },
+        {
+          "skill_id": "remote_disbursement",
+          "name": "异地放款",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "异地放款",
+            "违规放款",
+            "跨地区放款"
+          ]
+        }
+      ]
+    },
+    "会员": {
+      "skills": [
+        {
+          "skill_id": "member_cancel",
+          "name": "取消会员",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "取消会员",
+            "不要会员",
+            "关闭会员"
+          ]
+        },
+        {
+          "skill_id": "member_consultation",
+          "name": "会员咨询",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "什么是会员",
+            "会员权益",
+            "如何开通会员"
+          ]
+        },
+        {
+          "skill_id": "member_refund",
+          "name": "退会员费用",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "退会员费",
+            "会员退款",
+            "退钱"
+          ]
+        }
+      ]
+    },
+    "额度": {
+      "skills": [
+        {
+          "skill_id": "no_quota_issue",
+          "name": "无额度问题",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "没有额度",
+            "无额度",
+            "额度为零"
+          ]
+        },
+        {
+          "skill_id": "quota_consultation",
+          "name": "额度咨询",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "额度",
+            "可以贷多少",
+            "最高额度"
+          ]
+        }
+      ]
+    },
+    "优享卡": {
+      "skills": [
+        {
+          "skill_id": "premium_card_cancel",
+          "name": "取消优享卡",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "取消优享卡",
+            "关闭优享卡",
+            "不要优享卡"
+          ]
+        },
+        {
+          "skill_id": "premium_card_inquiry",
+          "name": "优享卡咨询",
+          "risk_level": "low",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "优享卡是什么",
+            "优享卡权益",
+            "优享卡有什么"
+          ]
+        },
+        {
+          "skill_id": "premium_card_refund",
+          "name": "退优享卡费用",
+          "risk_level": "medium",
+          "route_mode": "tool_only",
+          "keywords_preview": [
+            "退优享卡",
+            "退费",
+            "退款优享卡"
+          ]
+        }
+      ]
+    }
+  }
+}

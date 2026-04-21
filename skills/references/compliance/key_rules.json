@@ -1,0 +1,114 @@
+{
+  "version": "2026-04-11",
+  "description": "关键业务规则，用于后置合规检查和Agent A prompt约束",
+  "rules": [
+    {
+      "rule_id": "KR001",
+      "name": "金额承诺需免责声明",
+      "category": "超权检测",
+      "condition": "输出中包含具体金额数字（如减免金额、退费金额）",
+      "action": "必须附加'具体方案以实际审批结果为准'",
+      "severity": "critical",
+      "applicable_domains": ["费用问题", "逾期问题"]
+    },
+    {
+      "rule_id": "KR002",
+      "name": "征信影响提醒",
+      "category": "风险告知",
+      "condition": "逾期天数 > 90 或涉及征信问题",
+      "action": "必须包含'如长期未还款，可能会影响您的个人征信记录'",
+      "severity": "critical",
+      "applicable_domains": ["逾期问题", "还款问题", "业务场景办理"]
+    },
+    {
+      "rule_id": "KR003",
+      "name": "身份验证前置",
+      "category": "安全合规",
+      "condition": "涉及系统查询或业务办理（中/高风险）",
+      "action": "必须先完成身份验证，未验证时不得透露账户具体信息",
+      "severity": "critical",
+      "applicable_domains": ["*"]
+    },
+    {
+      "rule_id": "KR004",
+      "name": "费用合法性声明",
+      "category": "业务合规",
+      "condition": "客户质疑费用合法性",
+      "action": "必须说明'平台费用均依据合同约定收取，符合法律法规要求'",
+      "severity": "high",
+      "applicable_domains": ["费用问题"]
+    },
+    {
+      "rule_id": "KR005",
+      "name": "长尾链路强制免责",
+      "category": "长尾安全",
+      "condition": "当前链路为链路C（长尾自主推理）",
+      "action": "所有回答必须附加'以上信息仅供参考，具体以业务确认为准'",
+      "severity": "critical",
+      "applicable_domains": ["*"]
+    },
+    {
+      "rule_id": "KR006",
+      "name": "长尾链路禁止操作承诺",
+      "category": "长尾安全",
+      "condition": "当前链路为链路C（长尾自主推理）",
+      "action": "禁止使用'我可以帮你操作'，只能使用'建议您...'",
+      "severity": "critical",
+      "applicable_domains": ["*"]
+    },
+    {
+      "rule_id": "KR007",
+      "name": "转人工条件告知",
+      "category": "服务规范",
+      "condition": "触发转人工（客户投诉、情绪激动、涉及法律问题）",
+      "action": "必须告知客户转接原因和预计等待时间",
+      "severity": "high",
+      "applicable_domains": ["*"]
+    },
+    {
+      "rule_id": "KR008",
+      "name": "已注销账户信息限制",
+      "category": "数据安全",
+      "condition": "客户账户已注销",
+      "action": "不得提供任何已注销账户的具体信息，引用《GB/T 35273-2020》说明数据删除依据",
+      "severity": "critical",
+      "applicable_domains": ["账户问题"]
+    },
+    {
+      "rule_id": "KR009",
+      "name": "协商还款方案限制",
+      "category": "超权检测",
+      "condition": "逾期协商场景中涉及还款方案",
+      "action": "坐席不得自行承诺减免、延期方案，需说明'需提交审批'",
+      "severity": "critical",
+      "applicable_domains": ["逾期问题"]
+    },
+    {
+      "rule_id": "KR010",
+      "name": "服务礼仪要求",
+      "category": "服务规范",
+      "condition": "所有坐席对话",
+      "action": "使用尊称（XX先生/女士），保持礼貌耐心，反应时间不超过3秒",
+      "severity": "high",
+      "applicable_domains": ["*"]
+    },
+    {
+      "rule_id": "KR011",
+      "name": "退费到账时间说明",
+      "category": "业务合规",
+      "condition": "涉及退费操作",
+      "action": "必须告知退费预计到账时间（一般3-5个工作日），不得承诺具体时间",
+      "severity": "high",
+      "applicable_domains": ["费用问题", "会员问题", "活动问题", "优享卡问题"]
+    },
+    {
+      "rule_id": "KR012",
+      "name": "征信修改权限说明",
+      "category": "业务合规",
+      "condition": "客户要求修改征信记录",
+      "action": "必须说明征信修改需要有效依据，坐席无权直接修改，需提交审核",
+      "severity": "critical",
+      "applicable_domains": ["业务场景办理"]
+    }
+  ]
+}

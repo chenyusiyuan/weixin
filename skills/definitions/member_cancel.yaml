@@ -1,0 +1,101 @@
+---
+skill_id: member_cancel
+name: 取消会员
+description: 客户要求取消会员（先享后付）服务的处理场景。需先核身验证，查询系统确认会员服务订单，了解取消原因并进行挽留，介绍会员权益价值。挽留失败后在系统中直接操作取消，告知后续不会扣费。
+domain: 会员
+intent_hierarchy:
+  l1: 会员服务
+  l2: 取消会员
+  l3: 会员
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 取消会员
+    - 不要会员
+    - 关闭会员
+    - 先享后付取消
+    - 会员扣费通知
+    - 会员是什么情况
+    - 帮我看下会员
+  examples:
+    - 怎么有个会员通知我说要扣费？
+    - 你帮我看下这个会员是什么情况？
+    - 我不需要，给我取消（先享后付）
+    - 我都不知道哪里来的这个会员
+    - 这个会员我要取消
+  exclude_keywords:
+    - 退会员费
+    - 会员退款
+    - 什么是会员
+
+tools:
+  required:
+    - get_customer_profile
+    - get_membership_service_info
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verify_question}？
+    required_slots:
+      - verify_question
+    next_step: verify_identity
+  follow_up:
+    script: |
+      （系统未查到）您好，请问您是通过什么路径查询到有这个服务的呢？客服暂未查询到，建议您再核实下哦。
+
+      （系统查到）您好，客服查询到您有一个会员服务，与您核实下金额{member_fee}元，是这笔服务订单，对吗？
+
+      （客户不需要，挽留）{customer_name}先生/女士，您好，会员用户可享受我司提供的多样化会员服务，包括：优惠券、视频会员券、音乐会员券、美食代金券等，性价比很高的，您可以考虑保留使用下的呢。
+
+      （客户不知道哪来的，挽留）{customer_name}先生/女士，您好，可能是您开通的时候没有注意到无意操作了。查看到您是在{loan_date}借款时操作的开通会员，您可以回忆下是否操作了这笔借款。同时会员用户也可享受会员权益，建议您考虑保留使用下的呢。
+
+      （挽留失败）非常遗憾未能给您提供更好的服务，那客服为您取消试用，会员取消后尊享权益就失效了哦，后续也不会扣费，请您放心。如您之后有需要，可通过APP尝试购买。
+    required_slots:
+      - customer_name
+      - loan_date
+      - member_fee
+    next_step: execute_cancel_or_retain
+
+branch_conditions:
+  - hint: 系统未查询到会员服务
+    variant: no_record
+    note: 询问客户查询路径，建议再核实
+  - hint: 系统查询到会员，客户不需要（先享后付）
+    variant: not_needed_deferred
+    note: 介绍会员权益，强调性价比，尝试挽留
+  - hint: 客户称不知道哪里来的会员（先享后付）
+    variant: unknown_source_deferred
+    note: 说明借款时无意操作可能性，引导回忆，尝试挽留
+  - hint: 挽留成功
+    variant: retain_success
+    note: 感谢支持，询问是否有其他问题
+  - hint: 挽留失败
+    variant: retain_fail
+    note: 在系统中直接操作取消，告知取消后不再扣费
+compliance:
+  forbidden_expressions:
+    - 强制开通
+    - 无法取消
+    - 不能帮您取消
+    - 取消后还会扣费
+  required_disclaimer: 会员服务取消后尊享权益立即失效，后续不会再产生扣费，请放心。
+
+escalation:
+  - trigger: 客户情绪激动且指控强制购买，转接主管处理
+  - trigger: 客户要求退会员费，转至会员退费流程
+
+fallback:
+  answer: 您好，关于会员取消申请，客服已为您操作取消，后续不会再扣费，请您放心。如有疑问请再次联系客服。
+  next_step: confirm_cancellation
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  loan_date: tool:get_loan_service_info.loan
+  member_fee: tool:get_membership_service_info.member
+  verify_question: system:verify_question
+escalation_signals: []

@@ -1,0 +1,88 @@
+---
+skill_id: premium_card_inquiry
+name: 优享卡咨询
+description: 客户咨询优享卡是什么、有哪些权益的场景。属于低风险咨询类业务，重点介绍优享卡的餐饮、视频会员、加速放款、专属优惠券等权益内容。已购买客户进一步追问权益时需核身后引导至服务商。
+domain: 优享卡
+intent_hierarchy:
+  l1: 优享卡服务
+  l2: 优享卡咨询
+  l3: 优享卡
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 优享卡是什么
+    - 优享卡权益
+    - 优享卡有什么
+    - 优享卡作用
+    - 优享卡服务
+    - 低息费特权
+    - 加速放款
+  examples:
+    - 这个优享卡是什么？
+    - 优享卡有什么权益？
+    - 优享卡低息费特权是什么？
+    - 优享卡加速放款多久之内可以放款成功？
+    - 放款失败优享卡会扣费吗？
+  exclude_keywords:
+    - 取消优享卡
+    - 退优享卡
+    - 优享卡扣费
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_membership_service_info
+
+templates:
+  first_contact:
+    script: |
+      {customer_name}先生/女士，您是想了解下优享卡，是吗？
+
+      优享卡是平台与第三方合作面向优质客户推出的专属权益包，权益包内包含丰富的餐饮、视频会员等；同时还会赠送您加速放款权益、专属优惠券等服务哦。
+    required_slots:
+      - customer_name
+    next_step: explain_benefits
+  follow_up:
+    script: |
+      （客户询问低息费特权）低息费特权是在您购买优享卡服务后根据您的借款资质、借款期限等匹配优质放款资方的服务，具体以您最终账单为准。如追问降息金额：具体金额在您借款时均有展示，涉及个人隐私客服无法查看。
+
+      （客户询问加速放款）加速放款订单将会优先匹配资方放款，一般3-30分钟内放款成功，具体以系统为准。
+
+      （客户询问放款失败是否扣费）优享卡购买与放款是否成功无关，但平台针对于优质客户放款失败会默认暂停扣款，您可以自主选择是否继续购买。
+
+      （已购买客户追问更多权益）感谢您对优享卡权益的关注，因权益由第三方服务商提供，如您想了解更多权益，客服可以提供对应服务商的联系方式给您，您在方便时可联系服务商具体了解下哦。
+    required_slots: []
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 客户未购买优享卡
+    variant: not_purchased
+    note: 引导客户APP端查看，具体以APP页面展示为准
+  - hint: 客户已购买优享卡且追问权益
+    variant: purchased_inquire
+    note: 需核身，核身通过后引导至对应服务商联系方式
+compliance:
+  forbidden_expressions:
+    - 保证降息
+    - 一定放款更快
+    - 承诺利率降低
+    - 肯定加速放款
+  required_disclaimer: 优享卡权益由第三方服务商提供，具体权益内容以APP页面展示为准，客服仅提供基本介绍。
+  must_include_when:
+    - condition: 客户询问具体降息金额
+      text: 涉及个人隐私，客服无法查看具体降息金额，借款时页面均有展示。
+
+escalation:
+  - trigger: 客户已购买且对权益有详细查询需求，需转接或提供服务商联系方式
+  - trigger: 客户对优享卡服务产生投诉意愿，转接主管处理
+
+fallback:
+  answer: 您好，关于优享卡的详细权益信息，建议您登录APP查看最新权益内容，具体以APP页面展示为准。如已购买且有疑问，可联系对应服务商进一步了解。
+  next_step: guide_to_app
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

@@ -1,0 +1,93 @@
+---
+skill_id: loan_consultation
+name: 贷款咨询
+description: 处理客户咨询贷款产品信息的场景，包括贷款用途要求、申请条件、资料要求、利率、放款时效、审核规则等通用咨询问题。属于低风险业务，无需核身，仅需询问客户姓氏以礼貌称呼。通过系统查询客户状态后给予针对性解答。
+domain: 贷款
+intent_hierarchy:
+  l1: 申请咨询
+  l2: 贷款咨询
+  l3: 贷款
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 怎么贷款
+    - 贷款条件
+    - 贷款要求
+    - 申请贷款
+    - 贷款利率
+    - 贷款用途
+    - 能贷多少
+    - 贷款资质
+    - 怎么申请
+    - 贷款流程
+  examples:
+    - 你们贷款有什么要求吗
+    - 申请贷款需要准备什么资料
+    - 你们贷款利率是多少
+    - 贷款用途有什么限制吗
+    - 我的资质能申请贷款吗
+  exclude_keywords:
+    - 放款进度
+    - 取消贷款
+    - 解约
+    - 异地放款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_loan_service_info
+  optional:
+    - get_bill_and_repayment_plan
+    - get_quota_service_info
+
+templates:
+  first_contact:
+    script: "为了更好的与您沟通，请问怎么称呼您呢？"
+    required_slots: []
+    next_step: ask_specific_question
+  follow_up:
+    script: "{customer_name}，您好，请问您具体遇到什么问题了呢？客服为您协助处理下哦。"
+    required_slots:
+      - customer_name
+    next_step: answer_loan_query
+
+branch_conditions:
+  - hint: 客户咨询贷款用途限制
+    variant: loan_purpose_explanation
+    note: 告知仅用于消费，不得用于购房、购车、投资、购买理财产品等
+  - hint: 客户咨询申请条件/资质
+    variant: eligibility_explanation
+    note: 系统根据婚姻状态、职业背景、征信情况等综合评估，不承诺具体通过率
+  - hint: 客户咨询申请资料
+    variant: document_requirements
+    note: 注册实名：身份证正反面、基本资料、人脸识别、银行卡四要素验证，紧急联系人2位；要求银行预留手机号与网银/电话银行/手机银行一致
+  - hint: 客户咨询放款时效
+    variant: disbursement_timeline
+    note: 系统授信常规3天；申请提现审核1-2天；放款一般1-10个工作日，最快当天
+  - hint: 审核被拒或评分不足
+    variant: rejection_explanation
+    note: 告知系统综合评分不足，人工无法干预，建议过段时间再尝试申请
+compliance:
+  forbidden_expressions:
+    - 保证通过
+    - 一定能贷到
+    - 保证放款
+    - 我们可以帮您调整审核结果
+  required_disclaimer: 贷款审核由系统自动评估，人工无法干预审核结果
+  must_include_when:
+    - condition: 客户问贷款用途
+      text: 贷款用途主要用于消费，不得用于购房、购车、投资、购买理财产品等
+
+escalation:
+  - trigger: 客户对审核结果强烈不满，要求人工介入
+  - trigger: 客户反映提交资料后系统长时间无响应
+
+fallback:
+  answer: "{customer_name}，您好，感谢您的关注！我司按照监管要求对申请人进行严格审核，会根据您的婚姻状态、职业背景、征信情况等进行综合评估。具体可以告诉我您目前操作到哪一步了，我来为您进一步解答。"
+  next_step: collect_specific_question
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

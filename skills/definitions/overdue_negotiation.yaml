@@ -1,0 +1,129 @@
+---
+skill_id: overdue_negotiation
+name: 协商还款
+description: |
+  处理客户逾期还款协商诉求，了解困难原因，提供还款方案建议，适用于未逾期和已逾期两种场景的渐进式对话。
+  与 stop_collection 的区别：本场景客户想谈"怎么还"（延期/分期方案），stop_collection 是客户想谈"别再催了"（要求停止催收电话）。只要客户提出了延期/分期/困难原因的诉求，就归本场景；若客户只要求停止电话、不提还款方案，走 stop_collection。
+  与 post_loan_verification 的区别：本场景推动协商方案；post_loan_verification 处理"查催收身份/核实对公账号/调解员是否真实"的诉求。
+  与 collection_complaint 的区别：本场景是客户主动想协商；collection_complaint 是客户投诉催收行为（骚扰/态度差/违规）。
+domain: 逾期
+intent_hierarchy:
+  l1: 催收相关
+  l2: 协商还款
+  l3: 逾期
+route_mode: tool_rag
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 协商还款
+    - 延期还款
+    - 还不上
+    - 分期还款
+    - 二次分期
+    - 还款困难
+    - 逾期协商
+    - 协商延期
+    - 没钱还
+    - 周转
+  examples:
+    - 我这个钱可能换不上了，需要一点时间
+    - 我想跟你们协商还款
+    - 我目前还不上了，需要跟你们协商延期还款
+    - 我现在资金周转困难，能不能延期
+    - 我要申请分期还款
+    - 逾期了能不能协商一下还款方案
+  exclude_keywords:
+    - 停催
+    - 投诉催收
+    - 征信
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - query_ticket
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，相信您自己肯定也是不希望逾期的，并且您能主动致电我们客服进行沟通，
+      也能感受到您是有还款意愿的，所以冒昧了解下，您这边是什么原因导致自己无法还款了呢？
+      大概什么时候可以还款呢？
+    required_slots:
+      - customer_name
+    next_step: 了解困难原因后，根据是否已逾期判断分支处理
+  follow_up:
+    script: >
+      {customer_name}，您刚才诉说的情况，作为个人来说，我也是非常能够理解，因为每个人在生活中
+      难免会有这样那样的难处，但是出现问题我们还是需要解决。逾期会造成征信影响及更多逾期费用，
+      所以建议这边还是能够尽力跟家人朋友周转，尽快处理下欠款。
+      目前逾期金额为{overdue_amount}元，逾期{overdue_days}天，请问您大概什么时候能够还款呢？
+    required_slots:
+      - customer_name
+      - overdue_amount
+      - overdue_days
+    next_step: 根据客户还款意愿决定是否发单给贷后专员
+  third_contact:
+    script: >
+      {customer_name}，您先消消气，客服会将您的情况反馈给还款专员处理，
+      正常{followup_days}个工作日会有专员与您联系，建议您耐心等待，保持电话畅通，
+      在此期间无需重复进线哦。另外也希望您能尽快周转处理下账单，避免征信进一步受损。
+    required_slots:
+      - customer_name
+      - followup_days
+    next_step: 提交催收工单，结束本次通话
+
+branch_conditions:
+  - expr: overdue_days == 0
+    variant: pre_overdue
+    note: 未逾期客户协商延期——婉拒延期，提醒征信影响，添加催收备注
+  - expr: overdue_days <= 30
+    variant: early_overdue
+    note: 逾期1-30天——了解原因，IVR/AI阶段引导等待专员，发单时效1-2工作日
+  - expr: overdue_days > 30 and overdue_days <= 90
+    variant: mid_overdue
+    note: 逾期31-90天——强调征信影响，可申请二次分期（需提供困难凭证），发单时效1-2工作日
+  - expr: overdue_days > 90
+    variant: severe_overdue
+    note: 逾期90天以上——委外/法诉阶段，对公入账1-3工作日，法诉业务入账约1个月
+compliance:
+  forbidden_expressions:
+    - 保证帮您延期
+    - 可以不还
+    - 暂时不用还
+    - 征信没关系
+    - 我们不会上报征信
+    - 保证停止催收
+  required_disclaimer: 逾期将影响您的个人征信记录，并产生相应逾期费用，请尽快处理。
+  must_include_when:
+    - condition: customer_requests_installment
+      text: 申请分期需提供带个人信息的困难凭证，如电子征信报告、病历或多方负债截图
+    - condition: overdue_days > 60
+      text: 逾期超60天，还款专员跟进时效为3个工作日，请耐心等待
+
+escalation:
+  - trigger: 客户坚持只和贷后人员谈，客服协商无果
+  - trigger: 客户提及之前和贷后人员已有还款方案，客服无法满足
+  - trigger: 客户协商诉求超过客服侧服务范围
+  - trigger: 需解除停催重新操作
+
+fallback:
+  answer: >
+    {customer_name}，非常抱歉，目前无法直接为您处理延期申请，客服会将您的情况做好记录，
+    后续还款专员联系您时可以看到此记录，到时您可以再具体协商沟通。
+    目前仍建议您在还款日前尽量周转，避免对您个人造成征信影响和更多逾期费用。
+  next_step: 添加催收备注，结束通话
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  followup_days: system:followup_days
+  overdue_amount: tool:get_bill_and_repayment_plan.overdue_amount
+  overdue_days: tool:get_bill_and_repayment_plan.overdue_days
+escalation_signals:
+  - 协商还款
+  - 延期
+  - 困难证明

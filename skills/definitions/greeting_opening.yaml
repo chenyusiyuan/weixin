@@ -1,0 +1,65 @@
+---
+skill_id: greeting_opening
+name: 开场寒暄
+description: 客户首次进线的问候、称呼或开场语。用于坐席自报身份并引导客户说明诉求。
+domain: 会话流程
+intent_hierarchy:
+  l1: 会话流程
+  l2: 开场寒暄
+  l3: 通用
+route_mode: direct_reply
+risk_level: low
+priority: 5
+
+triggers:
+  keywords:
+    - 喂
+    - 你好
+    - 您好
+    - 早上好
+    - 晚上好
+    - 请问
+    - 麻烦问一下
+  examples:
+    - 喂，你好
+    - 你好
+    - 早上好
+    - 您好，请问
+    - 喂，你好，我想问一下
+    - 麻烦问一下
+  exclude_keywords:
+    - 还款
+    - 逾期
+    - 退费
+
+tools:
+  required: []
+  optional: []
+
+templates:
+  first_contact:
+    script: |
+      您好，我是客服{agent_name}，请问您是需要咨询还款、贷款，还是其他问题呢？为了更好地协助您，请简单描述一下您的诉求。
+    required_slots:
+      - agent_name
+    next_step: wait_business_query
+
+branch_conditions: []
+
+compliance:
+  forbidden_expressions:
+    - 你有什么事
+    - 快点说
+    - 不想听
+  required_disclaimer: ""
+  must_include_when: []
+
+escalation: []
+escalation_signals: []
+
+fallback:
+  answer: 您好，请问您需要咨询什么问题？
+  next_step: wait_business_query
+
+slot_sources:
+  agent_name: system:agent_name

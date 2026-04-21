@@ -1,0 +1,113 @@
+---
+skill_id: deduction_issues
+name: 扣款相关问题咨询
+description: 处理各类扣款问题，包括扣款时间、扣款金额、扣款失败、重复扣款等综合扣款咨询
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 扣款问题
+  l3: 还款
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 扣款
+    - 扣款时间
+    - 什么时候扣款
+    - 扣款金额
+    - 重复扣款
+    - 多扣了
+    - 扣款记录
+    - 扣了多少
+    - 扣款问题
+  examples:
+    - 什么时候扣款
+    - 为什么扣了这么多
+    - 我被重复扣款了
+    - 扣款金额不对
+    - 扣款时间是几号
+    - 为什么刚才扣了1500多块钱
+    - 今天早上众安保险怎么又从我这边扣款了
+    - 为什么你们平台又扣了我的钱
+    - 我没贷款为什么扣我
+  exclude_keywords:
+    - 还款失败
+    - 提前扣款
+    - 提前清贷
+    - 查账单
+    - 账单扣了吗
+    - 账单扣款情况
+    - 怎么查还款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已为您查询了扣款记录。
+      您{deduction_date}的扣款金额为{deduction_amount}元，扣款状态为{deduction_status}，扣款银行卡尾号为{bank_card_last4}。
+      请问您具体想了解哪方面的扣款问题呢？
+    required_slots:
+      - bank_card_last4
+      - customer_name
+      - deduction_amount
+      - deduction_date
+      - deduction_status
+    next_step: diagnose_deduction_issue
+
+branch_conditions:
+  - hint: 客户询问下次扣款时间
+    variant: next_deduction_date
+    note: 根据账单信息告知下次还款日及预计扣款时间
+  - hint: 客户反映扣款金额与预期不符
+    variant: amount_mismatch
+    note: 核查账单明细，逐项解释费用构成
+  - hint: 客户反映被重复扣款
+    variant: duplicate_deduction
+    note: 查询扣款记录，确认是否存在重复，如确认重复需发起退款处理
+  - hint: 客户询问扣款渠道维护导致扣款失败后续处理
+    variant: channel_maintenance
+    note: |
+      因我司产品当前是由第三方渠道进行代扣，若遇扣款渠道维护，系统扣不到款项，系统也会自动触发短信提醒，您只需确保还款日起卡内金额一直充足且未移动或使用，系统还会再次扣款的，不会对您产生任何影响。
+compliance:
+  forbidden_expressions:
+    - 肯定是您的问题
+    - 我们不会扣错
+    - 保证退款
+  required_disclaimer: 扣款以合同约定的还款日为准，具体金额请以账单详情页显示为准。
+  must_include_when:
+    - condition: 客户反映重复扣款时
+      text: 如确认重复扣款，我们会为您申请退款，退款时效一般为3-7个工作日。
+    - condition: 扣款渠道维护时
+      text: 系统会自动重新发起扣款，请确保银行卡余额充足，无需手动操作。
+
+escalation:
+  - trigger: 确认重复扣款需发起退款
+  - trigger: 扣款金额与合同约定明显不符
+  - trigger: 客户投诉扣款异常且提供凭证
+
+fallback:
+  answer: 关于扣款问题，需要为您查询详细的扣款记录，请先配合核实身份信息。
+  next_step: verify_identity
+slot_sources:
+  bank_card_last4: llm:bank_card_last4
+  customer_name: tool:get_customer_profile.name
+  deduction_amount: tool:get_bill_and_repayment_plan.deduction
+  deduction_date: tool:get_bill_and_repayment_plan.deduction
+  deduction_status: tool:get_bill_and_repayment_plan.deduction
+  verification_info: derived:verification_info
+escalation_signals: []

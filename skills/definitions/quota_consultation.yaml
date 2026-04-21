@@ -1,0 +1,91 @@
+---
+skill_id: quota_consultation
+name: 额度咨询
+description: 客户咨询贷款额度相关信息，包括最高可贷额度、放款金额差异等问题的标准解答场景。适用于低风险纯咨询类业务，无需系统查询操作。
+domain: 额度
+intent_hierarchy:
+  l1: 产品与信息
+  l2: 额度咨询
+  l3: 额度
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 额度
+    - 可以贷多少
+    - 最高额度
+    - 贷款金额
+    - 放款金额
+    - 能借多少
+    - 额度是多少
+  examples:
+    - 你们这里可以贷多少钱？
+    - 豆豆钱/维信卡卡贷最高可贷额度是多少？
+    - 我申请的是10000，为什么最终放款只放了8000？
+    - 最高能借多少？
+    - 我的贷款额度是多少？
+  exclude_keywords:
+    - 无额度
+    - 没有额度
+    - 额度为零
+    - 额度激活失败
+
+tools:
+  required:
+    - get_quota_service_info
+  optional:
+    - get_loan_service_info
+    - get_customer_profile
+templates:
+  first_contact:
+    script: |
+      您好，我是客服{agent_id}，很高兴为您服务，请问怎么称呼您呢？
+    required_slots:
+      - agent_id
+    next_step: confirm_customer_name
+  follow_up:
+    script: |
+      {customer_name}先生/女士，您好，{product_name}最高额度20万，具体以系统评估结果为准。
+
+      如您询问放款金额与申请金额不符：您在借款时都有签署相关协议，最终放款金额是以实际放款金额为准，提现展示金额仅做参考。
+    required_slots:
+      - customer_name
+      - product_name
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 客户询问最高额度
+    variant: max_quota
+    note: 直接告知最高20万，具体以系统评估为准
+  - hint: 客户询问放款金额与申请金额不符
+    variant: amount_discrepancy
+    note: 解释协议约定，实际放款以系统为准
+  - hint: 额度获取超时或激活失败
+    variant: escalate_ops
+    note: 超过3天且身份证未过期，发运维工单
+compliance:
+  forbidden_expressions:
+    - 保证放款
+    - 一定能贷到
+    - 肯定有额度
+    - 承诺额度
+  required_disclaimer: 具体额度以系统评估结果为准，客服无法承诺具体金额。
+  must_include_when:
+    - condition: 客户追问具体额度数字
+      text: 具体以系统评估结果为准，客服无法提前告知确切金额。
+
+escalation:
+  - trigger: 额度获取超过3天且身份证未过期，发运维工单处理
+  - trigger: APP显示有另一台设备进行额度召唤，收集截图发运维工单
+  - trigger: 召唤额度显示手机报告查询失败，建议客户等待后重试，多次失败发运维工单
+
+fallback:
+  answer: 您好，关于额度相关问题，建议您登录APP查看最新额度信息，具体以系统显示为准。如仍有疑问，请稍候，我们将为您进一步核实。
+  next_step: transfer_to_human
+slot_sources:
+  agent_id: llm:agent_id
+  customer_name: tool:get_customer_profile.name
+  product_name: llm:product_name
+escalation_signals: []

@@ -1,0 +1,79 @@
+{
+  "version": "2026-04-11",
+  "description": "链路A规则短路引擎 — 用于高频确定性场景的零LLM直出",
+  "note": "规则从真实流量数据自动沉淀（采纳率>=90%且匹配频率Top-N），初始版本为预置的direct_reply场景",
+  "rules": [
+    {
+      "rule_id": "RULE_001",
+      "skill_id": "repayment_method_inquiry",
+      "name": "咨询还款方式",
+      "match_type": "keyword",
+      "keywords": ["怎么还款", "还款方式", "如何还款", "还款途径", "主动还款", "自动还款"],
+      "exclude_keywords": ["还款失败", "还不上", "逾期", "没扣", "扣款"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-11",
+      "accept_rate_threshold": 0.85,
+      "source": "preset"
+    },
+    {
+      "rule_id": "RULE_002",
+      "skill_id": "card_rebinding",
+      "name": "换绑银行卡",
+      "match_type": "keyword",
+      "keywords": ["换绑银行卡", "换卡", "更换银行卡", "绑定银行卡", "换绑卡", "改银行卡"],
+      "exclude_keywords": ["还款失败", "扣款失败"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-11",
+      "accept_rate_threshold": 0.85,
+      "source": "preset"
+    },
+    {
+      "rule_id": "RULE_003",
+      "skill_id": "member_consultation",
+      "name": "会员咨询",
+      "match_type": "keyword",
+      "keywords": ["什么是会员", "会员是什么", "会员权益", "会员有什么用", "会员服务", "开通会员"],
+      "exclude_keywords": ["取消会员", "退会员", "退费"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-11",
+      "accept_rate_threshold": 0.85,
+      "source": "preset"
+    },
+    {
+      "rule_id": "RULE_004",
+      "skill_id": "quota_consultation",
+      "name": "额度咨询",
+      "match_type": "keyword",
+      "keywords": ["额度多少", "我的额度", "查询额度", "额度是多少", "借款额度", "可用额度"],
+      "exclude_keywords": ["没有额度", "额度为0", "为什么没额度", "额度冻结"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-11",
+      "accept_rate_threshold": 0.85,
+      "source": "preset"
+    },
+    {
+      "rule_id": "RULE_005",
+      "skill_id": "stop_marketing",
+      "name": "停止营销",
+      "match_type": "keyword",
+      "keywords": ["别打电话了", "不要再打电话", "停止营销", "不要推销", "别推销了", "不需要贷款"],
+      "exclude_keywords": ["催收", "逾期", "还款提醒"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-11",
+      "accept_rate_threshold": 0.85,
+      "source": "preset"
+    },
+    {
+      "rule_id": "RULE_006",
+      "skill_id": "value_added_service_inquiry",
+      "name": "增值服务咨询",
+      "match_type": "keyword",
+      "keywords": ["增值服务是什么", "什么是增值服务", "赋强公证", "安心保障", "增值服务有什么用"],
+      "exclude_keywords": ["取消增值", "退增值", "退费"],
+      "template_variant": "first_contact",
+      "expires": "2026-07-11",
+      "accept_rate_threshold": 0.85,
+      "source": "preset"
+    }
+  ]
+}

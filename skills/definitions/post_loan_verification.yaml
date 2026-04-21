@@ -1,0 +1,124 @@
+---
+skill_id: post_loan_verification
+name: 核实贷后信息
+description: |
+  协助客户核实贷后人员身份、对公还款账号、法调法诉机构信息等贷后相关信息的真实性，防范诈骗。
+  核心信号：客户**质疑**某个来电/账号/方案是否是本平台的，想"核实/确认/辨真伪"。
+  与 overdue_negotiation 的区别：本场景客户是**质疑/核实**催收身份/方案；overdue_negotiation 是客户**接受催收身份**然后协商方案。
+  典型句式："有人给我打电话说...是不是你们的员工"、"那个对公账号是真的吗"、"调解员说的方案靠谱吗"、"工号 XXXX 在不在你们公司"。
+domain: 逾期
+intent_hierarchy:
+  l1: 催收相关
+  l2: 核实贷后信息
+  l3: 逾期
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 核实
+    - 贷后人员
+    - 对公账号
+    - 还款账号
+    - 催收人员真实
+    - 调解机构
+    - 法调
+    - 委外催收
+    - 工号核实
+    - 第三方机构
+    - 江南商事
+    - 有人给我打电话
+    - 是你们的员工吗
+    - 是你们的人吗
+    - 是不是你们公司
+    - 调解员
+    - 打折还款
+    - 本金八折
+    - 私人号码
+    - 陌生号码联系
+    - 核实真实性
+  examples:
+    - 有人给我打电话说需要还款，是你们的员工吗
+    - 你们工作人员给我了一个账号，说是还款到这个账号里
+    - 有催收联系我说是受你们公司委托催款的
+    - 帮我查查你们有没有这个贷后人员，工号是6131
+    - 有个调解机构给我打电话，是你们这边的吗
+    - 你们催收人员给的还款方案是真的吗
+    - 有人联系我让我本金八折还款，我想确认他是否是你们的工作人员
+    - 我要核实一下对公账户，请确认这个是不是你们豆豆钱的
+    - 多元调解中心说受你们委托协商还款，是否有这个事情
+    - 我收到贷后人员发来的一个账号，请帮我核实是否是你们官方的
+  exclude_keywords:
+    - 投诉催收
+    - 停催
+    - 请停止催收
+    - 态度恶劣
+    - 协商还款
+    - 停止营销
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - get_call_history
+    - get_sms_history
+    - get_stop_collection_history
+    - query_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，您可以说下对方与您沟通的具体情况吗？
+      请您提供对方的工号或机构名称，客服为您核实一下。
+    required_slots:
+      - customer_name
+    next_step: 根据客户提供信息查询资方功能表核实
+  follow_up:
+    script: >
+      {customer_name}，您好，请您提供下相关信息（账号/户名/开户行 或 工号/机构名称），
+      客服为您核实下哦。同时也请您注意甄别信息，谨防诈骗，
+      为了您的财产安全，请勿将款项转给私人账户，建议通过官方APP还款。
+    required_slots:
+      - customer_name
+    next_step: 查询后告知核实结果，若无法核实则提交工单
+
+branch_conditions:
+  - expr: verification_type == account
+    variant: verify_account
+    note: 核实对公账号——按资方功能表查询，属实则发账号短信并提醒防诈骗，不属实则发单核实
+  - expr: verification_type == staff_id
+    variant: verify_staff
+    note: 核实工号——查询到则告知属实（姓名不显示），未查询到则告知无法确认并提交核实
+  - expr: verification_type == institution
+    variant: verify_institution
+    note: 核实调解机构——查询到则告知可联系，未查询到则提交工单1-2工作日内回复
+  - hint: institution_name == 江南商事调解中心
+    variant: jiangnan_mediation
+    note: 江南商事调解中心——系受公司委托，由重庆市南岸区人民法院指导的合法调解机构
+compliance:
+  forbidden_expressions:
+    - 所有账号都是真实的
+    - 直接打款到该账号
+    - 不用核实直接还款
+  required_disclaimer: 为保障您的资金安全，请通过官方APP或经核实的对公账号还款，切勿转账至私人账户。
+  must_include_when:
+    - condition: account_verified
+      text: 客服稍后将账号信息以短信方式重新发送给您，请注意查收，同时请注意甄别信息，谨防诈骗
+    - condition: cannot_verify
+      text: 您反馈的信息客服会为您申请核实，预计1-2个工作日会有人员联系，请保持电话畅通
+
+escalation:
+  - trigger: 客户反映对公账号与系统记录不符且已转款
+  - trigger: 疑似诈骗事件需紧急处理
+
+fallback:
+  answer: >
+    {customer_name}，您提供的信息目前客服无法直接核实，已提交相关部门处理，
+    预计1-2个工作日会有工作人员与您联系，建议您在核实前暂勿转账，保持电话畅通。
+  next_step: 提交核实工单，备注客户提供的信息
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

@@ -1,0 +1,177 @@
+---
+skill_id: repayment_status_issue
+name: 还款状态异常
+description: |
+  合并场景：客户反映还款过程中出现任何异常，统一入口。具体包括：
+  (1) 扣款失败/还不进去（余额不足、银行卡签约问题、卡控、限额、通道问题）
+  (2) 已还款但系统/APP 未更新、部分扣款、重复扣款、显示未到账
+  (3) 已做自动扣款但金额不足/仅扣部分
+  客户视角下这些是"钱到底扣了没有"的同一个诉求；SOP 侧依据扣款状态（成功/失败/部分成功）走不同分支处理。
+  与 overpayment_refund 的区别：本场景处理入账异常，overpayment_refund 处理客户主动多付/溢余退款。
+  与 early_loan_clearance 的区别：本场景针对常规扣款异常，early_loan_clearance 针对客户主动发起的一次性结清。
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 还款状态异常
+  l3: 还款
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 还款失败
+    - 扣款失败
+    - 还款没成功
+    - 还款不了
+    - 还款出错
+    - 付款失败
+    - 还款没到账
+    - 还款未到账
+    - 账单没更新
+    - 已还款没更新
+    - 还了钱没变
+    - 还完了还显示
+    - 扣了一部分
+    - 只扣了一部分
+    - 部分扣款
+    - 重复扣款
+    - 多扣了
+    - 钱扣了没到账
+  examples:
+    - 还款失败怎么回事
+    - 我还款失败了
+    - 为什么扣款不成功
+    - 还款一直失败
+    - 我已经还款了怎么没更新
+    - 已还款但系统未显示
+    - 钱已经扣了但账单没变
+    - 只扣了一部分还有一部分没扣
+    - 今天还款有四千多但只扣了三千
+    - 已经还过一次了又被扣一次
+    - 我手动还款又还不进去
+  exclude_keywords:
+    - 还款方式
+    - 提前清贷
+    - 换绑银行卡
+    - 查询还款结果
+    - 怎么查还款
+    - 还款成功了吗
+    - 到账了吗
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      好的，{customer_name}。跟您确认一下账单：当期应还{bill_amount}元。
+      这边已为您核查扣款记录，当前状态为{repayment_status}。请问您实际遇到的情况是哪种？
+    required_slots:
+      - customer_name
+      - bill_amount
+      - repayment_status
+    next_step: diagnose_issue
+
+branch_conditions:
+  # ----- 扣款失败类（原 repayment_failure 分支） -----
+  - hint: 扣款失败-余额不足，客户确认现在余额已充足
+    variant: failure_insufficient_balance_sufficient_now
+    note: |
+      这边查询扣款失败是因为余额不足导致扣款失败，您现在余额是否充足？充足的话客服这边可以帮您扣款。
+      正常处理时效1-2个小时。
+  - hint: 扣款失败-余额不足，客户余额仍不足
+    variant: failure_insufficient_balance_still_low
+    note: |
+      扣款失败是因为绑卡余额不足，辛苦您先把所绑定银行卡余额补足再尝试。
+  - hint: 扣款失败-银行卡签约问题
+    variant: failure_bank_card_contract
+    note: |
+      扣款失败是因为银行卡签约问题，建议您重新签约银行卡。
+  - hint: 扣款失败-规则卡控（未到还款日）
+    variant: failure_rule_not_due
+    note: |
+      扣款失败是因为账单还未到还款日，建议您等到还款日系统自动扣款。
+  - hint: 扣款失败-银行卡限额，客户有其他卡
+    variant: failure_card_limit_has_other_card
+    note: |
+      扣款失败是银行卡限额所致。您是否有其他银行卡可更换？换卡路径：APP-我的-我的银行卡。
+  - hint: 扣款失败-限额，引导扫码付款
+    variant: failure_limit_qr_payment
+    note: |
+      扣款失败是系统原因。可支持微信/支付宝/云闪付扫码付款，付款码 20 分钟有效。
+  - hint: 扣款失败-限额，引导对公还款
+    variant: failure_limit_corporate_payment
+    note: |
+      扣款失败是系统原因。可用对公还款：客服发送我司对公账户，通过银行转账后上传凭证即可。
+  - hint: 扣款失败-通道限额，引导扫码付款
+    variant: failure_channel_qr_payment
+    note: 通道限额导致扣款失败，引导扫码付款。
+  - hint: 扣款失败-通道限额，引导对公还款
+    variant: failure_channel_corporate_payment
+    note: 通道限额导致扣款失败，引导对公还款。
+
+  # ----- 已还款未更新类（原 repayment_not_updated 分支） -----
+  - hint: 已扣款处理中，还款记录存在
+    variant: update_in_progress
+    note: 告知 1-2 小时到账时效，请耐心等待账单刷新。
+  - hint: 已扣款成功，仅 APP 页面缓存未刷新
+    variant: update_cache_refresh
+    note: 建议客户下拉刷新 APP 或重新登录查看最新状态。
+  - hint: 已扣款但无还款记录（可能客户记错/转到第三方）
+    variant: update_no_record
+    note: 核实客户还款路径和凭证，必要时升级处理。
+  - hint: 部分扣款（客户还款金额大于当期应还或小于应还）
+    variant: partial_deduction
+    note: |
+      告知客户具体扣款金额与应还金额对比，引导补足或说明差额去向。
+  - hint: 重复扣款（同一账单被扣两次）
+    variant: duplicate_deduction
+    note: |
+      核实后若确认重复扣款，按退款流程处理。时效 3-5 工作日。
+
+compliance:
+  forbidden_expressions:
+    - 保证下次成功
+    - 肯定是你的问题
+    - 一定没问题
+    - 肯定是您的操作问题
+    - 我们系统没有问题
+    - 保证马上更新
+  required_disclaimer: 还款处理时效一般为 1-2 小时，节假日可能有所延迟，请以账单实际显示为准。
+  must_include_when:
+    - condition: 协助扣款时
+      text: 正常处理时效 1-2 个小时，请耐心等待账单更新。
+    - condition: 扫码付款时
+      text: 付款码有效期为 20 分钟，请尽快完成扫码支付。
+    - condition: 超时仍未更新时
+      text: 如超过 24 小时仍未更新，请保留还款凭证并联系客服处理。
+
+escalation:
+  - trigger: 多次还款失败无法定位原因
+  - trigger: 客户投诉扣款金额有误
+  - trigger: 还款超过 24 小时仍未更新
+  - trigger: 客户提供还款凭证但系统无记录
+  - trigger: 重复扣款需走退款流程
+
+escalation_signals: []
+
+fallback:
+  answer: 关于您的还款状态问题，需要先查询您的账单信息，请配合核实身份后为您定位具体原因。
+  next_step: verify_identity
+
+slot_sources:
+  bill_amount: tool:get_bill_and_repayment_plan.amount
+  customer_name: tool:get_customer_profile.name
+  repayment_status: tool:get_bill_and_repayment_plan.repayment
+  verification_info: derived:verification_info

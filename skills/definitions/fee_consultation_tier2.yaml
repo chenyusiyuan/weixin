@@ -1,0 +1,114 @@
+---
+skill_id: fee_consultation_tier2
+name: 费用咨询（二线/高阶内诉）
+description: 二线及高阶坐席处理费用内诉投诉，对客户关于费用合法性的强烈质疑提供更详尽的法律依据和权威解释，处理一线无法解决的费用争议
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 费用咨询(二线)
+  l3: 费用
+route_mode: tool_rag
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 内诉
+    - 投诉
+    - 违法收费
+    - 要投诉你们
+    - 上级处理
+    - 二线
+    - 担保费违法
+    - 法律规定
+    - 监管部门
+    - 举报
+  examples:
+    - 我要投诉你们乱收费
+    - 担保费明显违法我要举报
+    - 一线解释不了我要找你们上级
+    - 你们违反监管规定
+    - 我要向银保监会投诉
+  exclude_keywords:
+    - 退费
+    - 退款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      {customer_name}，您好，我是{agent_name}，负责处理您反映的费用问题。
+      非常理解您的关切，我们会认真对待您的每一条反馈。
+      请您放心，我们的所有费用收取均严格遵守国家法律法规，我来为您做详细说明。
+    required_slots:
+      - agent_name
+      - customer_name
+    next_step: detailed_fee_explanation
+  follow_up:
+    script: |
+      {customer_name}，关于您提出的费用合法性问题，我们平台严格遵守《商业银行法》《融资担保公司监督管理条例》等相关法律法规。
+      担保公司依法取得融资担保业务经营许可证，具备合法收取担保费的资质。
+      担保费由独立的担保公司收取，与平台的贷款利息分属不同主体，不存在变相加息。
+      所有费用在借款合同中已明确列示，您本人签字确认后才完成放款，合同具有法律效力。
+      如您需要，可以提供相关合规文件供您查阅。
+    required_slots:
+      - customer_name
+    next_step: check_customer_acceptance
+
+branch_conditions:
+  - hint: 客户坚持认为担保费是变相利息超过法定上限
+    variant: disguised_interest_objection
+    note: |
+      担保费与利息的收取主体、法律依据、计算方式均不同。利息由持牌金融机构收取，适用央行利率规定；担保费由持牌担保公司收取，依据《融资担保公司监督管理条例》，两者合计的综合资金成本已在合同中明确披露，符合监管要求。
+  - hint: 客户声称要向监管部门投诉
+    variant: regulatory_complaint_threat
+    note: |
+      我们欢迎并尊重您通过合法渠道反映问题。如您认为存在问题，可向中国人民银行、银保监会或地方金融监管局进行投诉。同时我们也会认真对待您的反馈，在内部进行核查，若确有问题会第一时间处理。
+  - hint: 客户提出费用合规文件要求
+    variant: compliance_document_request
+    note: 可告知客户在APP合同页面查阅完整合同，或协助其获取合同复印件
+  - hint: 客户经充分解释后接受
+    variant: customer_accepts
+    note: 感谢客户理解，询问是否还有其他问题
+  - hint: 客户始终不接受，坚持退费
+    variant: persistent_refund_demand
+    note: 转入退费流程，由二线评估退费可行性
+compliance:
+  forbidden_expressions:
+    - 费用可以免除
+    - 这个费用确实有问题
+    - 我们收错了
+    - 可以帮您全部退还
+    - 监管也管不了我们
+  required_disclaimer: 如对费用收取存在异议，可查阅签署的借款合同及相关协议，或向相关监管机构反映。
+  must_include_when:
+    - condition: 客户提及监管投诉时
+      text: 我们欢迎并尊重您通过合法渠道反映问题，同时我们也会认真对待您的每一条反馈。
+    - condition: 解释费用合规性时
+      text: 所有费用收取主体均持有合法经营资质，具体资质信息可在相关合同中查阅。
+
+escalation:
+  - trigger: 客户出具书面材料证明费用异常
+  - trigger: 客户声称将采取法律行动
+  - trigger: 涉及媒体曝光威胁
+
+fallback:
+  answer: 关于费用合法性，我们的所有收费均严格遵守国家法律法规，具体费用依据和收费主体均在您的合同中明确列示。如有进一步疑问，可向相关监管机构反映。
+  next_step: ask_other_questions
+slot_sources:
+  agent_name: system:agent_name
+  customer_name: tool:get_customer_profile.name
+escalation_signals:
+  - 投诉违法
+  - 违法收费
+  - 监管
+  - 银保监
+  - 内诉
+  - 找上级
+priority: 20

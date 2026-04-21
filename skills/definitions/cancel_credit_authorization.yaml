@@ -1,0 +1,103 @@
+---
+skill_id: cancel_credit_authorization
+name: 注销授信额度
+description: 处理客户要求注销征信上循环授信额度的诉求，明确注销前提条件，区分自营与非自营机构处理路径，说明申请记录无法删除
+domain: 业务办理
+intent_hierarchy:
+  l1: 业务办理
+  l2: 注销授信额度
+  l3: 业务办理
+route_mode: tool_only
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 注销授信
+    - 注销额度
+    - 关闭授信
+    - 取消授信
+    - 注销征信额度
+    - 循环额度
+    - 授信额度注销
+    - 额度关闭
+  examples:
+    - 我要注销征信上的授信额度
+    - 我看征信上有你们贷款的授信额度，你们要帮我注销这个额度
+    - 帮我把授信额度关掉
+    - 我想取消你们给我的授信额度
+    - 征信上的循环额度怎么注销
+  exclude_keywords:
+    - 修改征信
+    - 删除征信记录
+    - 贷款申请
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - get_quota_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，您先别着急，客服将协助您处理。
+      请问征信报告上显示的管理机构名称叫什么呢？
+      另外，您名下目前是否还有未还清的贷款呢？
+    required_slots:
+      - customer_name
+    next_step: 明确机构类型，确认名下贷款是否全部结清
+  follow_up:
+    script: >
+      {customer_name}，您好，关于注销授信额度，需要说明的是：
+      授信额度在征信上体现为循环额度，可以注销，
+      但您的贷款申请记录是无法删除的，这是依据人民银行征信管理规定。
+      注销授信额度需要您名下该资方的所有贷款全部结清后才能办理，
+      请问您名下的贷款是否已全部结清了呢？
+    required_slots:
+      - customer_name
+    next_step: 确认所有贷款结清后，按机构类型处理注销申请
+
+branch_conditions:
+  - expr: institution_type == self_operated and all_loans_cleared
+    variant: self_operated_can_cancel
+    note: 自营机构且全部结清——可办理注销，提交注销申请工单
+  - expr: institution_type == self_operated and has_active_loan
+    variant: self_operated_has_loan
+    note: 自营机构但有未结清贷款——告知需全部还清后才能注销
+  - expr: institution_type == non_self_operated
+    variant: non_self_operated
+    note: 非自营机构——引导客户联系对应资方办理，提供资方联系方式
+  - expr: customer_confuses_quota_with_loan_record
+    variant: explain_difference
+    note: 客户混淆授信额度和贷款申请记录——解释两者区别，贷款申请记录不可删除
+compliance:
+  forbidden_expressions:
+    - 申请记录也可以删除
+    - 征信记录可以清零
+    - 保证注销成功
+    - 注销后征信就干净了
+  required_disclaimer: 授信额度可申请注销，但贷款申请记录依据人民银行征信管理规定无法删除，请知悉。
+  must_include_when:
+    - condition: cancel_application_submitted
+      text: 注销申请已提交，处理完成后征信将在下次更新周期（通常每月更新）后反映，请耐心等待
+    - condition: has_outstanding_loans
+      text: 注销授信额度需要您名下该资方所有贷款全部结清，请先还清所有贷款后再申请
+
+escalation:
+  - trigger: 客户要求删除贷款申请记录而非仅注销额度
+  - trigger: 客户声称征信上的授信额度影响其贷款申请且情绪激动
+  - trigger: 跨机构授信注销超出客服处理范围
+
+fallback:
+  answer: >
+    {customer_name}，非常抱歉，客服这边暂时无法直接为您办理注销，
+    已记录您的诉求并将转交相关部门处理，预计1-3个工作日内会有专员与您联系，
+    请保持电话畅通。
+  next_step: 提交注销授信额度工单，备注机构名称和客户诉求
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

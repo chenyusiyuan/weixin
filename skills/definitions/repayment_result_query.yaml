@@ -1,0 +1,98 @@
+---
+skill_id: repayment_result_query
+name: 查询还款结果
+description: 帮助客户查询还款是否成功，说明查询路径及处理时效
+domain: 还款
+intent_hierarchy:
+  l1: 还款相关
+  l2: 还款结果查询
+  l3: 还款
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 查询还款结果
+    - 还款成功了吗
+    - 还款到账了吗
+    - 还款有没有成功
+    - 还款结果
+    - 怎么查还款
+    - 还款显示
+  examples:
+    - 如何查询还款结果
+    - 我昨天还款了，怎么查看有没有到账
+    - 还款成功了吗
+    - 怎么确认还款成功
+    - 我想查一下还款结果
+    - 我已经扣款成功了，为什么平台上还是显示未到还款日
+    - 我昨天晚上已经还清了借款，平台怎么还显示未还
+    - APP显示还款成功，但收到短信说还款未成功，请帮我确认
+    - 我已经还完了款项，为什么APP上还没有显示还清
+    - 麻烦帮我查询今天的账单还款情况
+  exclude_keywords:
+    - 还款失败
+    - 还款方式
+    - 提前清贷
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已为您查询了您的还款记录，您{repayment_date}的{repayment_amount}元还款{repayment_status}。
+      您也可以在APP中查看：我的-账单详情-还款记录，可以查看所有历史还款情况。
+      一般还款到账时效为1-2小时，如超过该时效仍未更新，请再次联系客服。
+    required_slots:
+      - customer_name
+      - repayment_amount
+      - repayment_date
+      - repayment_status
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 还款已成功到账
+    variant: repayment_success
+    note: 告知还款成功，账单已更新
+  - hint: 还款处理中，未超时效
+    variant: repayment_processing
+    note: 告知处理时效1-2小时，请耐心等待
+  - hint: 还款超时效未到账
+    variant: repayment_delayed
+    note: 需进一步排查，可能需要升级处理
+compliance:
+  forbidden_expressions:
+    - 保证今天到账
+    - 立刻到账
+    - 实时到账
+  required_disclaimer: 还款到账时效一般为1-2小时，节假日可能有所延迟。
+  must_include_when:
+    - condition: 还款处理中时
+      text: 正常处理时效为1-2小时，请耐心等待账单更新。
+
+escalation:
+  - trigger: 还款超过24小时仍未到账
+  - trigger: 系统显示还款成功但客户银行卡已扣款账单未更新
+
+fallback:
+  answer: 关于还款结果查询，需要核实您的账户信息后才能为您查询，请配合提供核身信息。
+  next_step: verify_identity
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  repayment_amount: tool:get_bill_and_repayment_plan.repayment
+  repayment_date: tool:get_bill_and_repayment_plan.repayment
+  repayment_status: tool:get_bill_and_repayment_plan.repayment
+  verification_info: derived:verification_info
+escalation_signals: []

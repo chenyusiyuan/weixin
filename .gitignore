@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.env
+
+# large source assets (keep under version control per need)
+sop/source/xlsx/
+
+# experiment artifacts
+tests/verification/archive/
+tests/.embed_topk_cache.json
+tests/reports/
+
+# local logs / runtime
+nohup.out
+/tmp/*.json
+/tmp/*.log
+
+# local tooling state (Claude Code / OMC / OMX)
+.claude/
+.omc/
+.omx/

@@ -1,0 +1,119 @@
+---
+skill_id: fee_detail_query
+name: 查询费用明细及综合费率
+description: 帮助客户查询待还和已还的费用明细，包括利息、担保费、服务费等各项费用，以及综合费率（IRR）说明
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 费用明细查询
+  l3: 费用
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 费用明细
+    - 费用详情
+    - 综合费率
+    - 费率多少
+    - 每期费用
+    - 利息多少
+    - 担保费多少
+    - 已还费用
+    - 待还费用
+    - 账单明细
+  examples:
+    - 帮我查一下费用明细
+    - 我想知道综合费率是多少
+    - 每期还多少利息
+    - 查询已还的费用
+    - 待还费用明细是什么
+    - 我的担保费总共多少
+    - 平台刚才扣了我99块钱，这是什么费用
+    - 今天有一笔173块多的扣款是什么费用
+    - 我借款后有一笔159元的费用，这是什么钱
+    - 我想查询我的本金和利息分别是多少
+    - 我这边欠款总额是多少，本金利息罚息分别是多少
+  exclude_keywords:
+    - 退费
+    - 还款失败
+    - 扣款问题
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已为您查询了费用明细。
+      您的借款信息如下：
+      - 借款金额：{loan_amount}元
+      - 借款期数：{loan_period}期
+      - 综合费率（IRR）：{irr_rate}
+      待还费用明细：利息{pending_interest}元、担保费{pending_guarantee_fee}元、其他费用{pending_other_fee}元
+      已还费用明细：利息{paid_interest}元、担保费{paid_guarantee_fee}元、其他费用{paid_other_fee}元
+      如需查看每期详细账单，可在APP账单详情页查看。
+    required_slots:
+      - customer_name
+      - irr_rate
+      - loan_amount
+      - loan_period
+      - paid_guarantee_fee
+      - paid_interest
+      - paid_other_fee
+      - pending_guarantee_fee
+      - pending_interest
+      - pending_other_fee
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 客户询问综合费率计算方式
+    variant: irr_calculation_explanation
+    note: |
+      根据相关法律要求，我司所有借款均使用IRR（内部收益率）计算方式，综合反映借款的实际资金成本，包括利息和其他费用，综合利率都在法律允许的范围内。
+  - hint: 客户认为费率过高
+    variant: high_rate_objection
+    note: 解释费率合规性，如客户坚持不接受转费用咨询处理
+  - hint: 客户查询特定期次费用明细
+    variant: specific_period_query
+    note: 提供客户指定期次的详细费用分项说明
+compliance:
+  forbidden_expressions:
+    - 费率很低
+    - 费率没问题
+    - 不贵的
+  required_disclaimer: 综合费率以借款合同约定为准，具体费率请以签署合同显示为准。
+  must_include_when:
+    - condition: 客户询问综合费率时
+      text: 综合利率均在法律允许的范围内，具体以您签署的合同条款为准。
+
+escalation:
+  - trigger: 客户认为费率明显超出法定上限并提出投诉
+
+fallback:
+  answer: 关于费用明细查询，需要为您查询账单信息，请先配合核实身份信息。
+  next_step: verify_identity
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  irr_rate: llm:irr_rate
+  loan_amount: tool:get_loan_service_info.loan
+  loan_period: tool:get_loan_service_info.loan
+  paid_guarantee_fee: llm:paid_guarantee_fee
+  paid_interest: llm:paid_interest
+  paid_other_fee: llm:paid_other_fee
+  pending_guarantee_fee: llm:pending_guarantee_fee
+  pending_interest: llm:pending_interest
+  pending_other_fee: llm:pending_other_fee
+  verification_info: derived:verification_info
+escalation_signals: []

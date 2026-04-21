@@ -1,0 +1,103 @@
+---
+skill_id: overpayment_refund
+name: 客户对公转账出错退溢余
+description: 处理客户误将款项转入公司账户（对公转账出错）的退溢余申请，核实转账信息并按流程发起退款
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 退溢余
+  l3: 费用
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 溢余
+    - 退溢余
+    - 对公转账
+    - 转账出错
+    - 多转了
+    - 转错了
+    - 对公账户
+    - 打款出错
+    - 款项退还
+  examples:
+    - 我对公转账转错了要退款
+    - 我多转了钱怎么退
+    - 客户对公转账出错怎么退
+    - 我转给你们公司账户的钱能退吗
+    - 溢余款项如何申请退还
+  exclude_keywords:
+    - 退费
+    - 担保费退款
+    - 利息退款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+    - get_refund_history
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已收到您关于对公转账出错的申请。
+      请您提供以下信息以便核实：
+      1. 转账时间：{transfer_date}
+      2. 转账金额：{transfer_amount}元
+      3. 转账凭证（截图或流水号）
+      核实确认后，我们会为您发起溢余退款申请，退款将退回您的原转出账户，处理时效一般为3-7个工作日。
+    required_slots:
+      - customer_name
+      - transfer_amount
+      - transfer_date
+    next_step: verify_transfer_info
+
+branch_conditions:
+  - hint: 转账信息核实成功，金额与系统匹配
+    variant: transfer_verified_full_match
+    note: 确认溢余金额，发起全额退款申请
+  - hint: 转账金额超出账单金额（有真实溢余）
+    variant: genuine_overpayment
+    note: 核实溢余金额（转账金额 - 账单金额），仅退还溢余部分
+  - hint: 转账金额与账单金额一致（非溢余）
+    variant: no_overpayment
+    note: 告知客户转账金额已抵扣账单，无溢余可退，账单已更新
+  - hint: 客户提供凭证信息不完整
+    variant: incomplete_proof
+    note: 请客户补充完整转账凭证（包含转账时间、金额、收款账户信息）
+compliance:
+  forbidden_expressions:
+    - 马上退款
+    - 立刻到账
+    - 肯定能退
+  required_disclaimer: 溢余退款需核实转账凭证，退款金额以实际溢余为准，退回原转出账户，处理时效为3-7个工作日。
+  must_include_when:
+    - condition: 发起退款申请时
+      text: 退款申请已提交，处理时效一般为3-7个工作日，退款将原路退回至您的转出账户。
+    - condition: 客户提供凭证时
+      text: 请保留转账凭证原件，以便后续核查使用。
+
+escalation:
+  - trigger: 转账金额较大，超出一线处理权限
+  - trigger: 客户无法提供有效转账凭证
+  - trigger: 系统无对应收款记录
+
+fallback:
+  answer: 关于对公转账溢余退款，需要您提供转账凭证配合核实，请先配合提供核身信息和转账详情。
+  next_step: verify_identity
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  transfer_amount: llm:transfer_amount
+  transfer_date: llm:transfer_date
+  verification_info: derived:verification_info
+escalation_signals: []

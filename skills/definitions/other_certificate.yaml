@@ -1,0 +1,99 @@
+---
+skill_id: other_certificate
+name: 开具其他证明
+description: 处理客户申请开具逾期还款证明、非恶意逾期证明、放款凭证、担保资格审查说明等非结清证明类文件的诉求，以婉拒为主，少数资方支持则协助申请
+domain: 业务办理
+intent_hierarchy:
+  l1: 业务办理
+  l2: 开具其他证明
+  l3: 业务办理
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 逾期证明
+    - 非恶意逾期
+    - 非恶意拖欠证明
+    - 放款凭证
+    - 还款情况说明
+    - 担保资格审查
+    - 逾期还款证明
+    - 信用证明
+    - 开其他证明
+  examples:
+    - 我需要开个逾期还款证明
+    - 帮我开一个非恶意逾期证明
+    - 我要申请放款凭证
+    - 我需要一个还款情况说明
+    - 银行要我提供担保资格审查说明
+  exclude_keywords:
+    - 结清证明
+    - 结清了
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，请问您需要确认哪笔订单的呢？
+      以及您具体需要开具什么类型的证明呢？
+    required_slots:
+      - customer_name
+    next_step: 确认证明类型，判断是否支持开具
+  follow_up:
+    script: >
+      {customer_name}，您好，您还清后人行征信会自动更新，建议您耐心等待人行数据更新哦。
+      目前我司对于该类证明的开具有限制，非常抱歉暂时无法为您提供此类证明。
+      如您确实有急需，客服可以尝试向资方申请，但不保证一定能开具，请您理解。
+    required_slots:
+      - customer_name
+    next_step: 若客户不接受婉拒，确认资方是否支持，支持则协助申请
+
+branch_conditions:
+  - expr: certificate_type == overdue_proof and funder_supports
+    variant: supported_overdue_proof
+    note: 支持开具逾期还款证明的资方——协助申请，说明时效
+  - expr: certificate_type == overdue_proof and not funder_supports
+    variant: unsupported_overdue_proof
+    note: 不支持开具的资方——婉拒，告知征信自动更新
+  - expr: certificate_type == non_malicious
+    variant: non_malicious_proof
+    note: 非恶意逾期证明——通常不支持，婉拒后引导征信查询渠道
+  - expr: certificate_type == loan_voucher
+    variant: loan_voucher
+    note: 放款凭证——按资方规定处理，部分支持发送银行流水
+  - expr: customer_insists
+    variant: escalate_to_tier2
+    note: 客户坚持要求开具——升级二线处理
+compliance:
+  forbidden_expressions:
+    - 保证可以开具
+    - 肯定没问题
+    - 随时都可以开
+  required_disclaimer: 各类证明的开具需根据具体资方规定执行，无法保证所有类型均可开具。
+  must_include_when:
+    - condition: certificate_refused
+      text: 非常抱歉，目前该类证明暂不支持开具，还清后征信将自动更新，建议耐心等待
+    - condition: certificate_approved
+      text: 客服将协助您申请，处理完成后会通知您，请保持电话畅通
+
+escalation:
+  - trigger: 客户坚持要求开具且涉及法律纠纷
+  - trigger: 一线无法判断资方是否支持开具
+
+fallback:
+  answer: >
+    {customer_name}，非常抱歉，目前您需要的证明类型暂时无法直接开具，
+    客服已记录您的诉求，将转交相关部门处理，会在1-3个工作日内与您联系。
+  next_step: 提交工单升级处理，备注证明类型和用途
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

@@ -1,0 +1,45 @@
+{
+  "version": "2026-04-11",
+  "description": "链路C长尾自主推理加严约束 — 可热更新，不需要重启服务",
+  "tool_permissions": {
+    "allowed": ["get_customer_profile", "get_bill_and_repayment_plan", "get_loan_service_info", "get_membership_service_info", "get_quota_service_info", "query_ticket"],
+    "forbidden": ["submit_ticket", "modify_account"],
+    "rule": "仅允许只读查询tool，禁止任何写操作"
+  },
+  "output_constraints": [
+    {
+      "id": "LT001",
+      "rule": "禁止具体金额承诺",
+      "description": "不得输出具体金额承诺、利率数字、减免方案",
+      "patterns_to_block": ["减免\\d+", "利率\\d+", "退还\\d+元", "免除\\d+"]
+    },
+    {
+      "id": "LT002",
+      "rule": "禁止操作暗示",
+      "description": "禁止说'我可以帮你操作'、'我帮你处理'，只能说'建议您...'",
+      "forbidden_phrases": ["我可以帮你操作", "我帮你操作", "我给你操作", "我来帮你办", "我直接给你"],
+      "required_alternative": "建议您..."
+    },
+    {
+      "id": "LT003",
+      "rule": "强制免责后缀",
+      "description": "所有回答必须附加免责声明",
+      "required_suffix": "以上信息仅供参考，具体以业务确认为准",
+      "enforcement": "post_generation_check"
+    },
+    {
+      "id": "LT004",
+      "rule": "强制无SOP标注",
+      "description": "必须标注该回答无标准SOP覆盖",
+      "required_warning": "⚠️ 该回答无SOP覆盖，请坐席核实后使用",
+      "enforcement": "output_metadata"
+    }
+  ],
+  "forbidden_expressions": [
+    "保证", "承诺减免", "一定可以", "绝对",
+    "我帮你操作", "我给你免除", "我直接给你",
+    "肯定没问题", "百分之百"
+  ],
+  "compliance_level": "strict",
+  "note": "链路C无Skill约束，合规要求比链路B更严而非更松"
+}

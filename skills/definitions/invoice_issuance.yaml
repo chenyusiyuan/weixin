@@ -1,0 +1,94 @@
+---
+skill_id: invoice_issuance
+name: 发票开具
+description: 协助客户开具贷款相关发票，挖掘开票原因并处理，优先引导APP自助开具，无法自助则升级二线处理
+domain: 业务办理
+intent_hierarchy:
+  l1: 业务办理
+  l2: 发票开具
+  l3: 业务办理
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 开发票
+    - 发票开具
+    - 需要发票
+    - 申请发票
+    - 电子发票
+    - 贷款发票
+    - 利息发票
+  examples:
+    - 把我的名下贷款的发票开具下
+    - 我要开发票
+    - 帮我开一下发票
+    - 我需要贷款利息的发票
+    - 公司报销需要发票
+  exclude_keywords:
+    - 结清证明
+    - 合同
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_loan_service_info
+    - submit_ticket
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，请问您是在还款中遇到什么问题了吗？
+      您可以告知一下您的疑问点，客服将第一时间为您解决。
+    required_slots:
+      - customer_name
+    next_step: 挖掘开票原因，尝试直接解决问题
+  follow_up:
+    script: >
+      {customer_name}，您好，想了解一下您开具发票的原因是什么呢？
+      因为您也打电话给我们公司，所以我们特别希望能够解决您遇到的问题，
+      这边可以为您第一时间解决的。
+    required_slots:
+      - customer_name
+    next_step: 根据开票原因判断是否可直接解决，不能则引导APP自助或升级二线
+
+branch_conditions:
+  - expr: platform == doudouqian and self_service_supported
+    variant: doudou_self_service
+    note: 豆豆钱平台——引导APP自助开具，路径：我的-借款记录-查看详情-更多-开发票
+  - expr: platform == kakadai and self_service_supported
+    variant: kaka_self_service
+    note: 卡卡贷平台——引导APP自助开具，路径：我的-借款记录-右上角"开发票"
+  - expr: customer_refuses_self_service
+    variant: escalate_to_tier2
+    note: 不接受自助——升级二线做二轮挖需协商，一线无需直接建单开票
+  - expr: invoice_reason_resolvable
+    variant: resolve_underlying_issue
+    note: 开票原因可直接解决（如还款疑问）——优先解决根本问题，避免不必要开票
+compliance:
+  forbidden_expressions:
+    - 马上就能开好
+    - 直接帮您开
+    - 不用走APP流程
+  required_disclaimer: 发票开具需通过官方渠道进行，请通过APP自助开具或联系客服协助处理。
+  must_include_when:
+    - condition: self_service_guided
+      text: 您可以在APP端自行开具发票，客服发送操作路径短信给您，请注意查收
+    - condition: escalate_to_tier2
+      text: 客服将为您转接处理，请稍候，相关部门会尽快跟进您的开票需求
+
+escalation:
+  - trigger: 一线挖需协商无效，需升级二线处理
+  - trigger: 客户开票原因涉及税务纠纷或法律问题
+
+fallback:
+  answer: >
+    {customer_name}，您好，关于发票开具的问题，客服已记录您的需求，
+    将转交相关部门跟进处理，请保持电话畅通，稍后会有工作人员与您联系。
+  next_step: 提交二线处理工单，备注开票原因和客户诉求
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

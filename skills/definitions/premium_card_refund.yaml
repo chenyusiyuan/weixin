@@ -1,0 +1,107 @@
+---
+skill_id: premium_card_refund
+name: 退优享卡费用
+description: 客户要求退还优享卡费用的处理场景。需先核身验证，查询系统确认优享卡订单，询问退费原因并尝试挽留。退费优先引导至供应商处理；客户不愿联系且有风险行为时，可尝试协商部分退款；供应商不处理或客户对结果不满时可直接受理，一线建超权限工单，内诉可直接处理。
+domain: 优享卡
+intent_hierarchy:
+  l1: 优享卡服务
+  l2: 退优享卡费用
+  l3: 优享卡
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 退优享卡
+    - 退费
+    - 退款优享卡
+    - 优享卡退钱
+    - 优享卡扣了钱
+    - 要求退款
+    - 退回费用
+  examples:
+    - 优享卡我要退费
+    - 这个优享卡扣了我的钱，要退回来
+    - 不小心买了优享卡，可以退款吗？
+    - 我根本没点击过，你们没经过我同意就扣钱
+    - 放款失败了，优享卡的钱给我退回来
+  exclude_keywords:
+    - 取消优享卡
+    - 优享卡是什么
+    - 优享卡权益咨询
+
+tools:
+  required:
+    - get_customer_profile
+  optional:
+    - get_bill_and_repayment_plan
+    - get_membership_service_info
+    - get_refund_history
+    - query_ticket
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verify_question}？
+    required_slots:
+      - verify_question
+    next_step: verify_identity
+  follow_up:
+    script: |
+      （系统未查到）您好，请问您是通过什么路径查询到有这个服务的呢？客服暂未查询到，建议您再核实下哦。
+
+      （系统查到）您好，客服有查询到一个优享卡尊享服务，与您核实下金额{card_amount}元，是这笔服务订单，对吗？
+
+      （挽留话术）{customer_name}先生/女士您好，优享卡增值服务购买前相关权益都是有展示的哦，权益中有如视频会员、音乐会员等同时还会赠送您加速放款权益、专属优惠券等服务，建议您考虑体验下哦。
+
+      （退费引导-无风险行为）非常遗憾未能给您提供更好的服务，因服务权益由第三方服务商提供，服务费用也是由第三方服务商收取的，如您确实不需要，客服可以提供对应服务商的联系方式及工作时间给您，在您方便时可联系服务商沟通下哦。
+      服务商联系方式：及未【400-665-5507】、星链【400-018-9000】、烈熊【400-009-9585】、橡树【400-150-9669】、砺带【4001069088】、荔枝【400-803-1332】、中环【400-186-4009】
+
+      （退费处理-有风险行为/供应商不处理）您也消消气哦，如果您不方便联系，客服可协助您尝试反馈服务商沟通处理下哦，预计处理时间1-3个工作日，建议您耐心等待，关注下处理结果哦。
+    required_slots:
+      - card_amount
+      - customer_name
+    next_step: resolve_refund
+
+branch_conditions:
+  - hint: 挽留成功
+    variant: retain_success
+    note: 感谢支持，询问是否有其他问题
+  - hint: 客户不接受，无风险行为
+    variant: no_risk_refusal
+    note: 提供服务商联系方式，引导客户自行联系
+  - hint: 客户不接受，且有风险行为（扬言外诉/自杀/报复社会）
+    variant: risk_behavior
+    note: 代为反馈供应商处理，升级主管操作退费
+  - hint: 客户已联系供应商，供应商不处理或不满结果
+    variant: supplier_failed
+    note: 直接受理；一线建超权限工单给主管，内诉可直接处理
+  - hint: 退费：告知1-3工作日原路退回
+    variant: refund_approved
+    note: 一线建超权限工单给主管；内诉坐席可直接操作，告知1-3工作日原路退回
+compliance:
+  forbidden_expressions:
+    - 马上退款
+    - 立即到账
+    - 保证退款
+    - 一定能退
+    - 砍头息
+  required_disclaimer: 优享卡费用由第三方服务商收取，退费申请需通过服务商或超权限流程处理，预计1-3个工作日原路退回。
+  must_include_when:
+    - condition: 客户提及砍头息或违法违规指控
+      text: 优享卡是您自主选择购买的，不是放款方或平台收取相应费用，并非砍头息。平台所有经营活动均在合法合规的范围内开展。
+
+escalation:
+  - trigger: 客户扬言外诉、自杀或报复社会等风险行为，立即升级主管
+  - trigger: 客户已联系供应商但供应商不处理，升级受理退费
+  - trigger: 客户坚持投诉且情绪激动，转接主管处理
+
+fallback:
+  answer: 您好，关于优享卡退费申请，我们已记录您的诉求，将尽快协助反馈处理，预计1-3个工作日内有结果，请保持电话畅通。
+  next_step: create_escalation_ticket
+slot_sources:
+  card_amount: llm:card_amount
+  customer_name: tool:get_customer_profile.name
+  verify_question: system:verify_question
+escalation_signals: []

@@ -1,0 +1,102 @@
+---
+skill_id: member_consultation
+name: 会员咨询
+description: 客户咨询什么是会员、会员权益内容、如何开通、卡券使用、提额券等相关信息的场景。属于低风险咨询类业务，重点介绍会员权益体系，包括息费券、视频音乐会员、话费券、提额券等。同时解答会员合法合规性疑问。
+domain: 会员
+intent_hierarchy:
+  l1: 会员服务
+  l2: 会员咨询
+  l3: 会员
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 什么是会员
+    - 会员权益
+    - 如何开通会员
+    - 开通会员
+    - 会员费
+    - 息费券
+    - 提额券
+    - 话费券
+    - 会员卡券
+    - 尊享VIP
+    - 会员合法吗
+    - 强制捆绑会员
+  examples:
+    - 什么是会员？
+    - 我看你们APP有个会员，这个是什么？
+    - 如何开通会员？
+    - 为什么我开通会员以后没有卡券？
+    - 会员赠送的话费券如何使用？
+    - 买了会员后，是不是都可以提额？
+  exclude_keywords:
+    - 取消会员
+    - 退会员费
+    - 怎么退
+
+tools:
+  required:
+    - get_membership_service_info
+  optional:
+    - get_customer_profile
+
+templates:
+  first_contact:
+    script: |
+      {customer_name}先生/女士，您好，面向我司注册用户，开通后立享价值最高1152元专享权益！每月借款优惠券等你来领取，除此之外，爱奇艺/优酷/腾讯视频会员、网易云音乐黑胶会员、每月话费券等甄选福利，统统少不了！具体会员权益可下载登录豆豆钱/维信卡卡贷的APP了解。
+    required_slots:
+      - customer_name
+    next_step: explain_member_benefits
+  follow_up:
+    script: |
+      （如何开通）您可以通过登录豆豆钱APP，首页点击"会员特权"进行开通或打开APP"点击我的-选择尊享VIP-点击立即开通"进行开通，会员可享受我司多元化的会员服务。如果因业务调整或系统维护，会暂关闭会员入口，您无法购买或续费会员，建议可过段时间再尝试购买。
+
+      （卡券查看）购买会员后，相关权益礼包您可登录APP-点击"我的"-"卡券"进行查看。
+
+      （话费券使用）开通会员后，可享用赠送每月一张5元话费券，开通当日发放一张，之后每月按开通日的下月当日发放一张，共发放6个月；充值到账时效一般为即时到账，可能会有延迟。温馨提示：请确保充值的手机号码正确，若充错他人，则无法退还。
+
+      （息费券使用）开通会员后，可享用赠送满5000-66元和无门槛18元的息费券，开通当日发放一张，之后每月按开通日的下月当日发放一张，共发放6个月，仅借款时可选择使用，一次借款只可使用一张息费券。
+
+      （提额券）提额券是豆豆钱会员的一种附赠权益，使用提额券后，在会员有效期内享不定期提额，最高额度2000元，具体提升额度以页面显示为准。使用方法：通过授信获取额度后，在我的卡券找到提额券，点击去使用即可。
+
+      （充值会员与放款关系）购买会员与资金方的放款审批结果无关。一般我司放款时效为：1-10个工作日，最快当天到账，请耐心等待。
+    required_slots: []
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 客户询问提额失败原因
+    variant: quota_increase_fail
+    note: 说明额度失效或已提升过额度会显示失败，建议有效期内获取额度后再使用
+  - hint: 客户询问会员是否强制捆绑搭售
+    variant: compliance_question
+    note: 说明会员属自愿购买，与贷款申请发放无关
+  - hint: 客户询问会员收费是否合法
+    variant: legality_question
+    note: 说明会员费由第三方服务方收取，用户自愿购买，符合监管合规要求
+  - hint: 客户询问腾讯视频权益更换为咪咕钻石会员
+    variant: benefit_change
+    note: 说明因腾讯官方政策调整进行的正常权益调整，咪咕钻石会员月卡与原权益价值一致
+compliance:
+  forbidden_expressions:
+    - 保证提额
+    - 一定放款更快
+    - 强制购买
+    - 必须买会员才能贷款
+  required_disclaimer: 会员服务由用户自愿购买，与贷款申请审批结果无关，具体权益以APP页面展示为准。
+  must_include_when:
+    - condition: 客户质疑会员费合规性或涉及24%利率新规
+      text: 会员费由第三方会员服务商收取，会员与是否办理贷款没有直接关系，即使未办理贷款也可体验平台会员服务，符合相关监管规定。
+
+escalation:
+  - trigger: 客户对会员合规性强烈质疑并要求投诉
+  - trigger: 客户要求退会员费，转至会员退费流程处理
+
+fallback:
+  answer: 您好，关于会员权益的详细信息，建议您登录APP查看最新权益内容，具体以APP页面展示为准。如有其他疑问，请告知客服，我们将为您进一步解答。
+  next_step: guide_to_app
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

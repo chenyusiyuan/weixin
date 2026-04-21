@@ -1,0 +1,90 @@
+---
+skill_id: close_pre_reminder
+name: 关闭预提醒服务
+description: 处理客户要求关闭还款前预提醒服务的诉求，优先做留存解释，客户坚持则通过IVR操作关闭
+domain: 逾期
+intent_hierarchy:
+  l1: 催收相关
+  l2: 关闭预提醒
+  l3: 逾期
+route_mode: tool_only
+risk_level: low
+
+
+triggers:
+  keywords:
+    - 预提醒
+    - 关闭提醒
+    - 不要提醒
+    - 还款提醒
+    - AI语音提醒
+    - 提前打电话
+    - 还没到还款日
+    - 预提醒服务
+  examples:
+    - 为什么我还没到还款日就接到你们催收电话
+    - 你们现在就开始催我还款了吗
+    - 我不需要还款提醒，把这个服务关掉
+    - 每次都在还款前给我打电话，很烦
+    - 帮我关闭预提醒服务
+  exclude_keywords:
+    - 逾期
+    - 停催
+    - 催收投诉
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: >
+      {customer_name}，您好，查看到您账单还未到还款日，这是平台提供的预提醒服务哦。
+      平台为了更好地服务用户，避免用户因工作太忙或其他原因导致忘记还款，影响征信和产生逾期费用，
+      故为客户提供这项还款提醒服务。请问您是确定要关闭这项服务吗？
+    required_slots:
+      - customer_name
+    next_step: 尝试留存，说明预提醒服务的价值
+  follow_up:
+    script: >
+      {customer_name}，好的，客服将为您关闭这项服务，一旦关闭后将不会再给您做还款提醒了哦，
+      后续您通过APP关注一下您的还款时间，根据账单按时还款。
+      若账单未按时还款，此项服务仍然会被自动开通哦。
+    required_slots:
+      - customer_name
+    next_step: 通过IVR操作预提醒停催，确认操作成功后告知客户
+
+branch_conditions:
+  - expr: customer_has_multiple_orders
+    variant: multi_order
+    note: 客户名下多笔订单——说明每笔订单都会提醒，查询客户良好还款记录后尝试留存
+  - expr: ivr_shows_no_customer_info
+    variant: no_ivr_record
+    note: IVR提示"对应业务号无客户信息"——该业务号从未有IVR提醒，尝试其他业务号或告知无需操作
+  - expr: customer_insists_close
+    variant: proceed_close
+    note: 客户坚持关闭——直接操作IVR预提醒停催
+compliance:
+  forbidden_expressions:
+    - 这个电话是催款的
+    - 您必须接听提醒
+    - 不关闭对您更好
+  required_disclaimer: 关闭预提醒后若未按时还款，系统将自动恢复该服务，请通过APP自行关注还款日期。
+  must_include_when:
+    - condition: service_closed
+      text: 预提醒服务已关闭，请通过APP及时关注账单还款日，避免逾期影响征信
+
+escalation:
+  - trigger: IVR系统操作失败且无法通过其他方式处理
+
+fallback:
+  answer: >
+    {customer_name}，非常抱歉，当前系统操作遇到问题，客服已记录您的诉求，
+    请您稍后再次致电处理，或可尝试通过APP自助操作关闭提醒服务。
+  next_step: 记录处理记录，建议客户稍后重试
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+escalation_signals: []

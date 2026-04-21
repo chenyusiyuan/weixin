@@ -1,0 +1,94 @@
+---
+skill_id: loan_termination
+name: 贷款解约
+description: 处理客户申请取消/解约已申请贷款的场景。需核身后查询订单状态，先了解取消原因并进行挽留，再根据订单状态判断是否支持解约。支持解约时操作路径为客服系统-订单管理-解约处理；解约失败则建运维工单，工单分类"取消借款"，处理时效3个工作日。
+domain: 贷款
+intent_hierarchy:
+  l1: 申请咨询
+  l2: 贷款解约
+  l3: 贷款
+route_mode: tool_only
+risk_level: high
+
+
+triggers:
+  keywords:
+    - 取消贷款
+    - 解约
+    - 不想要了
+    - 取消借款
+    - 撤销贷款
+    - 不借了
+    - 退贷款
+    - 取消申请
+  examples:
+    - 我要取消贷款，我不想贷了
+    - 帮我取消这笔借款申请
+    - 我想解约，钱我不要了
+    - 你们一直不放款，我不想要了
+    - 我已经有钱了，帮我取消贷款
+  exclude_keywords:
+    - 注销账户
+    - 注销账号
+    - 放款进度
+
+tools:
+  required:
+    - get_customer_profile
+    - get_loan_service_info
+  optional:
+    - get_bill_and_repayment_plan
+    - get_quota_service_info
+    - query_ticket
+
+templates:
+  first_contact:
+    script: "为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_items}？"
+    required_slots:
+      - verification_items
+    next_step: verify_identity
+  follow_up:
+    script: "{customer_name}，您好，帮您查询您的款项已经审核通过，显示放款中，您是出于哪方面需要取消呢？"
+    required_slots:
+      - customer_name
+    next_step: retention_then_process
+
+branch_conditions:
+  - hint: 客户因放款慢要取消，挽留成功
+    variant: retention_success
+    note: 告知审核通过后1-10个工作日放款，系统按先后顺序处理，最快当天，建议继续等待
+  - hint: 客户坚持取消，订单支持解约
+    variant: execute_termination
+    note: 操作路径：客服系统-订单管理-解约处理（有业务号）或解约处理（新）（无业务号）；仅订单确认和待放款阶段可解约
+  - hint: 订单不支持解约（已放款等状态）
+    variant: cannot_terminate
+    note: 告知当前订单状态不支持取消，请客户理解
+  - hint: 解约操作失败
+    variant: ops_ticket_for_termination
+    note: 建运维工单，分类"取消借款"，填写客户身份证号、系统截图、订单状态及诉求，处理时效3个工作日；24小时内安抚等待
+  - hint: 客户因贷款期限短要取消
+    variant: explain_term_rationale
+    note: 解释期限由资质决定，期限短意味着利息少，对客户更划算
+compliance:
+  forbidden_expressions:
+    - 取消了对您没影响
+    - 随时可以取消
+    - 肯定能取消
+  required_disclaimer: 取消贷款可能会影响后续申请额度，申请一次需要时间等待，建议非必要不取消
+  must_include_when:
+    - condition: 解约成功
+      text: 后续可关注APP更新情况
+    - condition: 不支持解约
+      text: 当前订单状态为{order_status}，不支持取消
+
+escalation:
+  - trigger: 解约操作失败，建运维工单反馈处理
+  - trigger: 客户强烈投诉要求取消且系统无法操作，升级二线
+
+fallback:
+  answer: "{customer_name}，您好，您消消气，客服协助为您取消处理，您后续可关注APP更新情况哦。"
+  next_step: attempt_termination_in_system
+slot_sources:
+  customer_name: tool:get_customer_profile.name
+  verification_items: llm:verification_items
+escalation_signals: []

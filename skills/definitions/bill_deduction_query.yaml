@@ -1,0 +1,116 @@
+---
+skill_id: bill_deduction_query
+name: 查询账单扣款情况
+description: 帮助客户查询账单扣款状态、扣款时间、扣款金额等账单扣款相关信息
+domain: 费用
+intent_hierarchy:
+  l1: 费用相关
+  l2: 账单扣款查询
+  l3: 费用
+route_mode: tool_only
+risk_level: medium
+
+
+triggers:
+  keywords:
+    - 账单扣款
+    - 扣款情况
+    - 账单状态
+    - 本期扣款
+    - 账单扣了吗
+    - 这期扣款
+    - 查账单
+    - 账单查询
+  examples:
+    - 查询账单扣款情况
+    - 这个月账单扣款了吗
+    - 帮我看看账单扣款状态
+    - 我想查一下账单情况
+    - 本期账单有没有扣款
+    - 我今天有一笔你们平台的账单，请帮我查看一下
+    - 帮我查询今天上午11点多扣款的原因
+    - 你们平台是否扣了我的钱
+    - 我想查询我在平台未还款的总金额
+    - 今天早上扣款了吗
+    - 本期应扣多少
+  exclude_keywords:
+    - 退费
+    - 还款失败
+    - 费用明细
+    - 重复扣款
+    - 扣款失败
+    - 只扣了一部分
+    - 其他平台扣款
+    - 众安保险扣款
+
+tools:
+  required:
+    - get_customer_profile
+    - get_bill_and_repayment_plan
+  optional:
+    - get_loan_service_info
+
+templates:
+  first_contact:
+    script: |
+      为了确保信息安全，跟您简单核对几项基本资料，请问您的{verification_info}？
+    required_slots:
+      - verification_info
+    next_step: verify_identity
+  follow_up:
+    script: |
+      {customer_name}，您好。这边已为您查询了账单扣款情况。
+      您当前账单期次：第{bill_period}期，账单金额：{bill_amount}元，还款日：{due_date}。
+      扣款状态：{deduction_status}。
+      {deduction_detail}
+      如有疑问欢迎随时联系我们。
+    required_slots:
+      - bill_amount
+      - bill_period
+      - customer_name
+      - deduction_detail
+      - deduction_status
+      - due_date
+    next_step: ask_other_questions
+
+branch_conditions:
+  - hint: 账单已扣款成功
+    variant: deduction_success
+    note: 告知扣款成功时间和金额，账单已更新
+  - hint: 账单待扣款，未到还款日
+    variant: deduction_pending
+    note: 告知还款日及预计扣款时间，提醒保持余额充足
+  - hint: 账单扣款失败
+    variant: deduction_failed
+    note: 转入还款失败处理流程，定位失败原因
+  - hint: 账单已逾期
+    variant: bill_overdue
+    note: 告知逾期情况，建议尽快还款避免影响征信
+compliance:
+  forbidden_expressions:
+    - 不会逾期
+    - 保证扣款成功
+    - 随便什么时候还都行
+  required_disclaimer: 请在还款日前确保绑定银行卡余额充足，避免因余额不足导致扣款失败影响信用记录。
+  must_include_when:
+    - condition: 账单临近还款日时
+      text: 请在还款日前确保银行卡余额充足，避免扣款失败影响征信。
+    - condition: 账单已逾期时
+      text: 逾期将影响个人征信记录，建议尽快还清逾期款项。
+
+escalation:
+  - trigger: 账单显示异常或金额有误
+  - trigger: 客户投诉已还款但仍显示未扣款
+
+fallback:
+  answer: 关于账单扣款情况，需要为您查询账单信息，请先配合核实身份信息。
+  next_step: verify_identity
+slot_sources:
+  bill_amount: tool:get_bill_and_repayment_plan.amount
+  bill_period: tool:get_bill_and_repayment_plan.period
+  customer_name: tool:get_customer_profile.name
+  deduction_detail: tool:get_bill_and_repayment_plan.deduction
+  deduction_status: tool:get_bill_and_repayment_plan.deduction
+  due_date: tool:get_bill_and_repayment_plan.due_date
+  verification_info: derived:verification_info
+escalation_signals: []
