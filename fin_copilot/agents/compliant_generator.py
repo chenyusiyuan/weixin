@@ -34,13 +34,16 @@ class CompliantGenerator:
         recent_turns_text: str,
         summary: str,
         branch_hints: list[dict[str, Any]] | None = None,
+        supplemental_context: str = "",
     ) -> dict[str, Any]:
         """Generate a compliant response.
 
         Returns ``{"answer": "...", "next_step_hint": "..."}``.
         ``branch_hints`` carries natural-language branch conditions that the
         orchestrator could not evaluate deterministically; they are passed
-        through as soft guidance in the LLM prompt.
+        through as soft guidance in the LLM prompt. ``supplemental_context``
+        carries retrieved SOP knowledge that should be considered even when
+        the template itself could be filled directly.
         """
         # Get template
         tpl = skill.get_template(template_variant)
@@ -68,8 +71,8 @@ class CompliantGenerator:
         # Try Jinja2 direct fill
         filled, is_complete = try_fill_template(script, data)
 
-        if is_complete:
-            # Zero LLM — all slots filled
+        if is_complete and not supplemental_context and not branch_hints and not data.get("_tools_failed"):
+            # Zero LLM — all slots filled, no branch hints to consider
             return {"answer": filled.strip(), "next_step_hint": next_step}
 
         # Otherwise, call LLM for generation
@@ -77,6 +80,7 @@ class CompliantGenerator:
             skill, template_variant, script, tool_results, state,
             recent_turns_text, summary, data,
             branch_hints or [],
+            supplemental_context,
         )
 
     async def _llm_generate(
@@ -90,6 +94,7 @@ class CompliantGenerator:
         summary: str,
         data: dict[str, Any],
         branch_hints: list[dict[str, Any]],
+        supplemental_context: str,
     ) -> dict[str, Any]:
         """Fall back to LLM generation when template has unfilled slots."""
         # Build forbidden expressions list
@@ -127,6 +132,13 @@ class CompliantGenerator:
         # Use replace() instead of str.format() because prompt templates
         # contain JSON examples with literal braces
         prompt = self._system_prompt
+        # Compute missing slots for the chosen template variant
+        chosen_tpl = skill.get_template(template_variant)
+        required_slots = list(getattr(chosen_tpl, "required_slots", []) or []) if chosen_tpl else []
+        filled_keys = {k for k, v in data.items() if v not in (None, "", 0)}
+        missing_slots = [s for s in required_slots if s not in filled_keys]
+        missing_text = "、".join(missing_slots) if missing_slots else "(无)"
+
         replacements = {
             "{skill_name}": skill.name,
             "{skill_id}": skill.skill_id,
@@ -134,11 +146,15 @@ class CompliantGenerator:
             "{tool_results}": tool_text,
             "{recent_turns}": recent_turns_text or "(无历史对话)",
             "{summary}": summary or "(无摘要)",
+            "{narrative_summary}": state.narrative_summary or "(无叙事摘要)",
             "{collected_slots}": slots_text,
+            "{missing_slots}": missing_text,
+            "{last_agent_reply}": (state.last_agent_reply or "")[:200] or "(无)",
             "{forbidden_expressions}": forbidden_text,
             "{required_disclaimer}": skill.compliance.required_disclaimer or "无",
             "{conditional_requirements}": conditional or "无",
             "{branch_hints}": hint_text,
+            "{supplemental_context}": supplemental_context or "（无业务补充信息）",
         }
         for placeholder, value in replacements.items():
             prompt = prompt.replace(placeholder, value)

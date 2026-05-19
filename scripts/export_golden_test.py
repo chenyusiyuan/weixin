@@ -2,7 +2,7 @@
 
 Reads  tests/golden_mapped.jsonl     (all mapped records)
        tests/golden_reviewed.jsonl   (manual overrides for needs_review)
-Writes tests/golden_test.jsonl       (final gold test set)
+Writes raw_test.jsonl                (legacy single-query gold test set)
          {call_id, query, gold_skill, gold_level3, source}
 
 A record is included iff:
@@ -27,7 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MAPPED_PATH = ROOT / "tests" / "golden_mapped.jsonl"
 REVIEWED_PATH = ROOT / "tests" / "golden_reviewed.jsonl"
-OUTPUT_PATH = ROOT / "tests" / "golden_test.jsonl"
+OUTPUT_PATH = ROOT / "raw_test.jsonl"
 
 
 def load_jsonl(path: Path) -> list[dict]:

@@ -112,6 +112,10 @@ class EmbeddingDomainClassifier:
         """Return the best-matching domain for `query`."""
         return self.classify_topk(query, state, k=1)[0][0]
 
+    def embed_query(self, query: str) -> list[float]:
+        """Return a unit-normalised embedding for ``query``."""
+        return self._normalise(self._embed_one(query))
+
     def classify_topk(
         self,
         query: str,
@@ -125,7 +129,24 @@ class EmbeddingDomainClassifier:
             if state is not None and state.intent.domain:
                 fallback = state.intent.domain
             return [(fallback, 0.0)]
-        q_vec = self._normalise(self._embed_one(query))
-        scored = [(d, self._cosine(q_vec, c)) for d, c in self._centroids.items()]
+        return self.classify_topk_from_vector(
+            self.embed_query(query),
+            state,
+            k=k,
+        )
+
+    def classify_topk_from_vector(
+        self,
+        query_vector: list[float],
+        state: ConversationState | None = None,
+        k: int = 3,
+    ) -> list[tuple[str, float]]:
+        """Return top-k domains for a pre-computed unit-normalised query vector."""
+        if not query_vector:
+            fallback = "还款"
+            if state is not None and state.intent.domain:
+                fallback = state.intent.domain
+            return [(fallback, 0.0)]
+        scored = [(d, self._cosine(query_vector, c)) for d, c in self._centroids.items()]
         scored.sort(key=lambda x: -x[1])
         return scored[:k]

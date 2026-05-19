@@ -24,12 +24,38 @@ triggers:
     - 天创信用
     - 众惠保险
     - 权益是什么
+    - 还款无忧
+    - 债务咨询顾问服务费
+    - 借款优惠券
+    - 话费券包
+    - 省话费
+    - 权益月卡
+    - 预约借款
+    - 邀请好友
+    - 豆豆分
+    - 百万医疗
+    - 赚钱卡
+    - 金钱卡
+    - 现金借款月奖金
+    - 订单宝
   examples:
     - 什么是赋强公证
     - 加速卡有什么用
     - 我看到一个拒就返活动，这是什么
     - 这个增值服务有什么好处
     - 信用风险自查活动是什么
+    - 我想查询我之前借款中是否包含还款无忧服务费
+    - 还款无忧服务是什么，为什么会产生费用
+    - 月享卡的费用是什么服务
+    - 我刚开通了那个59块多的VIP服务是什么
+    - 我姓XX
+    - 赋强公证有什么好处？
+    - 赋强公证的法律依据
+    - 强制执行公证如何办理？
+    - 100元话费券怎么充值
+    - 信用风险报告在哪里看
+    - 债务咨询顾问服务费是什么
+    - 我看到一个不认识的卡，不知道是不是你们的产品
   exclude_keywords:
     - 取消增值服务
     - 退增值服务费
@@ -51,14 +77,30 @@ templates:
     required_slots:
       - customer_name
     next_step: explain_service_content
+  service_knowledge_answer:
+    script: "请根据业务补充知识中命中的增值服务文本块和图片补充块，围绕客户问题生成简洁话术；涉及金额、路径、时效、服务商电话、取消或退费边界时，必须以补充知识为准。"
+    required_slots: []
+    next_step: answer_with_structured_value_added_knowledge
+  unmatched_non_company_product:
+    script: "客户提到的产品或服务未命中已结构化的我司/合作增值服务清单。请先说明当前暂未匹配到对应我司/合作增值服务，继续引导客户补充完整产品/服务名称、扣款方、APP页面入口、订单号或短信主体；若确认非我司产品，告知需联系对应服务方、商户或支付渠道处理，我司无法直接操作取消或退款。"
+    required_slots: []
+    next_step: clarify_product_or_redirect_non_company
 
 branch_conditions:
+  - expr: value_added_match_status == 'unmatched'
+    variant: unmatched_non_company_product
+    hint: 客户提到的产品/服务未命中已结构化增值服务清单，疑似非我司或未纳入清单产品
+    note: 先澄清产品名称、扣款方、页面入口或短信主体；不要承认是我司产品，不要承诺取消/退费
+  - expr: value_added_match_status == 'matched'
+    variant: service_knowledge_answer
+    hint: 已根据服务别名命中结构化文本块和图片补充块
+    note: 直接依据业务补充知识回答，不额外编造统一结构或未收录规则
   - hint: 客户咨询赋强公证是什么
     variant: explain_fuqiang_notary
-    note: 赋予债权文书强制执行效力公证，费用180元（120元公证处费用+60元保证金，借款结清后自动退回）
+    note: 赋予债权文书强制执行效力公证，可在债务人不履约时减少诉讼环节、提高纠纷处理效率；费用180元（120元公证处费用+60元保证金，借款结清后自动退回）
   - hint: 客户咨询赋强公证法律依据
     variant: explain_legal_basis
-    note: 引用《公证法》第37条、司发通2000年107号、最高法相关批复
+    note: 客户问赋强公证的法律依据时，引用《公证法》第37条、司发通2000年107号、最高法相关批复，说明强制执行公证如何办理及其法律效力
   - hint: 法信-赋强公证费用咨询
     variant: faxin_notary_fee
     note: 收费金额以APP端显示为准
@@ -77,6 +119,9 @@ branch_conditions:
   - hint: 客户反映活动权益变化
     variant: explain_activity_change
     note: 不同阶段活动权益构成有所差异，以客户权益页面展示为准
+  - hint: 客户先提供姓名或姓氏
+    variant: collect_name_then_explain
+    note: 客户咨询活动时如先回复我姓XX，以称呼承接并询问具体想了解哪项增值服务，再进入赋强公证、加速卡、拒就返或第三方服务说明
 compliance:
   forbidden_expressions:
     - 保证返现成功

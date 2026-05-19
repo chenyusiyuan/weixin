@@ -53,8 +53,9 @@ class ConversationState(BaseModel):
     session_id: str
     # Layer 1: sliding window
     messages: list[Message] = Field(default_factory=list)
-    # Layer 2: rolling summary
+    # Layer 2: rolling summary — event log (existing) + narrative (new, for prompt)
     summary: str = ""
+    narrative_summary: str = ""
     # Layer 3: structured state
     customer: CustomerInfo = Field(default_factory=CustomerInfo)
     intent: IntentState = Field(default_factory=IntentState)
@@ -64,6 +65,10 @@ class ConversationState(BaseModel):
     compliance_state: ComplianceState = Field(default_factory=ComplianceState)
     # Counters
     total_turns: int = 0
+    # Multi-turn helpers
+    last_agent_reply: str = ""
+    last_slot_fingerprint: str = ""
+    last_sticky_turn: int = 0
 
     def to_tool_state(self) -> dict[str, Any]:
         """Serialize to the dict format expected by existing tool handlers.

@@ -24,6 +24,7 @@ triggers:
     - 打电话太多
     - 爆通讯录
     - 上门催收
+    - 上门威胁
     - 威胁
     - 恐吓
     - 催收违法
@@ -48,6 +49,10 @@ triggers:
     - 我的账单已经处理完了，为什么还在打电话
     - 为什么平台在催我还款，但我已经没有借款了
     - 电话响一声就挂断是不是催收
+    - 我没有逾期，但你们在还款日之前就频繁地给我打电话和发消息
+    - 一直有私人号码联系我一天联系十几遍，我已经说了我不是不还
+    - 有人联系我自称是法院人员，通过电话和微信发送短信
+    - 你们工作人员威胁我说要上门？
   exclude_keywords:
     - 要求停催
     - 协商还款
@@ -85,16 +90,16 @@ templates:
     next_step: 根据客户诉点协商停催本人或三方，不接受则提交催收投诉工单
 
 branch_conditions:
-  - expr: complaint_type == frequency
+  - expr: complaint_type == "frequency"
     variant: high_frequency
     note: 催收频次过高——核实系统记录，解释催收合理性，协商停催方案
-  - expr: complaint_type == attitude
+  - expr: complaint_type == "attitude"
     variant: bad_attitude
     note: 态度恶劣——安抚为主，收集凭证（如录音），提交催收投诉工单
-  - expr: complaint_type == violence
+  - expr: complaint_type == "violence"
     variant: violent_collection
-    note: 暴力催收/上门/威胁——严肃处理，明确公司立场，收集证据，发催收投诉工单并升级
-  - expr: complaint_type == expose_contacts
+    note: 暴力催收/上门/威胁/工作人员威胁上门——严肃处理，明确公司立场，收集证据，发催收投诉工单并升级
+  - expr: complaint_type == "expose_contacts"
     variant: expose_contacts
     note: 爆通讯录——明确告知公司无法获取通讯录，属虚假投诉则解释，属真实则升级处理
 compliance:

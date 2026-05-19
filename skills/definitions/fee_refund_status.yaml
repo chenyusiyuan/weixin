@@ -26,6 +26,7 @@ triggers:
     - 退款还没到账
     - 已经申请退款了为什么还没收到钱
     - 退费进度查询
+    - 好了/ok 是的/好/嗯，我要查询退费是否到账
   exclude_keywords:
     - 要求退费
     - 申请退费
@@ -73,6 +74,9 @@ branch_conditions:
   - hint: 退费超时效仍未到账
     variant: refund_overdue
     note: 需升级处理，核查退费状态并推进处理
+  - hint: 客户确认查询退费进度
+    variant: confirm_refund_status_query
+    note: 客户催促退费到账，或回复好了/ok/是的/好/嗯确认后，继续核身并查询退费申请日期、金额、状态和原路退回账户
 compliance:
   forbidden_expressions:
     - 保证今天到账

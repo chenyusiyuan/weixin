@@ -221,7 +221,6 @@ class LongtailReasoner:
             return {
                 "answer": (
                     f"关于您的问题，建议您稍候，我为您查询相关信息（{info_needed}）。"
-                    "\n以上信息仅供参考，具体以业务确认为准"
                 ),
                 "next_step_hint": f"建议调用: {', '.join(suggested_tools)}",
                 "warning": "⚠️ 该回答无SOP覆盖，请坐席核实后使用",
@@ -232,7 +231,6 @@ class LongtailReasoner:
             "answer": (
                 "您的问题我需要进一步了解，建议您描述更多细节以便我为您查询，"
                 "或输入「转人工」联系人工客服。"
-                "\n以上信息仅供参考，具体以业务确认为准"
             ),
             "next_step_hint": "引导客户提供更多信息",
             "warning": "⚠️ 该回答无SOP覆盖，请坐席核实后使用",

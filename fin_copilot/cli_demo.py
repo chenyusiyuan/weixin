@@ -57,7 +57,6 @@ async def main() -> None:
             print(f"  ├─ Route: {response.route}")
             print(f"  ├─ Skill: {response.matched_skill_id or '-'}")
             print(f"  ├─ Confidence: {response.confidence:.2f}")
-            print(f"  ├─ Latency: {response.latency_ms:.0f}ms")
             print(f"  ├─ Compliance: {'✓' if response.compliance_passed else '✗'}")
             if response.next_step_hint:
                 print(f"  ├─ Next Step: {response.next_step_hint}")

@@ -26,6 +26,7 @@ triggers:
     - 债权转让了我还能注销账号吗
     - 我已经结清了转让的贷款，请帮我注销账号
     - 我联系了转让方，拿到了结清证明，可以注销了吗
+    - 我叫XX/是XX银行，转让订单要注销账户
   exclude_keywords:
     - 普通注销
     - 正常注销
@@ -63,6 +64,9 @@ branch_conditions:
   - hint: 华通已转让订单
     variant: direct_to_huatong_company
     note: 告知联系"湖北小蚁资产管理有限公司"，电话4006163978；注销处理流程同智信贷已转让
+  - hint: 客户只提供姓名或称是某银行订单
+    variant: clarify_transferred_order_identity
+    note: 智信贷已转让/华通已转让订单，客户要求注销但只回复我叫XX/是XX银行时，先按姓名核身并确认是否为智信贷/华通已转让订单，再引导联系对应受让方或收集结清证明
 compliance:
   forbidden_expressions:
     - 我们可以直接帮您注销

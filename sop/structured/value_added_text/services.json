@@ -1,0 +1,340 @@
+{
+  "services": [
+    {
+      "service_id": "acceleration_card",
+      "canonical_name": "加速卡",
+      "aliases": [
+        "优先放款",
+        "加速卡",
+        "加速放款"
+      ],
+      "source_names": [
+        "加速卡"
+      ]
+    },
+    {
+      "service_id": "benefits_monthly_card",
+      "canonical_name": "权益月卡",
+      "aliases": [
+        "新品体验月卡",
+        "新品体验权益",
+        "权益月卡"
+      ],
+      "source_names": [
+        "权益月卡"
+      ]
+    },
+    {
+      "service_id": "claw_egg_lottery_campaign",
+      "canonical_name": "抓娃娃/砸金蛋抽奖活动",
+      "aliases": [
+        "抓娃娃",
+        "抓娃娃、砸金蛋抽奖活动",
+        "抽奖活动",
+        "砸金蛋",
+        "砸金蛋抽奖活动"
+      ],
+      "source_names": [
+        "抓娃娃、砸金蛋抽奖活动"
+      ]
+    },
+    {
+      "service_id": "collect_cards_free_order",
+      "canonical_name": "集卡赢免单活动",
+      "aliases": [
+        "免单活动",
+        "集卡",
+        "集卡赢免单",
+        "集卡赢免单活动"
+      ],
+      "source_names": [
+        "集卡赢免单活动"
+      ]
+    },
+    {
+      "service_id": "credit_risk_check",
+      "canonical_name": "信用风险/贷前必查/借钱必查活动",
+      "aliases": [
+        "信用风险",
+        "信用风险、贷前必查、借钱必查活动",
+        "信用风险活动",
+        "借钱必查",
+        "借钱必查活动",
+        "天创信用",
+        "贷前必查"
+      ],
+      "source_names": [
+        "信用风险、贷前必查、借钱必查活动"
+      ]
+    },
+    {
+      "service_id": "debt_consulting_service_fee",
+      "canonical_name": "债务咨询顾问服务费/还款无忧",
+      "aliases": [
+        "债务咨询顾问服务",
+        "债务咨询顾问服务费",
+        "债务咨询顾问服务费（还款无忧）问题流程梳理",
+        "还款无忧",
+        "还款无忧服务",
+        "还款无忧服务费",
+        "还款无忧服务？",
+        "还款无忧服务？？",
+        "问题流程梳理"
+      ],
+      "source_names": [
+        "债务咨询顾问服务费",
+        "债务咨询顾问服务费（还款无忧）问题流程梳理",
+        "还款无忧服务？",
+        "还款无忧服务？？"
+      ]
+    },
+    {
+      "service_id": "doudou_score",
+      "canonical_name": "豆豆分",
+      "aliases": [
+        "信用分",
+        "荣誉等级",
+        "豆豆分"
+      ],
+      "source_names": [
+        "豆豆分"
+      ]
+    },
+    {
+      "service_id": "enforceable_notary",
+      "canonical_name": "赋强公证/法信赋强公证",
+      "aliases": [
+        "法信赋强公证",
+        "诚信计划",
+        "赋强公证",
+        "赋强公证协议",
+        "赋强公证协议、法信赋强公证"
+      ],
+      "source_names": [
+        "赋强公证协议、法信赋强公证"
+      ]
+    },
+    {
+      "service_id": "interest_fee_deduction_coupon",
+      "canonical_name": "息费抵扣金",
+      "aliases": [
+        "息费优惠券",
+        "息费抵扣金",
+        "抵扣金"
+      ],
+      "source_names": [
+        "息费抵扣金"
+      ]
+    },
+    {
+      "service_id": "light_card",
+      "canonical_name": "轻享卡",
+      "aliases": [
+        "轻享卡",
+        "轻享卡扣费",
+        "轻享卡续费"
+      ],
+      "source_names": [
+        "轻享卡"
+      ]
+    },
+    {
+      "service_id": "loan_coupon_campaign",
+      "canonical_name": "借款优惠券活动",
+      "aliases": [
+        "优惠券活动",
+        "借款优惠券",
+        "借款优惠券活动",
+        "借款券",
+        "息费券"
+      ],
+      "source_names": [
+        "借款优惠券活动"
+      ]
+    },
+    {
+      "service_id": "loan_treasure",
+      "canonical_name": "借款宝",
+      "aliases": [
+        "借款宝",
+        "借款宝-维信卡卡贷",
+        "维信卡卡贷借款宝"
+      ],
+      "source_names": [
+        "借款宝-维信卡卡贷"
+      ]
+    },
+    {
+      "service_id": "member_benefits",
+      "canonical_name": "会员活动权益",
+      "aliases": [
+        "会员权益",
+        "会员权益明细",
+        "会员活动",
+        "会员活动-卡豆会员权益明细",
+        "卡豆会员权益"
+      ],
+      "source_names": [
+        "会员活动-卡豆会员权益明细"
+      ]
+    },
+    {
+      "service_id": "member_pay_later",
+      "canonical_name": "会员（先享后付）",
+      "aliases": [
+        "VIP",
+        "会员",
+        "会员先享后付",
+        "会员（先享后付）",
+        "先享后付",
+        "尊享VIP"
+      ],
+      "source_names": [
+        "会员（先享后付）"
+      ]
+    },
+    {
+      "service_id": "merged_loan_campaign",
+      "canonical_name": "合并借款活动",
+      "aliases": [
+        "合并借款",
+        "合并借款活动"
+      ],
+      "source_names": [
+        "合并借款活动"
+      ]
+    },
+    {
+      "service_id": "new_year_deduction_campaign",
+      "canonical_name": "新年送抵扣金活动",
+      "aliases": [
+        "抵扣金活动",
+        "新年送抵扣金",
+        "新年送抵扣金活动"
+      ],
+      "source_names": [
+        "新年送抵扣金活动"
+      ]
+    },
+    {
+      "service_id": "phone_credit_coupon",
+      "canonical_name": "省话费/话费券包/领红包",
+      "aliases": [
+        "省话费",
+        "省话费、话费券包、领红包",
+        "话费充值",
+        "话费券",
+        "话费券包",
+        "领红包"
+      ],
+      "source_names": [
+        "省话费、话费券包、领红包"
+      ]
+    },
+    {
+      "service_id": "premium_card",
+      "canonical_name": "优享卡",
+      "aliases": [
+        "优享卡",
+        "优享卡服务",
+        "优享卡权益",
+        "优享卡费用"
+      ],
+      "source_names": [
+        "优享卡"
+      ]
+    },
+    {
+      "service_id": "quota_increase_campaign",
+      "canonical_name": "提额活动",
+      "aliases": [
+        "公积金认证提额",
+        "学历认证提额",
+        "提额",
+        "提额活动"
+      ],
+      "source_names": [
+        "提额活动"
+      ]
+    },
+    {
+      "service_id": "referral_bounty",
+      "canonical_name": "邀请赚赏金",
+      "aliases": [
+        "邀请奖励",
+        "邀请赏金",
+        "邀请赚赏金"
+      ],
+      "source_names": [
+        "邀请赚赏金"
+      ]
+    },
+    {
+      "service_id": "referral_cash_daily_money",
+      "canonical_name": "邀好友得现金/天天领钱",
+      "aliases": [
+        "天天领钱",
+        "好友奖励",
+        "邀好友得现金",
+        "邀好友得现金、天天领钱",
+        "邀请好友"
+      ],
+      "source_names": [
+        "邀好友得现金、天天领钱"
+      ]
+    },
+    {
+      "service_id": "rejection_cashback",
+      "canonical_name": "拒就返",
+      "aliases": [
+        "全部被拒返现",
+        "拒就返",
+        "拒就返权益",
+        "拒就返（豆豆钱）",
+        "豆豆钱"
+      ],
+      "source_names": [
+        "拒就返（豆豆钱）"
+      ]
+    },
+    {
+      "service_id": "reserved_loan_campaign",
+      "canonical_name": "预约借款活动",
+      "aliases": [
+        "预约借款",
+        "预约借款活动",
+        "预约审核",
+        "预约放款",
+        "预约订单"
+      ],
+      "source_names": [
+        "预约借款活动"
+      ]
+    },
+    {
+      "service_id": "telemarketing_campaign",
+      "canonical_name": "电销活动",
+      "aliases": [
+        "电话营销活动",
+        "电销",
+        "电销活动"
+      ],
+      "source_names": [
+        "电销活动"
+      ]
+    },
+    {
+      "service_id": "zhonghui_insurance",
+      "canonical_name": "众惠财产相互保险社",
+      "aliases": [
+        "众惠",
+        "众惠保险",
+        "众惠财产保险",
+        "众惠财产相互保险社"
+      ],
+      "source_names": [
+        "众惠财产相互保险社"
+      ]
+    }
+  ]
+}

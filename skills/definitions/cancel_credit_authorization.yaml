@@ -62,13 +62,13 @@ templates:
     next_step: 确认所有贷款结清后，按机构类型处理注销申请
 
 branch_conditions:
-  - expr: institution_type == self_operated and all_loans_cleared
+  - expr: institution_type == "self_operated" and all_loans_cleared
     variant: self_operated_can_cancel
     note: 自营机构且全部结清——可办理注销，提交注销申请工单
-  - expr: institution_type == self_operated and has_active_loan
+  - expr: institution_type == "self_operated" and has_active_loan
     variant: self_operated_has_loan
     note: 自营机构但有未结清贷款——告知需全部还清后才能注销
-  - expr: institution_type == non_self_operated
+  - expr: institution_type == "non_self_operated"
     variant: non_self_operated
     note: 非自营机构——引导客户联系对应资方办理，提供资方联系方式
   - expr: customer_confuses_quota_with_loan_record

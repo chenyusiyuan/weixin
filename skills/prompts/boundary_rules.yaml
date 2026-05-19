@@ -5,28 +5,50 @@
 clusters:
   - name: 扣款簇
     skills:
-      deduction_issues: "客户质疑异常/陌生/多笔扣款（关键词：为什么扣、怎么又扣、重复扣款、多扣、其他平台扣款）"
+      deduction_issues: "客户质疑异常/陌生/多笔扣款（关键词：为什么扣、怎么又扣、重复扣款、多扣、其他平台扣款、众安保险扣款）"
       repayment_status_issue: "客户自己发起的还款出问题（失败/未更新/部分扣款）。特征：明确说『我还款了...』、『扣款失败』、『还完没更新』"
-      bill_deduction_query: "客户查本期应扣/已扣的账单状态（关键词：账单扣了吗、查账单、本期扣款）"
-      fee_detail_query: "客户问扣款构成明细（关键词：这是什么费用、利息多少、本金和利息、担保费、服务费）"
-    tie_breaker: "判别顺序：费用构成(fee_detail_query) → 异常扣款(deduction_issues) → 自己还款出问题(repayment_status_issue) → 常规查账单(bill_deduction_query)"
+      bill_deduction_query: "客户查本期应扣/已扣的账单状态（关键词：账单扣了吗、查账单、本期扣款、查未还款、查欠款、账户里还有多少欠款）"
+      fee_detail_query: "客户问扣款构成明细或陌生条目（关键词：这是什么费用、利息多少、本金和利息、账户里叫XX的条目、陌生扣款条目是什么）。注意：如果客户问的是'费用怎么收/怎么算/凭什么收'，属于费用咨询而非明细查询"
+    tie_breaker: |
+      强信号判别（按优先级）：
+      0. 有"怎么收/怎么算/凭什么收/为什么收/合不合理/合不合法"→ 不属于本簇，让路由器在费用咨询类skill中选择
+      1. 有"这是什么费用/XX是什么/叫XX的条目/陌生条目/东富/东润/维世"→ fee_detail_query
+      2. 有"为什么扣我/凭什么扣/众安/其他平台/扣错了/多扣了/重复扣/又扣了"→ deduction_issues
+      3. 有"我还款了.../还完了没更新/失败/没成功/钱扣了账单没变"→ repayment_status_issue
+      4. 有"查账单/查欠款/查未还款/账单扣了吗/账户里还有多少"→ bill_deduction_query
+      5. 默认:歧义时 → bill_deduction_query
 
   - name: 催收簇
     skills:
       stop_collection: "客户明确要求停止未来的催收电话（请停止催收、不要再打电话催、别给我打了）；**不涉及**投诉催收品质或营销话术"
       collection_complaint: "客户对已发生的催收行为不满/投诉（特征：态度差、骚扰、频繁、威胁、爆通讯录、已经还了还在催）。情绪化/指责语气是强信号"
-      post_loan_verification: "客户**质疑/核实**催收员或账号真伪（特征：是不是你们员工、工号XXXX、对公账号真的吗、调解员靠谱吗）。诉求是'辨真伪'而非投诉或停电话"
+      post_loan_verification: "客户**质疑/核实**催收员或账号真伪（特征：是不是你们员工、工号XXXX、对公账号真的吗、调解员靠谱吗、法院人员、维世融资担保）。诉求是'辨真伪'而非投诉或停电话"
       stop_marketing: "停止**营销/推销**电话或短信（非催收，无逾期背景）。关键词：老给我打电话贷款、推销、营销短信、让我借钱"
-    tie_breaker: "判别顺序：核实身份(post_loan_verification) → 投诉品质(collection_complaint) → 停止营销(stop_marketing) → 要求停催(stop_collection)"
+      overdue_negotiation: "客户要**协商**还款方案（延期/分期/本金/减免）。核心是'商量怎么还',不是投诉,不是停催"
+    tie_breaker: |
+      强信号判别（按优先级）：
+      1. 有"你们员工/工号/账号/调解员/法院/维世融资担保/担保公司"→ post_loan_verification（辨真伪）
+      2. 有"已经还了/已经还清/没有借款/账单处理完了/没逾期"+ 被催行为 → collection_complaint（不合理被催)
+      3. 有"停止催收/停催/别再打电话催/屏蔽通讯录"→ stop_collection
+      4. 有"协商/分期/减免/延期/本金/缓几天/能不能下周还"→ overdue_negotiation
+      5. 有"态度/骚扰/频繁/一天打几十次/十几次/威胁/爆通讯录"→ collection_complaint（品质投诉）
+      6. 有"营销/推销/贷款广告/别发短信"→ stop_marketing
 
   - name: 还款结果簇
     skills:
-      repayment_result_query: "客户**查询**还款结果/是否成功（中性语气，不断言失败）。关键词：查一下、到账了吗、确认一下、怎么查"
+      repayment_result_query: "客户**查询**还款结果/是否成功（中性语气，不断言失败）。关键词：查一下、到账了吗、确认一下、怎么查、我还过了吗"
       repayment_status_issue: "客户**断言**还款出了问题（失败/未更新/部分扣款/重复扣款）。关键词：还款失败、没更新、只扣了一部分、已经还了还在催"
-    tie_breaker: "判别顺序：若句中有'失败/没更新/只扣/重复扣/扣错'等异常断言 → repayment_status_issue；若只是中性查询 → repayment_result_query"
+    tie_breaker: "判别顺序：若句中有'失败/没更新/只扣/重复扣/扣错/还完了还显示'等异常断言 → repayment_status_issue；若只是中性查询 → repayment_result_query"
 
   - name: 还款方式簇
     skills:
-      repayment_method_inquiry: "客户问有哪些还款方式/怎么还（包括请发二维码/对公账号）"
-      card_rebinding: "客户明确要换/更换/绑定银行卡"
-      repayment_status_issue: "客户用现有方式还款失败要处理问题"
+      repayment_method_inquiry: "客户问**如何**还款(方式/渠道),包括银行卡不可用时寻求替代方案(二维码/对公/微信/支付宝)"
+      card_rebinding: "客户明确要换/更换/绑定新银行卡"
+      repayment_status_issue: "客户用现有方式还款失败/出错,非寻找新方式"
+    tie_breaker: |
+      强信号判别（按优先级）：
+      1. 有"换绑/更换银行卡/绑新卡/解绑原卡" → card_rebinding
+      2. 有"银行卡冻结/银行卡不能用/冻结了怎么还/用别人卡还/微信还款/支付宝还款/发二维码/对公还款"→ repayment_method_inquiry
+      3. 有"还款失败了/扣款没成功/还不进去" → repayment_status_issue
+      4. 默认:询问怎么还 → repayment_method_inquiry
+

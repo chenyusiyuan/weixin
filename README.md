@@ -1,97 +1,135 @@
-# 金融客服坐席话术推荐系统 (Financial Customer Service Copilot)
+# 金融客服坐席话术推荐系统
 
-一个为人工客服坐席提供实时话术推荐、工具辅助数据查询和合规检查的 Copilot 系统。采用 Skill-based 架构，通过三链路自动路由实现高效精准的场景匹配。
+这是一个面向人工客服坐席的金融客服 Copilot。系统不直接替代客服，而是在客户来电/在线咨询过程中识别业务场景、匹配 SOP/Skill、查询必要工具数据，并生成合规话术建议。
 
-## 架构概览
+当前项目已经整理成 Skill-based 链路：SOP 被沉淀为结构化 Skill，运行时通过规则短路、混合召回、LLM 路由、工具执行和合规生成完成话术推荐。
 
-```
-客户消息 → L0 预处理 → 规则引擎匹配?
-  ├─ YES → Chain A: 规则短路 (<200ms, 零LLM, 模板+工具数据)
-  └─ NO  → L1 域分类 → LLM Skill 路由
-              ├─ 匹配 (confidence ≥ θ) → Chain B: 技能路由 (1-5s, 2次LLM)
-              └─ 无匹配               → Chain C: 长尾兜底 (安全回复)
+## 先看哪里
 
-涉及个人账户数据的链路会先进入 Identity Verification Gate（核身层），
-通过后再执行原始业务查询；产品通用咨询、问候等低风险问题不触发核身。
-```
+| 目的 | 文件 |
+|---|---|
+| 当前评测链路、数据、报告、归档索引 | `docs/当前评测链路与归档索引.md` |
+| 离线评测怎么跑 | `tests/EVAL_RUNBOOK.md` |
+| 当前多轮小结到 skill 映射 | `scripts/references/merged_intent_skill_mapping.json` |
+| 小结类别与 SOP/skill 错配审计 | `docs/小结标注_sop映射错配审计.md` |
+| Skill-based 方案原始说明 | `docs/skill-based方案.md` |
+| 当前项目说明长文档 | `docs/项目说明文档.md` |
+| 历史文档、旧报告、中间产物 | `archive/20260519_eval_chain_cleanup/` |
 
-- **Chain A** — 零 LLM。规则命中 → 工具执行 → Jinja2 模板填充 → 合规检查。覆盖高频确定性场景。
-- **Chain B** — 主链路。L1 域分类 → LLM Skill 路由 → Agent B 置信审计 (纯规则, <10ms) + 工具并行执行 → Agent A 合规生成 → 后置合规检查。
-- **Chain C** — 兜底。无 SOP 覆盖场景返回安全回复，强制免责声明。
+## 主链路
 
-## 技术栈
-
-- **语言:** Python 3.11+
-- **框架:** FastAPI + Pydantic v2 + asyncio + httpx
-- **LLM:** DeepSeek / Qwen / 任意 OpenAI 兼容 API
-- **模板:** Jinja2 (话术槽位填充)
-- **Skill 定义:** YAML (PyYAML)
-
-## 目录结构
-
-```
-fin_copilot/                    # 主应用包
-├── config.py                   # 配置 (pydantic-settings, 从 .env 加载)
-├── main.py                     # FastAPI 入口 + 组件装配
-├── cli_demo.py                 # CLI 交互演示
-├── orchestrator.py             # 三链路主编排器
-├── models/                     # Pydantic 数据模型
-│   ├── conversation.py         # ConversationState (三层上下文)
-│   ├── skill.py                # SkillDefinition, SkillMatch
-│   ├── response.py             # CopilotResponse
-│   ├── audit.py                # ConfidenceAuditResult
-│   └── tool_io.py              # ToolCallResult
-├── context/                    # 三层上下文管理
-│   ├── sliding_window.py       # Layer 1: 最近 6-8 轮对话
-│   ├── rolling_summary.py      # Layer 2: 规则摘要 (≤300字, 无LLM)
-│   ├── structured_state.py     # Layer 3: 意图/槽位/工具缓存/风险标签
-│   └── context_manager.py      # 统一上下文编排
-├── skills/
-│   └── loader.py               # YAML Skill 加载器
-├── routing/
-│   ├── rule_engine.py          # Chain A: 关键词规则引擎
-│   ├── domain_classifier.py    # L1: 10业务域 + 会话流程关键词分类器
-│   └── skill_router.py         # Chain B: LLM Skill 路由
-├── agents/
-│   ├── compliant_generator.py  # Agent A: 合规话术生成
-│   ├── confidence_auditor.py   # Agent B: 纯规则置信审计 (<10ms)
-│   └── longtail_reasoner.py    # Chain C: 长尾兜底 (Phase 1 占位)
-├── compliance/
-│   └── rule_checker.py         # 6层后置合规检查
-├── llm/
-│   └── client.py               # Async OpenAI 兼容 LLM 客户端
-├── routers/
-│   └── gateway.py              # FastAPI 路由
-└── utils/
-    ├── trace.py                # trace_id 生成
-    └── template_engine.py      # Jinja2 模板填充
-
-skills/                         # Skill 知识层 (配置, 非代码)
-├── registry.json               # 54 个 Skill 索引 (按域分组)
-├── definitions/                # 每个 Skill 一个 YAML 文件
-├── prompts/                    # LLM Prompt 模板
-└── references/compliance/      # 违禁词、业务规则 (可热更新)
-
-rules/
-└── rule_engine.json            # Chain A 规则 (6 条预置)
-
-tools/                          # 业务工具 (Mock 数据)
-├── registry.py                 # 工具注册表 (11 个工具)
-├── executor.py                 # 异步并行执行器
-└── *.py                        # 各工具 handler
+```text
+客户输入
+  -> Gateway /api/chat
+  -> Orchestrator
+  -> L0 预处理、上下文读取、短追问/问候/核身判断
+  -> Chain A 规则短路?
+       是: RuleEngine -> Skill -> ToolExecutor -> 模板/生成 -> 合规检查
+       否: Hybrid Recall -> SkillRouter -> Skill -> 工具/审计/生成 -> 合规检查
+  -> 无有效 Skill 时进入 Chain C 长尾兜底
+  -> 写回会话上下文
+  -> 返回坐席话术建议
 ```
 
-## 快速开始
+三条链路的定位：
 
-### 1. 安装依赖
+| 链路 | 入口 | 作用 |
+|---|---|---|
+| Chain A | `rules/rule_engine.json` | 高频确定性场景，规则直接命中 skill，降低 LLM 成本和误判 |
+| Chain B | `fin_copilot/routing/*` | 主链路，先召回候选 skill，再由 LLM Router 精排 |
+| Chain C | `fin_copilot/agents/longtail_reasoner.py` | 无 SOP 覆盖或低置信时安全兜底，不强行装作标准业务 |
+
+默认主链路是 Hybrid Recall：
+
+```text
+EmbeddingDomain TopK + SkillCos TopM + keyword/prior score
+  -> candidate cap
+  -> LLM SkillRouter
+```
+
+## 运行时代码结构
+
+```text
+fin_copilot/
+├── main.py                         # FastAPI 应用入口与组件装配
+├── orchestrator.py                 # 三链路主编排器
+├── config.py                       # 路径、LLM、embedding、路由参数
+├── routers/gateway.py              # /api/chat 网关
+├── context/                        # 滑动窗口、滚动摘要、结构化状态
+├── routing/                        # 规则、域分类、embedding 域分类、skill router
+├── skills/loader.py                # Skill YAML 加载
+├── agents/                         # 合规生成、置信审计、长尾推理
+├── compliance/                     # 后置规则合规检查
+├── knowledge/value_added.py         # 活动/增值服务结构化知识检索
+├── llm/client.py                   # OpenAI-compatible LLM client
+└── models/                         # Conversation / Skill / Response / Tool IO 模型
+```
+
+```text
+skills/
+├── registry.json                   # 54 个 skill，11 个域
+├── definitions/*.yaml              # 每个 skill 一个定义文件
+├── prompts/skill_routing.md         # Router prompt
+├── prompts/compliant_gen.md         # 话术生成 prompt
+└── prompts/boundary_rules.yaml      # 高频混淆边界规则
+
+rules/rule_engine.json              # Chain A 规则，当前 9 条
+
+tools/
+├── registry.py                      # 已注册 9 个 mock 业务工具
+├── executor.py                      # 工具并行执行与缓存
+└── get_*.py                         # 账单、额度、会员、通话、短信、退款、停催等查询
+```
+
+## Skill 与 SOP
+
+当前系统以 skill 为业务执行粒度：
+
+1. `skills/registry.json` 定义 skill 所属域和索引。
+2. `skills/definitions/*.yaml` 定义触发词、示例、排除词、工具、模板、分支和合规要求。
+3. `sop/` 保存原始 SOP/知识资产。
+4. 活动/增值服务类的产品知识被结构化到 `sop/structured/`，由 `fin_copilot/knowledge/value_added.py` 检索后注入生成链路。
+
+新增或调整 skill 时，通常要同步检查：
+
+```bash
+python3 scripts/validate_skills.py
+python3 -m pytest tests/unit/test_skill_schema.py
+```
+
+## 核身与工具
+
+核身由 `Orchestrator` 统一处理，不散落在单个 skill 或工具中。
+
+基本原则：
+
+- 查询账户、账单、还款结果、退款记录、额度、短信、通话等个人数据前需要核身。
+- 产品通用咨询、问候、结束语等低风险问题不触发核身。
+- 核身流程优先处理姓名、手机号、身份证后四位，避免被普通业务路由打断。
+
+已注册工具主要包括：
+
+| 工具 | 作用 |
+|---|---|
+| `get_customer_profile` | 客户画像 |
+| `get_bill_and_repayment_plan` | 账单与还款计划 |
+| `get_loan_service_info` | 贷款服务信息 |
+| `get_membership_service_info` | 会员服务信息 |
+| `get_quota_service_info` | 额度服务信息 |
+| `get_call_history` | 通话记录 |
+| `get_sms_history` | 短信记录 |
+| `get_stop_collection_history` | 停催记录 |
+| `get_refund_history` | 退款/退费记录 |
+
+## API 与本地运行
+
+安装依赖：
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 配置 LLM
-
-创建 `.env` 文件:
+配置 `.env`：
 
 ```env
 LLM_API_URL=https://api.deepseek.com/v1
@@ -99,134 +137,180 @@ LLM_API_KEY=your-api-key
 LLM_MODEL=deepseek-chat
 ```
 
-支持任意 OpenAI 兼容 API (DeepSeek / Ollama / OpenAI 等)。
-
-### 3. 启动 API 服务
+启动服务：
 
 ```bash
 uvicorn fin_copilot.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 4. 调用接口
+调用接口：
 
 ```bash
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id": "s1", "user_text": "怎么还款"}'
+  -d '{"session_id": "s1", "user_text": "怎么对公还款"}'
 ```
 
-### 5. CLI 交互演示
+CLI 演示：
 
 ```bash
-python -m fin_copilot.cli_demo
+python3 -m fin_copilot.cli_demo
 ```
 
-### 6. 离线评估
+## 当前评测数据
+
+| 文件 | 规模 | 用途 |
+|---|---:|---|
+| `golden_test.jsonl` | 295 通 | 当前真实电话多轮 golden，call 级 `gold_intents + queries` |
+| `raw_test.jsonl` | 2846 条 | 旧单 query golden，字段为 `query/gold_skill/confidence` |
+| `原始300条数据.jsonl` | 297 通 | 多轮电话原始来源，原 `merged.jsonl` 改名后文件 |
+| `3000条raw data.jsonl` | 2846 条 | 旧单 query 数据快照，当前与 `raw_test.jsonl` 内容一致 |
+| `标注维度.xlsx` | - | 小结类别标注维度 |
+| `scripts/references/merged_intent_skill_mapping.json` | 27 类 | 小结类别到一个或多个 skill 的映射 |
+
+当前 `golden_test.jsonl` 只补了原始空 gold 的 2 通电话，其余标注保持原始 golden 口径。疑似漏标样本只放在人工复核文档里，不直接写回评测集。
+
+## 多轮电话评测
+
+主评测入口：
 
 ```bash
-python tests/eval_offline.py
+python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --concurrency 8
 ```
 
-## 核身层与 Mock 数据
+快速 smoke：
 
-当前实现中，核身层位于 `fin_copilot/orchestrator.py`，在 Chain A/B/C 业务路由选中 Skill 后统一判断是否需要拦截。判断原则：
+```bash
+python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode skill-cos --limit 20
+python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --limit 20
+```
 
-- 中高风险或明确涉及账户数据查询/办理的 Skill，需要先核身。
-- 低风险产品介绍类 Skill 即使声明了工具，也不会仅因工具存在而核身。
-- 低风险 Skill 只有当客户话术包含“我的、查询、账单、订单、扣款、还款结果、额度、退款、记录、短信”等个人账户查询信号时才核身。
-- 核身中优先处理核身输入，避免被普通业务路由打断。
+计分逻辑：
 
-核身状态机：
+1. 每通电话有 `K = len(gold_intents)` 个真实业务意图。
+2. 对该电话内每条客户 query 路由出一个 skill。
+3. 按一通电话内 skill 出现次数聚合，取 TopK。
+4. 如果 K 个 gold intent 命中 N 个，则该通电话得分 `N / K`。
+5. 总准确率为所有电话得分求和后除以样本数。
+
+当前复用的历史预测结果：
 
 ```text
-not_started → asking_name → asking_phone → asking_id → passed
-                                               └────→ failed（多次错误转人工）
+tests/reports/merged_multi_turn_after_corporate_repay_tuning_20260427/query_predictions.jsonl
 ```
 
-本地测试画像在 `tools/mock_data.py` 中维护：
-
-| customer_id | 姓名 | 手机号 | 身份证后四位 | 典型画像 |
-|-------------|------|--------|--------------|----------|
-| C100 | 张三 | 13812345678 | 1234 | 逾期客户，有扣款失败、停催和催收投诉记录 |
-| C101 | 李四 | 13900001111 | 5678 | 正常优质客户，有会员退费到账记录 |
-| C102 | 王五 | 18600002222 | 9012 | 新用户，额度冻结，有退款处理中记录 |
-
-坐席辅助判断信息已补齐以下只读工具，并接入工具注册表：
-
-| 工具 | 说明 |
-|------|------|
-| `get_call_history` | 进线/通话记录 |
-| `get_sms_history` | 系统短信记录 |
-| `get_stop_collection_history` | 停催申请记录 |
-| `get_refund_history` | 退费/退款记录 |
-
-建议回归用例：
+当前映射重算结果：
 
 ```text
-1. 个人账户查询：我要查询账单扣款情况 → 张三 → 13812345678 → 1234，应核身通过并继续回答原问题。
-2. 核身失败：姓名/手机号/身份证后四位错误，应停留在当前核身步骤；多次失败后转人工。
-3. 产品咨询：会员是什么，有什么权益，应直接返回通用介绍，tools=[]，不进入核身。
-4. 问候：你好，应直接寒暄，不进入核身。
+tests/reports/merged_mapping_recalc_from_previous_20260519/summary_after_empty_only_patch.json
 ```
 
-## API
+## 旧单 query 评测
 
-### POST /api/chat
+旧评测入口仍保留，用于看单 query 的 L1/L2/L3 能力：
 
-请求:
-```json
-{
-  "session_id": "会话ID",
-  "user_text": "客户消息",
-  "channel": "online",
-  "customer_id": ""
-}
+```bash
+bash scripts/run_golden_full_eval.sh
 ```
 
-响应:
-```json
-{
-  "output_type": "bot_reply",
-  "answer": "推荐话术",
-  "next_step_hint": "建议下一步",
-  "matched_skill_id": "overdue_negotiation",
-  "confidence": 0.95,
-  "route": "route_b",
-  "compliance_passed": true,
-  "latency_ms": 4500,
-  "trace_id": "tr-1713000000000-abc12345"
-}
+底层实验：
+
+| 实验 | 脚本 | 目标 |
+|---|---|---|
+| Exp1 | `tests/eval/exp1_l1_domain.py` | L1 域分类 Top1/TopK |
+| Exp2 | `tests/eval/exp2_skill_match.py` | Skill Router Top1/Top3 |
+| Exp3 | `tests/eval/exp3_chain_distribution.py` | 完整链路分布、延迟、合规 |
+
+## 数据构建链路
+
+多轮电话数据构建：
+
+```text
+原始300条数据.jsonl
+  -> scripts/prepare_merged_turn_labeling_chunks.py
+  -> scripts/merge_merged_turn_labels.py
+  -> scripts/export_raw_scorable_queries.py
+  -> scripts/apply_raw_query_split_decisions.py
+  -> scripts/export_merged_raw_eval_dataset.py
+  -> golden_test.jsonl
 ```
 
-### GET /api/health
+旧单 query 数据构建：
 
-健康检查，返回 `{"status": "ok"}`。
+```text
+raw_data.csv / 3000条raw data.jsonl
+  -> scripts/extract_intent_via_deepseek.py
+  -> scripts/map_intent_to_skill.py
+  -> scripts/rebuild_golden_from_batches.py
+  -> raw_test.jsonl
+```
 
-## 合规检查 (6 层)
+多轮打标、query 拆分、旧 batch 标注等中间产物已经归档：
 
-1. **全局违禁词** — 16 个禁用表达 (含排除规则)
-2. **Skill 级违禁** — 每个 Skill 独立的禁用表达
-3. **超权检测** — 涉及减免/免息必须附免责声明
-4. **长尾加严** — 禁止操作承诺, 强制免责后缀
-5. **PII 泄露检测** — 身份证/手机号/银行卡号 regex
-6. **免责声明自动补充** — 缺失时自动追加
+```text
+archive/20260519_eval_chain_cleanup/data_intermediate/
+```
 
-## 域划分 (10 个业务域 + 1 个会话流程域)
+## 映射表与人工复核
 
-业务域：会员、额度、还款、贷款、费用、活动、业务办理、账户、逾期、优享卡
+当前正式映射表：
 
-会话流程域：问候、确认、身份回读、渠道核验、结束语等非业务咨询链路。
+```text
+scripts/references/merged_intent_skill_mapping.json
+```
 
-## 配置项
+映射原则是：
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `LLM_API_URL` | `http://localhost:11434/v1` | LLM API 地址 |
-| `LLM_API_KEY` | `ollama` | API Key |
-| `LLM_MODEL` | `qwen2.5:7b` | 模型名称 |
-| `SLIDING_WINDOW_SIZE` | `8` | 滑动窗口轮数 |
-| `SUMMARY_MAX_LENGTH` | `300` | 摘要最大字数 |
-| `TOOL_CACHE_TTL` | `300` | 工具缓存过期秒数 |
-| `CONFIDENCE_THRESHOLD` | `0.5` | Agent B 审计通过阈值 |
-| `ROUTING_TEMPERATURE` | `0.1` | Skill 路由温度 |
-| `GENERATION_TEMPERATURE` | `0.3` | 话术生成温度 |
+```text
+一个 golden 小结类别 -> 一个或多个可接受 skill_id
+```
+
+也就是说允许一对多，但不把多个小结合成一个 gold 类别。这个映射用于解决标注小结粒度与 SOP/skill 粒度不一致的问题，例如“账单信息查询”“存对公还款”“营销活动/新活动咨询”等粗标签。
+
+相关复核文件：
+
+| 文件 | 用途 |
+|---|---|
+| `docs/小结标注_sop映射错配审计.md` | 小结类别与 SOP/skill 的错配审计 |
+| `docs/golden小结类别_sop特殊标注全量样本.json` | 特殊类别的全量样本证据 |
+| `docs/golden小结类别_sop逐条复核_20260519.md` | 当前逐条复核与计分 |
+| `docs/golden小结类别_sop高优先级疑点_20260519.md` | 人工确认清单，不自动写回 golden |
+
+## 报告与归档
+
+`tests/reports/` 当前只保留仍会使用的两类报告：
+
+```text
+tests/reports/merged_multi_turn_after_corporate_repay_tuning_20260427/
+tests/reports/merged_mapping_recalc_from_previous_20260519/
+```
+
+历史文档、旧报告、中间产物、缓存和日志已经归档到：
+
+```text
+archive/20260519_eval_chain_cleanup/
+```
+
+归档明细：
+
+```text
+archive/20260519_eval_chain_cleanup/manifest.json
+```
+
+## 常用校验
+
+```bash
+python3 scripts/validate_skills.py
+python3 -m pytest tests/unit/test_skill_schema.py tests/unit/test_value_added_knowledge.py
+python3 -m json.tool scripts/references/merged_intent_skill_mapping.json >/dev/null
+python3 tests/eval/merged_multi_turn_skill_recall.py --help
+bash -n scripts/run_golden_full_eval.sh
+```
+
+## 接手建议
+
+1. 先看 `docs/当前评测链路与归档索引.md`，确认当前数据和报告位置。
+2. 看 `scripts/references/merged_intent_skill_mapping.json`，理解 golden 小结如何映射到 skill。
+3. 用 `tests/EVAL_RUNBOOK.md` 选择多轮电话评测或旧单 query 评测。
+4. 修改 skill 前先跑 `scripts/validate_skills.py`。
+5. 历史报告只在需要追溯时看 `archive/20260519_eval_chain_cleanup/`，日常不要从归档目录作为当前口径继续开发。

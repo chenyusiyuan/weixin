@@ -28,6 +28,8 @@ triggers:
     - 我的征信上有错误记录，帮我修改
     - 你们把我的征信给弄坏了，赶紧帮我改好
     - 我征信有逾期记录，能不能帮我消除
+    - 是XX家的贷款，你看下呢
+    - 我之前反馈的征信问题，我不满意，你们要给我改过来
   exclude_keywords:
     - 征信查询
     - 征信咨询
@@ -60,21 +62,27 @@ templates:
     next_step: 根据逾期原因和机构类型确定处理路径
 
 branch_conditions:
-  - expr: institution_type == self_operated
+  - expr: institution_type == "self_operated"
     variant: self_operated
     note: 自营机构（上海小贷、成都小贷、维仕担保）——建征信问题工单，内部处理
-  - expr: institution_type == non_self_operated
+  - expr: institution_type == "non_self_operated"
     variant: non_self_operated
     note: 非自营机构——说明需联系对应资方处理，提供资方联系方式
-  - expr: overdue_reason == genuine_error
+  - expr: overdue_reason == "genuine_error"
     variant: genuine_error
     note: 确属系统错误或非本人原因——协助提交征信异议申请，1-3工作日处理
-  - expr: overdue_reason == customer_own_fault
+  - expr: overdue_reason == "customer_own_fault"
     variant: own_fault
     note: 客户自身逾期导致——解释征信如实记录原则，婉拒修改，告知还清后影响逐步减轻
-  - expr: overdue_reason == major_illness_or_disaster
+  - expr: overdue_reason == "major_illness_or_disaster"
     variant: special_circumstances
     note: 重大疾病/自然灾害等特殊情况——收集证明材料，上报审核，有一定开绿灯可能性
+  - expr: customer_only_names_institution_or_loan
+    variant: clarify_institution_and_record
+    note: 客户只说是XX家的贷款或让客服看一下时，先确认征信显示的管理机构、订单和逾期记录，再判断自营/非自营路径
+  - expr: customer_dissatisfied_with_previous_feedback
+    variant: repeat_dispute_escalation
+    note: 客户对之前反馈的征信问题不满意并要求改过来时，先查询历史工单和处理结论，复述如实上报原则；确有新证据则补充材料升级征信异议
 compliance:
   forbidden_expressions:
     - 可以帮您删除征信记录

@@ -1,4 +1,4 @@
-"""Propose Chain A route_a rules from golden_test.jsonl.
+"""Propose Chain A route_a rules from raw_test.jsonl.
 
 Strategy:
   1. For each skill with frequency >= FREQ_MIN in the golden set, simulate
@@ -37,7 +37,7 @@ if str(ROOT) not in sys.path:
 from fin_copilot.config import get_settings  # noqa: E402
 from fin_copilot.skills.loader import SkillLoader  # noqa: E402
 
-GOLDEN_PATH = ROOT / "tests" / "golden_test.jsonl"
+GOLDEN_PATH = ROOT / "raw_test.jsonl"
 EXISTING_RULES = ROOT / "rules" / "rule_engine.json"
 
 

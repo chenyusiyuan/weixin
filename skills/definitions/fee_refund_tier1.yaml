@@ -21,6 +21,10 @@ triggers:
     - 退担保费
     - 退利息
     - 申请退款
+    - 费用不合理
+    - 领导处理
+    - 更高级的人
+    - 投诉工单
   examples:
     - 我要退担保费
     - 帮我申请退款
@@ -28,6 +32,10 @@ triggers:
     - 你们把钱退给我
     - 这个费用不合理要退
     - 我要退全部费用
+    - 你们这个费用不合理，帮我退
+    - 不行，让你们领导来处理
+    - 你们更高级的人呢
+    - 我不接受这个解释，帮我升级处理
   exclude_keywords:
     - 退费进度
     - 退费到账
@@ -58,6 +66,23 @@ templates:
     required_slots:
       - customer_name
     next_step: evaluate_refund_eligibility
+  persistent_demand_escalate:
+    script: |
+      {customer_name}，非常理解您的心情。关于退费的诉求，我们已经详细了解了。
+      由于您的情况较为特殊，为了更好地解决问题，我帮您转接专业的处理专员进一步跟进。
+      预计1-2个工作日内会有专员联系您，请保持电话畅通。
+    required_slots:
+      - customer_name
+    next_step: 提交退费升级工单至二线
+  frontline_internal_complaint_escalation:
+    script: |
+      {customer_name}，您先消消气，您反映的问题我已经详细记录了。
+      已将您的诉求反馈给专员跟进处理，预计24小时内会以021开头的座机联系您。
+      同时，服务进度查询链接已通过短信发送给您，您可以在APP-客服中心-服务进度中查看、催办或补充凭证。
+      在此期间无需重复进线，我们一定会妥善处理您的问题。
+    required_slots:
+      - customer_name
+    next_step: 建投诉工单-内部，等待二线回电
 
 branch_conditions:
   - hint: 客户退费诉求符合退费规则
@@ -68,12 +93,25 @@ branch_conditions:
     note: |
       {customer_name}，关于您申请退还{fee_type}的诉求，根据我们的合同约定和相关规定，该费用{refund_denial_reason}，目前暂时无法为您退还。
       所有费用均是您在签署合同时确认的，是合法合规的收费。
-  - hint: 客户情绪激动，坚持退费
+  - expr: emotion == "angry"
+    hint: 客户情绪激动，坚持退费
     variant: persistent_demand_escalate
     note: 一线解释后客户仍坚持，转接二线处理
   - hint: 客户接受解释，放弃退费
     variant: customer_accepts_no_refund
     note: 感谢理解，询问是否有其他问题
+  - hint: 一线首次解释费用合理性
+    variant: frontline_fee_reasonable_explanation
+    note: |
+      话术主干：告知客户申请贷款时相关费用均有展示，需要客户签署并确认合同内容后才会放款。
+      表述重点是合同展示、客户确认和合规收费，不要说"肯定不能退"或"费用绝对没问题"。
+  - expr: emotion == "angry" and complaint_type is not None
+    hint: 一线解释后客户不接受，要求领导或更高级人员处理
+    variant: frontline_internal_complaint_escalation
+    note: |
+      建"投诉工单-内部"升级二线。
+      递进话术：先安抚"您先消消气"，再告知问题已反馈专员跟进，预计24小时内会以021开头座机联系。
+      同步告知服务进度查询链接已短信发送，客户可在 APP-客服中心-服务进度查看、催办或补充凭证；期间无需重复进线。
 compliance:
   forbidden_expressions:
     - 肯定能退

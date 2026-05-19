@@ -18,6 +18,10 @@ risk_level: medium
 triggers:
   keywords:
     - 核实
+    - 核实对公账号
+    - 对公账号真假
+    - 对公账户真假
+    - 官方对公账号
     - 贷后人员
     - 对公账号
     - 还款账号
@@ -39,6 +43,9 @@ triggers:
     - 陌生号码联系
     - 核实真实性
   examples:
+    - 我想核实一下这个对公账号是不是你们官方的
+    - 专员让我转到这个对公账户，是真的吗
+    - 这个公户信息是不是你们公司的
     - 有人给我打电话说需要还款，是你们的员工吗
     - 你们工作人员给我了一个账号，说是还款到这个账号里
     - 有催收联系我说是受你们公司委托催款的
@@ -49,6 +56,8 @@ triggers:
     - 我要核实一下对公账户，请确认这个是不是你们豆豆钱的
     - 多元调解中心说受你们委托协商还款，是否有这个事情
     - 我收到贷后人员发来的一个账号，请帮我核实是否是你们官方的
+    - 我想核实维世融资担保这个公户是不是你们的
+    - 有人自称是法院人员联系我，我想核实
   exclude_keywords:
     - 投诉催收
     - 停催
@@ -86,13 +95,13 @@ templates:
     next_step: 查询后告知核实结果，若无法核实则提交工单
 
 branch_conditions:
-  - expr: verification_type == account
+  - expr: verification_type == "account"
     variant: verify_account
     note: 核实对公账号——按资方功能表查询，属实则发账号短信并提醒防诈骗，不属实则发单核实
-  - expr: verification_type == staff_id
+  - expr: verification_type == "staff_id"
     variant: verify_staff
     note: 核实工号——查询到则告知属实（姓名不显示），未查询到则告知无法确认并提交核实
-  - expr: verification_type == institution
+  - expr: verification_type == "institution"
     variant: verify_institution
     note: 核实调解机构——查询到则告知可联系，未查询到则提交工单1-2工作日内回复
   - hint: institution_name == 江南商事调解中心

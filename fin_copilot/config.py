@@ -33,6 +33,18 @@ class Settings(BaseSettings):
     CONFIDENCE_THRESHOLD: float = 0.5
     SKILL_ROUTE_MIN_CONFIDENCE: float = 0.3
     RULE_ENGINE_PATH: str = "rules/rule_engine.json"
+    ENABLE_HYBRID_SKILL_RECALL: bool = True
+    SKILL_MULTI_DOMAIN_K: int = 3
+    SKILL_COS_TOP_M: int = 12
+    SKILL_MAX_CANDIDATES: int = 20
+    SKILL_CANDIDATE_SOURCE: str = "hybrid"
+    PRIOR_SKILL_WEIGHT: float = 0.65
+    PRIOR_DOMAIN_WEIGHT: float = 0.25
+    PRIOR_KEYWORD_WEIGHT: float = 0.10
+    ENABLE_VALUE_ADDED_KNOWLEDGE: bool = True
+    VALUE_ADDED_SERVICES_PATH: str = "sop/structured/value_added_text/services.json"
+    VALUE_ADDED_TEXT_BLOCKS_PATH: str = "sop/structured/value_added_text/text_blocks.jsonl"
+    VALUE_ADDED_IMAGE_BLOCKS_PATH: str = "sop/structured/value_added_images/image_blocks.jsonl"
 
     # Compliance
     FORBIDDEN_WORDS_PATH: str = "skills/references/compliance/forbidden_words.json"
@@ -41,6 +53,13 @@ class Settings(BaseSettings):
 
     # Session
     SESSION_TTL_SECONDS: int = 3600
+
+    # Multi-turn / dialogue state
+    ENABLE_INTENT_STICKY: bool = True
+    STICKY_MAX_TURNS: int = 3
+    STICKY_FOLLOWUP_MAX_LEN: int = 12
+    DUPLICATE_REPLY_THRESHOLD: float = 0.82
+    ENABLE_REFERENCE_RESOLUTION: bool = True
 
     # LLM generation params
     ROUTING_TEMPERATURE: float = 0.1

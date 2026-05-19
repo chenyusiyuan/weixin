@@ -21,7 +21,7 @@
       "skill_id": "value_added_service_inquiry",
       "name": "增值服务咨询",
       "match_type": "keyword",
-      "keywords": ["增值服务是什么", "什么是增值服务", "赋强公证", "安心保障", "增值服务有什么用"],
+      "keywords": ["增值服务是什么", "什么是增值服务", "赋强公证", "安心保障", "增值服务有什么用", "还款无忧服务是什么", "什么是还款无忧", "债务咨询顾问服务费是什么"],
       "exclude_keywords": ["取消增值", "退增值", "退费"],
       "template_variant": "first_contact",
       "expires": "2026-07-21",
@@ -81,6 +81,145 @@
         "simulated_hits": 18,
         "simulated_precision": 0.944,
         "simulated_recall": 0.405
+      }
+    },
+    {
+      "rule_id": "RULE_006",
+      "skill_id": "repayment_method_inquiry",
+      "name": "咨询还款方式",
+      "match_type": "keyword",
+      "keywords": [
+        "怎么还款",
+        "如何还款",
+        "还款方式有哪些",
+        "还款方式是什么",
+        "发还款二维码",
+        "发收款二维码",
+        "发个还款二维码",
+        "聚合码",
+        "聚合还款码",
+        "对公还款账号",
+        "对公还款账户"
+      ],
+      "exclude_keywords": [
+        "还款失败",
+        "还款出错",
+        "还不了",
+        "还不上",
+        "对公转账出错",
+        "溢余",
+        "提前还款",
+        "提前结清"
+      ],
+      "template_variant": "first_contact",
+      "expires": "2026-07-21",
+      "accept_rate_threshold": 0.85,
+      "source": "derived-from-golden",
+      "_stats": {
+        "notes": "T0-3, Chain A 扩展。保守关键词,避开还款状态异常/对公溢余"
+      }
+    },
+    {
+      "rule_id": "RULE_007",
+      "skill_id": "stop_collection",
+      "name": "停止催收",
+      "match_type": "keyword",
+      "keywords": [
+        "停止催收",
+        "要求停催",
+        "要求停止催收",
+        "停止发短信催收",
+        "不要再打电话催收",
+        "别再打电话催我了",
+        "停止催款",
+        "停催"
+      ],
+      "exclude_keywords": [
+        "投诉催收",
+        "举报催收",
+        "催收骚扰",
+        "爆通讯录",
+        "催收态度",
+        "上门催收"
+      ],
+      "template_variant": "first_contact",
+      "expires": "2026-07-21",
+      "accept_rate_threshold": 0.85,
+      "source": "derived-from-golden",
+      "_stats": {
+        "notes": "T0-3, 排除投诉类以避免与 collection_complaint 冲突"
+      }
+    },
+    {
+      "rule_id": "RULE_008",
+      "skill_id": "overdue_negotiation",
+      "name": "协商还款",
+      "match_type": "keyword",
+      "keywords": [
+        "协商还款",
+        "协商延期",
+        "延期还款",
+        "申请分期",
+        "二次分期",
+        "还款困难",
+        "资金周转困难",
+        "申请本金还款",
+        "只还本金",
+        "减免利息"
+      ],
+      "exclude_keywords": [
+        "停催",
+        "投诉催收",
+        "征信修改",
+        "非恶意逾期",
+        "提前清贷",
+        "提前还款"
+      ],
+      "template_variant": "first_contact",
+      "expires": "2026-07-21",
+      "accept_rate_threshold": 0.85,
+      "source": "derived-from-golden",
+      "_stats": {
+        "notes": "T0-3, 高置信的协商诉求词"
+      }
+    },
+    {
+      "rule_id": "RULE_009",
+      "skill_id": "bill_deduction_query",
+      "name": "查询账单",
+      "match_type": "keyword",
+      "keywords": [
+        "查账单",
+        "查一下账单",
+        "查询账单",
+        "账单查询",
+        "查未还款",
+        "查询未还款",
+        "未还款总金额",
+        "查欠款",
+        "查一下欠款",
+        "还有多少钱没还",
+        "还有几笔订单",
+        "账单明细"
+      ],
+      "exclude_keywords": [
+        "还款失败",
+        "重复扣款",
+        "扣款失败",
+        "扣了两笔",
+        "多扣了",
+        "扣错了",
+        "众安保险",
+        "扣款去向",
+        "还不了",
+        "还不上"
+      ],
+      "template_variant": "first_contact",
+      "expires": "2026-07-21",
+      "accept_rate_threshold": 0.85,
+      "source": "derived-from-golden",
+      "_stats": {
+        "notes": "T0-3, 覆盖 bill_deduction_query 的查询诉求"
       }
     }
   ]

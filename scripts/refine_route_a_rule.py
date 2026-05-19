@@ -32,7 +32,7 @@ if str(ROOT) not in sys.path:
 from fin_copilot.config import get_settings  # noqa: E402
 from fin_copilot.skills.loader import SkillLoader  # noqa: E402
 
-GOLDEN_PATH = ROOT / "tests" / "golden_test.jsonl"
+GOLDEN_PATH = ROOT / "raw_test.jsonl"
 EXISTING_RULES = ROOT / "rules" / "rule_engine.json"
 
 

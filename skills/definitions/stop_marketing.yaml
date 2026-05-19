@@ -29,6 +29,7 @@ triggers:
     - 你们一直打电话骚扰我，帮我取消营销服务
     - 已经申请过停止营销了，但还是有电话
     - 我已经注销了账号，为什么还有营销电话
+    - 我姓XX/我叫XX，我要停止营销
   exclude_keywords:
     - 增值服务
     - 取消增值服务
@@ -74,6 +75,9 @@ branch_conditions:
   - hint: 客户咨询卡卡贷营销电话是否为我司
     variant: kakaday_is_our_product
     note: 告知卡卡贷也是我司产品，如有资金需求可通过豆豆钱或卡卡贷APP申请
+  - hint: 客户先提供姓名或姓氏
+    variant: collect_name_then_stop
+    note: 客户回复我姓XX/我叫XX后，以称呼承接并询问营销电话/短信对应联系方式，客户坚持则申请停止营销
 compliance:
   forbidden_expressions:
     - 不可以停止营销

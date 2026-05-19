@@ -58,6 +58,7 @@ class SkillRouter:
         state: ConversationState,
         sliding_window_text: str,
         summary: str,
+        candidate_priors: dict[str, dict[str, Any]] | None = None,
     ) -> SkillMatch:
         """Route using candidates from multiple domains (deduplicated)."""
         seen: set[str] = set()
@@ -69,6 +70,7 @@ class SkillRouter:
                     candidates.append(c)
         return await self.route_over_candidates(
             query, candidates, state, sliding_window_text, summary,
+            candidate_priors=candidate_priors,
         )
 
     async def route_over_candidates(
@@ -78,6 +80,7 @@ class SkillRouter:
         state: ConversationState,
         sliding_window_text: str,
         summary: str,
+        candidate_priors: dict[str, dict[str, Any]] | None = None,
     ) -> SkillMatch:
         """Route with an externally-supplied candidate list."""
         if not candidates:
@@ -90,7 +93,7 @@ class SkillRouter:
         candidate_ids = {c.skill_id for c in candidates}
 
         # Format candidates for prompt
-        candidates_text = self._format_candidates(candidates)
+        candidates_text = self._format_candidates(candidates, candidate_priors)
 
         # Few-shot retrieval: pull Top-K real-business examples restricted to
         # the current candidate set. Falls back to empty block when no corpus.
@@ -111,6 +114,19 @@ class SkillRouter:
             except Exception as exc:
                 logger.warning("fewshot retrieval failed: %s", exc)
 
+        # Compute missing slots across candidate templates (union of required_slots
+        # from the first template of each candidate) minus already filled.
+        filled_keys = {k for k, v in state.slots.items() if v not in (None, "", 0)}
+        needed: set[str] = set()
+        for c in candidates:
+            if not c.templates:
+                continue
+            first = next(iter(c.templates.values()))
+            for s in getattr(first, "required_slots", []) or []:
+                needed.add(s)
+        missing_slots = sorted(needed - filled_keys)
+        missing_text = "、".join(missing_slots) if missing_slots else "(无)"
+
         # Build the prompt — use replace() instead of str.format()
         # because prompt templates contain JSON examples with literal braces
         prompt = self._system_prompt
@@ -118,9 +134,12 @@ class SkillRouter:
             "{candidate_skills}": candidates_text,
             "{sliding_window}": sliding_window_text or "(无历史对话)",
             "{summary}": summary or "(无摘要)",
+            "{narrative_summary}": state.narrative_summary or "(无叙事摘要)",
             "{current_skill_id}": state.intent.current_skill_id or "无",
             "{turn_in_skill}": str(state.intent.turn_in_skill),
             "{collected_slots}": json.dumps(state.slots, ensure_ascii=False) if state.slots else "(无)",
+            "{missing_slots}": missing_text,
+            "{last_agent_reply}": (state.last_agent_reply or "")[:200] or "(无)",
             "{risk_flags}": ", ".join(state.risk_flags) if state.risk_flags else "无",
             "{fewshot_examples}": fewshot_text,
             "{boundary_hints}": self._build_boundary_hints(candidate_ids),
@@ -161,6 +180,7 @@ class SkillRouter:
                 filtered.append(candidate)
             if filtered:
                 return filtered
+
         return candidates
 
     # ------------------------------------------------------------------
@@ -217,17 +237,33 @@ class SkillRouter:
         return header + "\n\n".join(blocks)
 
     @staticmethod
-    def _format_candidates(candidates: list) -> str:
+    def _format_candidates(
+        candidates: list,
+        candidate_priors: dict[str, dict[str, Any]] | None = None,
+    ) -> str:
         """Format skill candidates as compact text for the LLM prompt."""
         lines: list[str] = []
+        candidate_priors = candidate_priors or {}
         for c in candidates:
             examples = c.triggers.examples[:3]
             examples_str = "；".join(examples) if examples else ""
             keywords_str = "、".join(c.triggers.keywords[:5])
             templates_str = "、".join(c.templates.keys())
             tools_str = "、".join(c.get_required_tools())
+            prior = candidate_priors.get(c.skill_id, {})
+            prior_bits: list[str] = []
+            if prior.get("skill_cos") is not None:
+                prior_bits.append(f"skill_cos={float(prior['skill_cos']):.3f}")
+            if prior.get("domain_cos") is not None:
+                prior_bits.append(f"domain_cos={float(prior['domain_cos']):.3f}")
+            if prior.get("prior_score") is not None:
+                prior_bits.append(f"prior_score={float(prior['prior_score']):.3f}")
+            if prior.get("source"):
+                prior_bits.append(f"source={prior['source']}")
+            prior_str = f"\n  相似度先验: {', '.join(prior_bits)}" if prior_bits else ""
             lines.append(
                 f"- **{c.skill_id}**（{c.name}）\n"
+                f"  领域: {c.domain}{prior_str}\n"
                 f"  关键词: {keywords_str}\n"
                 f"  示例: {examples_str}\n"
                 f"  模板: {templates_str}\n"

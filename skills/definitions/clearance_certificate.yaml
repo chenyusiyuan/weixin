@@ -26,10 +26,17 @@ triggers:
     - 帮我开具一张结清证明
     - 我贷款已经结清了，怎么开证明
     - 买房需要结清证明
+    - 我XX年XX月XX日办理的那笔贷款，你给我看看
+    - 协助办理开具结清证明
   exclude_keywords:
     - 逾期证明
     - 非恶意逾期
     - 放款凭证
+    - 是不是已经结清
+    - 是不是结清了
+    - 查一下是否结清
+    - 看一下是不是结清
+    - 帮我看看结清
 
 tools:
   required:
@@ -72,6 +79,9 @@ branch_conditions:
   - expr: system_issuance_failed
     variant: system_failed
     note: 系统提示开具失败——按升级流程处理
+  - expr: customer_only_provides_loan_date
+    variant: identify_target_order
+    note: 客户只说XX年XX月XX日办理的那笔贷款时，先核对并确认目标订单，再判断是否已结清、结清是否超过2年，以及走APP自助或客服代办路径
 compliance:
   forbidden_expressions:
     - 马上就能开好

@@ -28,6 +28,9 @@ triggers:
     - 我之前有额度，现在怎么没了？
     - 额度一直显示激活中是怎么回事？
     - 信用认证超时怎么办？
+    - 为什么我提现额度是0？
+    - 你们的人打电话让我贷款的，怎么会没有额度？
+    - 我贷款还清了，为什么再借的时候没额度了？
   exclude_keywords:
     - 额度咨询
     - 最高额度
@@ -77,6 +80,15 @@ branch_conditions:
   - hint: 预约借款相关问题
     variant: reserved_loan
     note: 说明预约借款机制，放款金额以实际为准
+  - hint: 提现额度显示为0
+    variant: withdrawal_quota_zero
+    note: 解释提现额度以系统综合评估结果为准，当前展示为0说明暂不符合提现条件；建议保持良好信用记录并后续关注APP
+  - hint: 营销电话邀请贷款但系统无额度
+    variant: marketing_invited_no_quota
+    note: 说明营销邀约不等于审批通过或保证有额度，最终额度以客户提交申请后的系统综合评估为准
+  - hint: 贷款还清后再借无额度
+    variant: no_quota_after_clearance
+    note: 解释还清历史贷款不代表再次申请一定有额度，系统会结合最新信用、负债、资方政策等重新评估
 compliance:
   forbidden_expressions:
     - 保证有额度

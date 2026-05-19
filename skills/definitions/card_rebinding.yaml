@@ -26,6 +26,13 @@ triggers:
     - 怎么更换绑定的银行卡
     - 我的银行卡换了，怎么改
     - 换绑还款卡怎么操作
+    - 我刚才还款时换卡还款操作不了，出现了问题
+    - 我绑定的是中原银行的卡，但绑定不了，请帮我查一下原因
+    - 我的绑卡失败是什么意思
+    - 我刚才还款时把还款卡号弄错了，现在需要重新操作还款
+    - 我的App上绑卡总是显示绑卡失败
+    - 你们为什么不能帮我直接换银行卡
+    - 你帮我换一下还款银行卡
   exclude_keywords:
     - 还款失败
     - 还款方式
@@ -58,6 +65,9 @@ branch_conditions:
   - hint: 客户反映换卡失败
     variant: card_rebinding_failed
     note: 告知可在服务时间联系客服协助处理，转人工或记录工单
+  - hint: 客户要求客服直接代操作换绑
+    variant: cannot_operate_for_customer
+    note: 出于账户和资金安全，客服不能直接代客户换绑银行卡；引导客户本人在APP按路径操作，遇到失败再记录具体报错协助处理
 compliance:
   forbidden_expressions:
     - 随便换

@@ -20,12 +20,20 @@ triggers:
     - 取消这个
     - 不需要服务
     - 取消订单服务
+    - 取消续费
+    - 赚钱卡
+    - 金钱卡
+    - 现金借款月奖金
+    - 订单宝
   examples:
     - 我怎么取消这个服务
     - 我不想要加速卡了，帮我取消
     - 没有加速成功你们给我取消
     - 我根本没有点击过这个服务，帮我取消
     - 有短信通知我要扣款，我不需要，给我取消
+    - 我看到一个赚钱卡，不知道是不是你们的产品，能取消吗
+    - 账单上的现金借款月奖金我不需要，帮我取消
+    - 好了/ok 是的/好/嗯，我确认要取消增值服务
   exclude_keywords:
     - 退费
     - 退款
@@ -51,8 +59,16 @@ templates:
     required_slots:
       - customer_name
     next_step: retention_then_process
+  unmatched_non_company_product:
+    script: "客户要求取消的产品或服务未命中已结构化的我司/合作增值服务清单。请先说明当前暂未匹配到对应我司/合作增值服务，继续引导客户补充完整产品/服务名称、扣款方、APP页面入口、订单号或短信主体；若确认非我司产品，告知需联系对应服务方、商户或支付渠道处理，我司无法直接操作取消。"
+    required_slots: []
+    next_step: clarify_product_or_redirect_non_company
 
 branch_conditions:
+  - expr: value_added_match_status == 'unmatched'
+    variant: unmatched_non_company_product
+    hint: 客户要求取消的产品/服务未命中已结构化增值服务清单，疑似非我司或未纳入清单产品
+    note: 不先核身承诺取消；先确认产品名称、扣款方、页面入口或短信主体
   - hint: 放款失败或加速失败
     variant: already_closed_no_charge
     note: 告知放款失败/加速失败系统默认关闭订单不扣款，引导在APP端刷新或重新登录查看，无需操作取消
@@ -65,6 +81,9 @@ branch_conditions:
   - hint: 挽留成功
     variant: retention_success
     note: 说明加速卡权益价值，确认客户保留
+  - hint: 客户确认增值服务活动后仍坚持取消
+    variant: confirmed_service_still_cancel
+    note: 客户回复好了/ok/是的/好/嗯等确认后，继续询问取消原因并按未扣款、已生效、加速失败等状态分流处理
 compliance:
   forbidden_expressions:
     - 肯定帮您取消

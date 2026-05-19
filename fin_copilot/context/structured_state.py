@@ -13,6 +13,11 @@ from fin_copilot.models.conversation import ConversationState, ToolCacheEntry
 _GENERIC_SLOTS = frozenset({
     "customer_name", "phone_masked", "id_last4",
     "customer_id", "customer_request", "emotion",
+    # 核心业务数据 — 工具查询结果在 intent 切换后仍然有效
+    "overdue_amount", "overdue_days", "bill_amount",
+    "loan_amount", "loan_status", "repayment_status",
+    "total_quota", "available_quota",
+    "member_status", "member_type",
 })
 
 # Risk flag detection keywords
@@ -149,6 +154,53 @@ class StructuredStateManager:
         days_match = re.search(r"(\d+)\s*天", query)
         if days_match:
             extracted["mentioned_days"] = int(days_match.group(1))
+
+        # Extract complaint_type
+        _complaint_map = [
+            (["频繁", "打电话太多", "一天打", "天天打", "频次"], "frequency"),
+            (["态度", "说话", "语气", "不礼貌"], "attitude"),
+            (["暴力", "威胁", "上门", "恐吓"], "violence"),
+            (["通讯录", "联系人", "爆"], "expose_contacts"),
+        ]
+        for keywords, ctype in _complaint_map:
+            if any(kw in query for kw in keywords):
+                extracted["complaint_type"] = ctype
+                break
+
+        # Extract collection_type
+        _collection_map = [
+            (["AI", "机器人", "系统", "自动"], "AI"),
+            (["IVR", "语音"], "IVR"),
+            (["人工", "专员", "催收员"], "manual"),
+        ]
+        for keywords, ctype in _collection_map:
+            if any(kw in query for kw in keywords):
+                extracted["collection_type"] = ctype
+                break
+
+        # Extract stop_days_requested
+        stop_days = re.search(r"停催?(\d+)天|(\d+)天.*停催|停(\d+)天", query)
+        if stop_days:
+            extracted["stop_days_requested"] = int(
+                stop_days.group(1) or stop_days.group(2) or stop_days.group(3)
+            )
+
+        # Extract target (stop-collection target)
+        if any(kw in query for kw in ["联系人", "通讯录", "三方", "家人", "朋友"]):
+            extracted["target"] = "third_party"
+        else:
+            extracted["target"] = "self"
+
+        # Extract inquiry_type (credit report inquiry)
+        _inquiry_map = [
+            (["修改征信", "更改征信", "消除征信"], "modify"),
+            (["查征信", "征信报告", "征信记录"], "query"),
+            (["影响征信", "逾期征信", "征信影响"], "impact"),
+        ]
+        for keywords, itype in _inquiry_map:
+            if any(kw in query for kw in keywords):
+                extracted["inquiry_type"] = itype
+                break
 
         # Merge into state
         self.update_slots(state, extracted)

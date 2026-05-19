@@ -1,0 +1,18 @@
+{
+  "input": "/Users/bytedance/Project/weixin/merged.jsonl",
+  "raw_objects": 298,
+  "unique_records": 297,
+  "duplicate_call_ids_removed": 1,
+  "parse_errors": [],
+  "chunk_count": 6,
+  "chunk_paths": [
+    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_01.jsonl",
+    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_02.jsonl",
+    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_03.jsonl",
+    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_04.jsonl",
+    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_05.jsonl",
+    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_06.jsonl"
+  ],
+  "records_without_gold_intents": 2,
+  "records_without_customer_turns": 0
+}

@@ -26,6 +26,7 @@ triggers:
     - 我申请的是10000，为什么最终放款只放了8000？
     - 最高能借多少？
     - 我的贷款额度是多少？
+    - 我姓XX/我叫XX
   exclude_keywords:
     - 无额度
     - 没有额度
@@ -65,6 +66,9 @@ branch_conditions:
   - hint: 额度获取超时或激活失败
     variant: escalate_ops
     note: 超过3天且身份证未过期，发运维工单
+  - hint: 客户先提供姓名或姓氏
+    variant: collect_name_then_answer
+    note: 客户回复我姓XX/我叫XX后，以称呼承接，再说明最高额度、实际额度以系统评估为准
 compliance:
   forbidden_expressions:
     - 保证放款

@@ -1,0 +1,1698 @@
+{
+  "version": 1,
+  "annotation_method": "multimodal_subagent_manual_extraction_no_ocr",
+  "dimensions": {
+    "image_type": [
+      "app_ui_path",
+      "backend_console",
+      "policy_rule",
+      "agreement_long_text",
+      "marketing_visual",
+      "qr_contact",
+      "reward_table",
+      "payment_status",
+      "other"
+    ],
+    "importance": [
+      "critical",
+      "supplemental",
+      "low"
+    ],
+    "fields": [
+      "visual_summary",
+      "key_information",
+      "prompt_usage",
+      "intent_tags"
+    ]
+  },
+  "annotations": [
+    {
+      "image_id": "img_0001",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "APP个人页服务入口跳转到安心豆百万医疗/惠易版投保申请页。",
+      "key_information": [
+        "个人页红框标注保险/保障入口",
+        "申请页包含个人信息、健康告知/保障信息和立即申请按钮"
+      ],
+      "prompt_usage": "回答百万医疗保障的入口、申请路径和页面展示。",
+      "intent_tags": [
+        "inquiry",
+        "operation_path",
+        "application"
+      ]
+    },
+    {
+      "image_id": "img_0002",
+      "annotation_status": "reviewed",
+      "image_type": "agreement_long_text",
+      "importance": "critical",
+      "visual_summary": "百万医疗保障投保前的投保须知、特别约定、声明和除外责任确认页。",
+      "key_information": [
+        "页面包含投保须知、特别约定、投保声明、除外责任等标签",
+        "支付前需要勾选阅读并同意相关条款",
+        "截图中含热线/保障说明类长文"
+      ],
+      "prompt_usage": "补充百万医疗保障协议确认、条款提示和投保前说明。",
+      "intent_tags": [
+        "agreement",
+        "inquiry",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0003",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "百万医疗保障支付成功和支付失败两类结果页。",
+      "key_information": [
+        "支付成功页提示支付成功并可查看保单/完成",
+        "支付失败页提示失败原因并提供重新支付/返回"
+      ],
+      "prompt_usage": "回答购买后支付状态、失败处理和结果页表现。",
+      "intent_tags": [
+        "payment",
+        "status",
+        "after_purchase"
+      ]
+    },
+    {
+      "image_id": "img_0004",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "会员开通弹窗提示可查看专属风险报告，并展示已购会员入口。",
+      "key_information": [
+        "开通会员弹窗强调风险报告权益",
+        "路径包含我的-卡券中心-会员-已购会员页面",
+        "页面有协议勾选/确认动作"
+      ],
+      "prompt_usage": "说明会员服务开通入口、权益提示和协议确认。",
+      "intent_tags": [
+        "member",
+        "inquiry",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0005",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "会员页面展示信用报告卡券和会员金融券包等权益。",
+      "key_information": [
+        "页面出现最高4000元权益文案",
+        "信用报告卡片有去使用入口",
+        "金融券包/提现等会员权益集中展示"
+      ],
+      "prompt_usage": "回答会员包含哪些权益、信用报告如何使用。",
+      "intent_tags": [
+        "member",
+        "benefit",
+        "coupon"
+      ]
+    },
+    {
+      "image_id": "img_0006",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "卡券中心信用报告券的待使用、已使用、已过期状态。",
+      "key_information": [
+        "同一权益券在不同状态下展示",
+        "包含待使用、已使用、已过期标签/按钮差异"
+      ],
+      "prompt_usage": "解释信用报告券状态、能否使用及页面查询路径。",
+      "intent_tags": [
+        "coupon",
+        "status",
+        "credit_report"
+      ]
+    },
+    {
+      "image_id": "img_0007",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "会员退款确认页弹窗提示退款会放弃全部会员权益。",
+      "key_information": [
+        "弹窗提供暂不退款和继续退款选择",
+        "文案强调退款后会员权益一并放弃"
+      ],
+      "prompt_usage": "回答会员退款前提示、权益失效和确认话术。",
+      "intent_tags": [
+        "refund",
+        "member",
+        "policy"
+      ]
+    },
+    {
+      "image_id": "img_0008",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台订单/会员退款处理详情页。",
+      "key_information": [
+        "包含订单信息、退款信息、权益信息等区块",
+        "可见联系方式/业务编号等处理所需字段"
+      ],
+      "prompt_usage": "补充客服后台核查会员订单和退款记录的字段。",
+      "intent_tags": [
+        "backend",
+        "refund",
+        "member"
+      ]
+    },
+    {
+      "image_id": "img_0009",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "客服后台列表页用于查询会员或退款记录。",
+      "key_information": [
+        "列表页支持按用户/订单等条件查询",
+        "记录行展示状态、时间、操作入口"
+      ],
+      "prompt_usage": "说明客服查询会员退款/订单记录的后台路径。",
+      "intent_tags": [
+        "backend",
+        "query",
+        "refund"
+      ]
+    },
+    {
+      "image_id": "img_0010",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "APP借款确认流程中展示会员权益和优惠券选择。",
+      "key_information": [
+        "借款确认页出现会员权益/优惠券模块",
+        "可在借款流程中选择或查看权益"
+      ],
+      "prompt_usage": "回答借款确认页会员权益如何展示和使用。",
+      "intent_tags": [
+        "loan",
+        "member",
+        "coupon",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0011",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "会员开卡营销弹窗及协议确认流程。",
+      "key_information": [
+        "弹窗展示开卡/开通会员卖点",
+        "包含协议勾选与确认按钮"
+      ],
+      "prompt_usage": "说明会员开卡触达、协议勾选和开通步骤。",
+      "intent_tags": [
+        "member",
+        "marketing",
+        "agreement"
+      ]
+    },
+    {
+      "image_id": "img_0012",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "借款页会员服务介绍弹窗和免费提现/优惠权益展示。",
+      "key_information": [
+        "会员服务介绍浮层展示权益",
+        "包含免费提现、优惠等权益文案"
+      ],
+      "prompt_usage": "解释借款页会员权益内容和弹窗展示。",
+      "intent_tags": [
+        "member",
+        "benefit",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0013",
+      "annotation_status": "reviewed",
+      "image_type": "agreement_long_text",
+      "importance": "critical",
+      "visual_summary": "会员服务介绍、协议说明和页面文案的组合截图。",
+      "key_information": [
+        "截图覆盖会员服务介绍和协议/说明文案",
+        "适合核对用户质疑是否有展示或提示"
+      ],
+      "prompt_usage": "用于争议场景补充页面是否提示、服务说明如何展示。",
+      "intent_tags": [
+        "member",
+        "agreement",
+        "complaint"
+      ]
+    },
+    {
+      "image_id": "img_0014",
+      "annotation_status": "reviewed",
+      "image_type": "marketing_visual",
+      "importance": "supplemental",
+      "visual_summary": "借款额度卡片展示最高可借200000和我要借钱按钮。",
+      "key_information": [
+        "额度营销卡片突出最高可借200000",
+        "页面含评估报告入口"
+      ],
+      "prompt_usage": "补充额度营销页与风险评估入口的展示。",
+      "intent_tags": [
+        "marketing",
+        "loan",
+        "credit_report"
+      ]
+    },
+    {
+      "image_id": "img_0015",
+      "annotation_status": "reviewed",
+      "image_type": "marketing_visual",
+      "importance": "supplemental",
+      "visual_summary": "额度页展示可用额度10000、总额度30000和风险评估入口。",
+      "key_information": [
+        "页面展示可用额度/总额度/30天等信息",
+        "有立即借钱和去领取风险评估入口"
+      ],
+      "prompt_usage": "补充额度页和风险评估入口相关回答。",
+      "intent_tags": [
+        "marketing",
+        "loan",
+        "credit_report"
+      ]
+    },
+    {
+      "image_id": "img_0016",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "未获取额度结果页展示被拒原因和30天后可重试。",
+      "key_information": [
+        "页面提示未获取额度/申请未通过",
+        "包含拒绝原因和30天后重试文案"
+      ],
+      "prompt_usage": "回答未获额、拒绝原因和重试周期。",
+      "intent_tags": [
+        "loan",
+        "status",
+        "reject"
+      ]
+    },
+    {
+      "image_id": "img_0017",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "额度计算中页面提示约5分钟并提供加速审核入口。",
+      "key_information": [
+        "页面状态为额度计算中",
+        "提示约5分钟、短信通知",
+        "出现加速审核/加速放款入口"
+      ],
+      "prompt_usage": "说明额度计算等待、通知方式和加速审核入口。",
+      "intent_tags": [
+        "loan",
+        "status",
+        "acceleration"
+      ]
+    },
+    {
+      "image_id": "img_0018",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "放款排队页展示会员优先放款加速权益。",
+      "key_information": [
+        "排队放款状态下展示会员加速权益",
+        "强调优先放款/加速排队"
+      ],
+      "prompt_usage": "回答会员加速放款权益在排队页如何展示。",
+      "intent_tags": [
+        "member",
+        "acceleration",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0019",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "会员排队放款加速中页面及风险提醒。",
+      "key_information": [
+        "页面显示加速中或排队放款相关状态",
+        "包含风险/等待类提醒"
+      ],
+      "prompt_usage": "说明加速放款后的状态展示和用户预期。",
+      "intent_tags": [
+        "member",
+        "acceleration",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0020",
+      "annotation_status": "reviewed",
+      "image_type": "reward_table",
+      "importance": "critical",
+      "visual_summary": "信用报告付费查看页展示风险项和价格。",
+      "key_information": [
+        "页面列出风险项/检测项",
+        "价格展示29.9元，原价39.9元"
+      ],
+      "prompt_usage": "回答信用风险报告收费、风险项和购买页展示。",
+      "intent_tags": [
+        "credit_report",
+        "fee",
+        "benefit"
+      ]
+    },
+    {
+      "image_id": "img_0021",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "发现页信用风险报告卡片入口。",
+      "key_information": [
+        "发现页中有信用风险报告/风险检测卡片",
+        "卡片可作为进入报告的路径"
+      ],
+      "prompt_usage": "说明信用风险报告的发现页入口。",
+      "intent_tags": [
+        "credit_report",
+        "operation_path",
+        "entry"
+      ]
+    },
+    {
+      "image_id": "img_0022",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "豆豆钱首页风险提醒和额度未获取提示。",
+      "key_information": [
+        "首页展示风险提醒/额度状态",
+        "与信用风险报告或额度申请失败相关"
+      ],
+      "prompt_usage": "补充用户在首页看到风险提醒或未获额提示时的解释。",
+      "intent_tags": [
+        "credit_report",
+        "loan",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0023",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "小赢卡贷额度计算中页面包含风险报告入口和推荐产品。",
+      "key_information": [
+        "额度计算中状态",
+        "页面有风险报告入口/推荐产品区域"
+      ],
+      "prompt_usage": "说明额度计算中时的风险报告入口和后续推荐。",
+      "intent_tags": [
+        "loan",
+        "status",
+        "credit_report"
+      ]
+    },
+    {
+      "image_id": "img_0024",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "豆豆钱智享借款进度页展示风险报告模块。",
+      "key_information": [
+        "借款进度页有风险报告/评估模块",
+        "用于解释进度页附带权益或报告入口"
+      ],
+      "prompt_usage": "回答智享借款进度页中的风险报告展示。",
+      "intent_tags": [
+        "loan",
+        "credit_report",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0025",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "APP内信用报告待查看弹窗。",
+      "key_information": [
+        "弹窗有立即查看入口",
+        "展示黑名单、同盾、行为风险等风险项"
+      ],
+      "prompt_usage": "说明信用报告待查看提醒和报告内容方向。",
+      "intent_tags": [
+        "credit_report",
+        "operation_path",
+        "risk_item"
+      ]
+    },
+    {
+      "image_id": "img_0026",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "维信卡贷进入APP查看信用风险检测的入口。",
+      "key_information": [
+        "页面提示去APP查看",
+        "信用风险检测卡片作为入口"
+      ],
+      "prompt_usage": "回答维信卡贷场景下风险检测入口在哪里。",
+      "intent_tags": [
+        "credit_report",
+        "operation_path",
+        "weixin_card_loan"
+      ]
+    },
+    {
+      "image_id": "img_0027",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "贷前查信用风险页面和解锁风险报告按钮。",
+      "key_information": [
+        "底部导航/入口标注贷前查",
+        "按钮文案为解锁我的风险报告"
+      ],
+      "prompt_usage": "说明贷前查信用风险服务入口和解锁动作。",
+      "intent_tags": [
+        "credit_report",
+        "operation_path",
+        "pre_loan_check"
+      ]
+    },
+    {
+      "image_id": "img_0028",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "APP首页标注多个信用相关入口和右侧活动客服入口。",
+      "key_information": [
+        "首页多个区域被红框标注为入口",
+        "右侧悬浮活动客服入口可触达服务"
+      ],
+      "prompt_usage": "补充活动/信用服务在首页的入口位置。",
+      "intent_tags": [
+        "operation_path",
+        "entry",
+        "customer_service"
+      ]
+    },
+    {
+      "image_id": "img_0029",
+      "annotation_status": "reviewed",
+      "image_type": "qr_contact",
+      "importance": "critical",
+      "visual_summary": "风险洞察/在线客服页面展示客服时间和支付按钮。",
+      "key_information": [
+        "页面与风险洞察服务相关",
+        "显示客服服务时间",
+        "含支付/购买按钮"
+      ],
+      "prompt_usage": "回答风险洞察购买、客服时间和咨询入口。",
+      "intent_tags": [
+        "credit_report",
+        "contact",
+        "payment"
+      ]
+    },
+    {
+      "image_id": "img_0030",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "组合图展示从APP首页进入风险洞察并支付的路径。",
+      "key_information": [
+        "包含首页入口、风险洞察详情、支付确认等页面",
+        "可还原购买路径"
+      ],
+      "prompt_usage": "说明风险洞察/信用报告从入口到支付的完整流程。",
+      "intent_tags": [
+        "credit_report",
+        "operation_path",
+        "payment"
+      ]
+    },
+    {
+      "image_id": "img_0031",
+      "annotation_status": "reviewed",
+      "image_type": "qr_contact",
+      "importance": "critical",
+      "visual_summary": "在线客服聊天页展示天创信用服务有限公司和客服时间。",
+      "key_information": [
+        "客服主体为天创信用服务有限公司",
+        "服务时间9:30-12:00、13:30-18:30"
+      ],
+      "prompt_usage": "补充风险/信用服务咨询渠道、服务主体和服务时间。",
+      "intent_tags": [
+        "contact",
+        "service_provider",
+        "credit_report"
+      ]
+    },
+    {
+      "image_id": "img_0032",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "横向流程图展示多个APP页面组成的操作路径。",
+      "key_information": [
+        "多屏串联展示入口、详情、支付或结果页",
+        "适合做路径型回答补充"
+      ],
+      "prompt_usage": "用于回答复杂页面链路，按截图顺序说明用户操作。",
+      "intent_tags": [
+        "operation_path",
+        "credit_report",
+        "payment"
+      ]
+    },
+    {
+      "image_id": "img_0033",
+      "annotation_status": "reviewed",
+      "image_type": "qr_contact",
+      "importance": "critical",
+      "visual_summary": "微信扫码咨询客服二维码。",
+      "key_information": [
+        "截图主体为扫码咨询客服二维码",
+        "用于引导用户联系客服"
+      ],
+      "prompt_usage": "回答需要人工咨询或扫码客服时的补充信息。",
+      "intent_tags": [
+        "contact",
+        "qr",
+        "customer_service"
+      ]
+    },
+    {
+      "image_id": "img_0034",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "借款页三种实验状态下的优惠券使用展示。",
+      "key_information": [
+        "同一借款页在不同实验状态展示优惠券",
+        "用于理解券入口/展示差异"
+      ],
+      "prompt_usage": "说明借款页优惠券展示规则和实验差异。",
+      "intent_tags": [
+        "loan",
+        "coupon",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0035",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "借款页展示金额、期限、优惠券、还款计划和提交按钮。",
+      "key_information": [
+        "包含借款金额、期数/期限、优惠券选择、还款计划",
+        "底部有提交/确认按钮"
+      ],
+      "prompt_usage": "回答优惠券在借款确认页如何选择和影响还款计划。",
+      "intent_tags": [
+        "loan",
+        "coupon",
+        "repayment_plan"
+      ]
+    },
+    {
+      "image_id": "img_0036",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "借款页弹出60元优惠券提示。",
+      "key_information": [
+        "弹窗提示获得/可用60元优惠券",
+        "与借款确认流程相关"
+      ],
+      "prompt_usage": "说明60元券的弹窗触达和使用入口。",
+      "intent_tags": [
+        "loan",
+        "coupon",
+        "marketing"
+      ]
+    },
+    {
+      "image_id": "img_0037",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "近期还款页展示还款优惠券及费用说明弹窗。",
+      "key_information": [
+        "还款页出现还款优惠券",
+        "弹窗解释费用/优惠券抵扣信息"
+      ],
+      "prompt_usage": "回答还款优惠券在哪里看、费用说明如何解释。",
+      "intent_tags": [
+        "repayment",
+        "coupon",
+        "fee"
+      ]
+    },
+    {
+      "image_id": "img_0038",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "支付中、已还账单在支付日前后状态变化。",
+      "key_information": [
+        "展示支付中状态",
+        "对比支付日前和支付日后已还账单状态"
+      ],
+      "prompt_usage": "说明还款支付状态和账单状态变化。",
+      "intent_tags": [
+        "repayment",
+        "payment",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0039",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台控制台标注还款/权益相关操作按钮区域。",
+      "key_information": [
+        "后台页面有还款或权益操作按钮",
+        "红框标注客服处理区域"
+      ],
+      "prompt_usage": "补充客服后台处理还款权益问题时的操作位置。",
+      "intent_tags": [
+        "backend",
+        "repayment",
+        "benefit"
+      ]
+    },
+    {
+      "image_id": "img_0040",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台表格列出账期、取消原因和确认操作。",
+      "key_information": [
+        "表格字段包含账期/取消原因",
+        "有确认或处理操作按钮"
+      ],
+      "prompt_usage": "说明后台取消/确认类流程涉及的字段。",
+      "intent_tags": [
+        "backend",
+        "cancel",
+        "repayment"
+      ]
+    },
+    {
+      "image_id": "img_0041",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "近期还款页分期订单信息弹窗。",
+      "key_information": [
+        "还款页可打开分期订单信息",
+        "弹窗展示订单/账期/金额等信息"
+      ],
+      "prompt_usage": "回答分期订单和近期还款信息如何查看。",
+      "intent_tags": [
+        "repayment",
+        "installment",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0042",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "多屏流程展示借款页权益/优惠、支付确认、列表状态和成功页。",
+      "key_information": [
+        "截图串联权益选择、支付确认、状态列表和成功页",
+        "用于完整解释购买或使用流程"
+      ],
+      "prompt_usage": "补充从借款权益选择到支付成功的链路。",
+      "intent_tags": [
+        "loan",
+        "benefit",
+        "payment",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0043",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "supplemental",
+      "visual_summary": "豆豆钱APP首页展示额度卡、功能入口和消息横条。",
+      "key_information": [
+        "首页有额度卡和多个功能入口",
+        "顶部/中部消息横条可触达活动"
+      ],
+      "prompt_usage": "作为首页入口定位的辅助信息。",
+      "intent_tags": [
+        "entry",
+        "loan",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0044",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "即时借款确认页勾选授权/协议及确认提示。",
+      "key_information": [
+        "确认页需要勾选授权/协议",
+        "弹窗/提示强调确认后继续"
+      ],
+      "prompt_usage": "回答协议授权勾选、即时借款确认和风险提示。",
+      "intent_tags": [
+        "loan",
+        "agreement",
+        "policy"
+      ]
+    },
+    {
+      "image_id": "img_0045",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台详情页标注输入字段和配置利率、金额、权益参数的位置。",
+      "key_information": [
+        "后台详情页有字段输入区",
+        "标注利率、金额、权益配置等参数"
+      ],
+      "prompt_usage": "补充客服/运营后台核查权益参数的字段位置。",
+      "intent_tags": [
+        "backend",
+        "configuration",
+        "benefit"
+      ]
+    },
+    {
+      "image_id": "img_0046",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台列表页展示订单/权益记录和操作按钮。",
+      "key_information": [
+        "列表中有订单或权益记录",
+        "可进行查看、处理等操作"
+      ],
+      "prompt_usage": "说明后台查询权益订单记录的路径。",
+      "intent_tags": [
+        "backend",
+        "query",
+        "benefit"
+      ]
+    },
+    {
+      "image_id": "img_0047",
+      "annotation_status": "reviewed",
+      "image_type": "reward_table",
+      "importance": "critical",
+      "visual_summary": "我的钱包免费提现扣金兑换面板。",
+      "key_information": [
+        "可兑换5、10、20、30、50、100元等档位",
+        "与免费提现或扣金权益相关"
+      ],
+      "prompt_usage": "回答免费提现/扣金兑换面额和页面展示。",
+      "intent_tags": [
+        "wallet",
+        "benefit",
+        "reward_table"
+      ]
+    },
+    {
+      "image_id": "img_0048",
+      "annotation_status": "reviewed",
+      "image_type": "marketing_visual",
+      "importance": "low",
+      "visual_summary": "紫色活动页展示借款返现和抽奖机玩法。",
+      "key_information": [
+        "活动页强调借款返现",
+        "含抽奖机/抽奖入口"
+      ],
+      "prompt_usage": "作为活动营销视觉补充，不宜作为规则唯一依据。",
+      "intent_tags": [
+        "marketing",
+        "lottery",
+        "cashback"
+      ]
+    },
+    {
+      "image_id": "img_0049",
+      "annotation_status": "reviewed",
+      "image_type": "reward_table",
+      "importance": "critical",
+      "visual_summary": "双旦活动页展示抽奖、权益奖励和立即借钱入口。",
+      "key_information": [
+        "页面包含抽奖/权益奖励",
+        "有立即借钱转化入口"
+      ],
+      "prompt_usage": "回答双旦活动奖励形式、入口和借款关联。",
+      "intent_tags": [
+        "campaign",
+        "lottery",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0050",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "黑底流程图展示未购买保障权益时从活动卡片到权益页。",
+      "key_information": [
+        "流程突出500元权益卖点",
+        "页面展示约49.9元相关购买价格",
+        "适合解释未购买时的触达链路"
+      ],
+      "prompt_usage": "说明保障权益未购买状态下的入口、卖点和购买页。",
+      "intent_tags": [
+        "benefit",
+        "operation_path",
+        "payment"
+      ]
+    },
+    {
+      "image_id": "img_0051",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "绿色保障权益页到弹窗确认流程。",
+      "key_information": [
+        "权益页展示保障服务信息",
+        "后续弹窗要求确认/继续"
+      ],
+      "prompt_usage": "回答保障权益服务开通或确认流程。",
+      "intent_tags": [
+        "benefit",
+        "operation_path",
+        "confirmation"
+      ]
+    },
+    {
+      "image_id": "img_0052",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "权益弹窗放大图说明保障金/返现权益状态和后续动作。",
+      "key_information": [
+        "弹窗描述保障金或返现权益",
+        "展示状态与可点击动作"
+      ],
+      "prompt_usage": "补充保障金/返现权益状态解释和用户下一步。",
+      "intent_tags": [
+        "benefit",
+        "cashback",
+        "policy"
+      ]
+    },
+    {
+      "image_id": "img_0053",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台管理控制台订单/权益处理页。",
+      "key_information": [
+        "后台可查看订单和权益处理信息",
+        "用于客服核验服务状态"
+      ],
+      "prompt_usage": "说明后台核查权益订单、处理进度或售后状态。",
+      "intent_tags": [
+        "backend",
+        "benefit",
+        "order"
+      ]
+    },
+    {
+      "image_id": "img_0054",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "APP我的页展示额度、卡券、钱包和会员福利等入口。",
+      "key_information": [
+        "我的页含额度、卡券、钱包、会员福利入口",
+        "适合作为权益查询起点"
+      ],
+      "prompt_usage": "回答用户从我的页进入权益/卡券/钱包的位置。",
+      "intent_tags": [
+        "operation_path",
+        "coupon",
+        "wallet",
+        "member"
+      ]
+    },
+    {
+      "image_id": "img_0055",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "我的卡券列表展示爱奇艺会员月卡及使用按钮。",
+      "key_information": [
+        "卡券名为爱奇艺会员月卡",
+        "卡片有去使用/使用按钮"
+      ],
+      "prompt_usage": "说明爱奇艺会员权益券在哪里查看和使用。",
+      "intent_tags": [
+        "coupon",
+        "iqiyi",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0056",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "娱乐充值页兑换爱奇艺视频会员。",
+      "key_information": [
+        "页面需要填写账号",
+        "可选择会员类型",
+        "按钮显示免费兑换"
+      ],
+      "prompt_usage": "回答爱奇艺会员月卡兑换步骤和需要填写的信息。",
+      "intent_tags": [
+        "iqiyi",
+        "redemption",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0057",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "爱奇艺会员兑换成功、正在充值中、充值到账状态流。",
+      "key_information": [
+        "展示兑换成功",
+        "中间状态为正在充值中",
+        "最终状态为充值到账/完成"
+      ],
+      "prompt_usage": "说明爱奇艺会员兑换后的状态含义和到账预期。",
+      "intent_tags": [
+        "iqiyi",
+        "redemption",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0058",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "我的卡券页展示奈雪30元代金券。",
+      "key_information": [
+        "卡券列表中有奈雪30元代金券",
+        "可进入券详情或使用"
+      ],
+      "prompt_usage": "说明奈雪券在卡券中心的查看入口。",
+      "intent_tags": [
+        "coupon",
+        "nayuki",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0059",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "奈雪电子券详情页展示30元券、免费兑换和规则。",
+      "key_information": [
+        "券面额为30元",
+        "页面有免费兑换按钮",
+        "包含使用规则入口/说明"
+      ],
+      "prompt_usage": "回答奈雪电子券兑换方式、券面额和规则入口。",
+      "intent_tags": [
+        "nayuki",
+        "coupon",
+        "redemption"
+      ]
+    },
+    {
+      "image_id": "img_0060",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "奈雪电子券兑换后的状态流转。",
+      "key_information": [
+        "展示兑换后不同状态页面",
+        "可用于解释兑换是否成功/处理中"
+      ],
+      "prompt_usage": "说明奈雪券兑换后状态变化和用户等待点。",
+      "intent_tags": [
+        "nayuki",
+        "redemption",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0061",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "我的卡券页展示分类标签和空状态。",
+      "key_information": [
+        "卡券页有分类标签",
+        "无券时展示空状态"
+      ],
+      "prompt_usage": "回答用户找不到券时如何解释卡券分类和空状态。",
+      "intent_tags": [
+        "coupon",
+        "status",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0062",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "我的订单列表展示奈雪电子券交易成功。",
+      "key_information": [
+        "订单列表中出现奈雪电子券",
+        "订单状态为交易成功"
+      ],
+      "prompt_usage": "说明奈雪券订单成功状态在哪里查看。",
+      "intent_tags": [
+        "nayuki",
+        "order",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0063",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "奈雪电子券订单详情展示交易成功、有效期和券码复制。",
+      "key_information": [
+        "订单详情显示交易成功",
+        "包含有效期和券码",
+        "提供复制券码动作"
+      ],
+      "prompt_usage": "回答奈雪券券码、有效期和使用凭证查看方式。",
+      "intent_tags": [
+        "nayuki",
+        "coupon_code",
+        "status"
+      ]
+    },
+    {
+      "image_id": "img_0064",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "奈雪小程序首页展示会员权益和券入口。",
+      "key_information": [
+        "奈雪小程序首页有会员/卡券入口",
+        "用于承接APP兑换后的使用"
+      ],
+      "prompt_usage": "说明兑换后在奈雪小程序查找权益或卡券。",
+      "intent_tags": [
+        "nayuki",
+        "mini_program",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0065",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "奈雪小程序我的卡券页展示分类、空状态和底部记录。",
+      "key_information": [
+        "小程序卡券页有分类标签",
+        "展示空状态和底部记录入口"
+      ],
+      "prompt_usage": "回答奈雪小程序查券路径和空状态解释。",
+      "intent_tags": [
+        "nayuki",
+        "mini_program",
+        "coupon"
+      ]
+    },
+    {
+      "image_id": "img_0066",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "奈雪兑换中心支持输入兑换码并确认兑换。",
+      "key_information": [
+        "页面有兑换码输入框",
+        "有确认兑换按钮"
+      ],
+      "prompt_usage": "说明奈雪电子券兑换码使用步骤。",
+      "intent_tags": [
+        "nayuki",
+        "redemption",
+        "coupon_code"
+      ]
+    },
+    {
+      "image_id": "img_0067",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "奈雪我的卡券页展示30元无门槛现金券/代金券并可立即使用。",
+      "key_information": [
+        "券面为30元无门槛现金券/代金券",
+        "按钮为立即使用"
+      ],
+      "prompt_usage": "回答奈雪券使用入口和券类型。",
+      "intent_tags": [
+        "nayuki",
+        "coupon",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0068",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "橙色借款APP首页展示20万额度和权益入口。",
+      "key_information": [
+        "首页额度卖点为20万",
+        "页面有权益或活动入口"
+      ],
+      "prompt_usage": "补充借款首页权益入口定位。",
+      "intent_tags": [
+        "loan",
+        "entry",
+        "benefit"
+      ]
+    },
+    {
+      "image_id": "img_0069",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "绿色借款APP首页展示20万额度和100元话费红包入口。",
+      "key_information": [
+        "首页展示20万额度",
+        "100元话费红包入口被突出"
+      ],
+      "prompt_usage": "说明话费红包权益的首页入口。",
+      "intent_tags": [
+        "phone_credit",
+        "entry",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0070",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "话费充值权益页展示100元话费、输入手机号和19.9元支付。",
+      "key_information": [
+        "权益为100元话费",
+        "需要输入手机号",
+        "支付价显示19.9元"
+      ],
+      "prompt_usage": "回答100元话费权益购买/充值流程和金额。",
+      "intent_tags": [
+        "phone_credit",
+        "payment",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0071",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "话费充值规则说明100元分券、有效期、号码支持和客服电话。",
+      "key_information": [
+        "100元话费可能拆分为多张券",
+        "规则包含有效期和支持号码",
+        "客服电话400-0660-8888"
+      ],
+      "prompt_usage": "回答话费充值权益规则、适用限制、有效期和客服电话。",
+      "intent_tags": [
+        "phone_credit",
+        "policy",
+        "contact"
+      ]
+    },
+    {
+      "image_id": "img_0072",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "话费充值FAQ说明到账延迟、失败处理和使用限制。",
+      "key_information": [
+        "FAQ覆盖到账延迟",
+        "说明充值失败如何处理",
+        "包含使用限制类规则"
+      ],
+      "prompt_usage": "用于话费不到账、失败、限制相关咨询。",
+      "intent_tags": [
+        "phone_credit",
+        "faq",
+        "after_sale"
+      ]
+    },
+    {
+      "image_id": "img_0073",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "权益/券使用规则长截图，包含售后限制、客服电话和服务时间。",
+      "key_information": [
+        "规则长文说明券或权益使用限制",
+        "包含售后/退款限制",
+        "含客服电话与服务时间"
+      ],
+      "prompt_usage": "回答权益券使用规则、售后边界和联系方式。",
+      "intent_tags": [
+        "policy",
+        "after_sale",
+        "contact"
+      ]
+    },
+    {
+      "image_id": "img_0074",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "客服后台会话展示话费充值不到账或延迟到账标准回复。",
+      "key_information": [
+        "会话主题为话费充值不到账/延迟",
+        "后台中有标准回复或处理口径"
+      ],
+      "prompt_usage": "补充话费充值到账延迟场景的客服话术依据。",
+      "intent_tags": [
+        "phone_credit",
+        "backend",
+        "after_sale"
+      ]
+    },
+    {
+      "image_id": "img_0075",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "豆豆钱/借款APP首页展示我的借款、额度、账单和客服入口。",
+      "key_information": [
+        "首页/我的借款区域可看额度与账单",
+        "页面包含客服入口"
+      ],
+      "prompt_usage": "说明用户从APP查询借款、账单和联系客服的入口。",
+      "intent_tags": [
+        "loan",
+        "bill",
+        "contact",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0076",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台管理系统列表页支持用户、订单和借款记录查询。",
+      "key_information": [
+        "后台列表页展示用户/订单/借款记录",
+        "适合客服核查订单状态"
+      ],
+      "prompt_usage": "补充后台查询用户借款与订单记录的路径。",
+      "intent_tags": [
+        "backend",
+        "query",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0077",
+      "annotation_status": "reviewed",
+      "image_type": "marketing_visual",
+      "importance": "low",
+      "visual_summary": "新人福利/红包营销海报。",
+      "key_information": [
+        "画面为新人福利或红包活动宣传",
+        "更多是营销触达，规则信息有限"
+      ],
+      "prompt_usage": "作为活动氛围或入口补充，不能替代规则。",
+      "intent_tags": [
+        "marketing",
+        "campaign"
+      ]
+    },
+    {
+      "image_id": "img_0078",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "supplemental",
+      "visual_summary": "页面提示暂未解锁现金兑换资格并引导去申请。",
+      "key_information": [
+        "现金兑换资格未解锁",
+        "页面引导用户去申请/完成条件"
+      ],
+      "prompt_usage": "回答为什么不能提现/不能兑换以及下一步。",
+      "intent_tags": [
+        "cash_redemption",
+        "eligibility",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0079",
+      "annotation_status": "reviewed",
+      "image_type": "marketing_visual",
+      "importance": "low",
+      "visual_summary": "金币商城兑换现金红包页面。",
+      "key_information": [
+        "金币商城/兑换现金红包视觉",
+        "规则细节有限"
+      ],
+      "prompt_usage": "补充金币兑换现金红包的页面存在性。",
+      "intent_tags": [
+        "marketing",
+        "cash_redemption"
+      ]
+    },
+    {
+      "image_id": "img_0080",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "借款详情页补充协议签署提示。",
+      "key_information": [
+        "借款详情中出现补充协议签署提示",
+        "与继续借款/确认动作相关"
+      ],
+      "prompt_usage": "回答补充协议为什么要签、在哪里签。",
+      "intent_tags": [
+        "agreement",
+        "loan",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0081",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "补充协议签署弹窗灰显和可点击状态对比。",
+      "key_information": [
+        "弹窗展示协议勾选前后按钮状态",
+        "灰显状态表示未满足确认条件"
+      ],
+      "prompt_usage": "说明补充协议弹窗确认条件和按钮不可点原因。",
+      "intent_tags": [
+        "agreement",
+        "policy",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0082",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台详情页展示借款补充协议/合同状态。",
+      "key_information": [
+        "后台可查看补充协议或合同状态",
+        "用于核验用户是否已签署"
+      ],
+      "prompt_usage": "补充客服后台核查协议签署状态。",
+      "intent_tags": [
+        "backend",
+        "agreement",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0083",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "用户基本信息后台页展示会员/服务信息，含敏感信息需脱敏。",
+      "key_information": [
+        "后台页展示用户基本资料和服务信息",
+        "涉及手机号/身份等隐私字段，使用时需脱敏"
+      ],
+      "prompt_usage": "作为客服后台核查字段参考，生成话术时不要暴露隐私。",
+      "intent_tags": [
+        "backend",
+        "privacy",
+        "member"
+      ]
+    },
+    {
+      "image_id": "img_0084",
+      "annotation_status": "reviewed",
+      "image_type": "backend_console",
+      "importance": "critical",
+      "visual_summary": "后台补偿/退费类操作区域和确认弹窗。",
+      "key_information": [
+        "后台页面有补偿、退费或退款操作区",
+        "确认弹窗用于二次确认"
+      ],
+      "prompt_usage": "补充客服处理补偿/退费时的后台依据。",
+      "intent_tags": [
+        "backend",
+        "refund",
+        "compensation"
+      ]
+    },
+    {
+      "image_id": "img_0085",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "supplemental",
+      "visual_summary": "活动任务路径和奖励领取弹窗。",
+      "key_information": [
+        "页面展示活动任务路径",
+        "完成后有奖励领取弹窗"
+      ],
+      "prompt_usage": "补充任务型活动的领取流程。",
+      "intent_tags": [
+        "campaign",
+        "reward",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0086",
+      "annotation_status": "reviewed",
+      "image_type": "reward_table",
+      "importance": "critical",
+      "visual_summary": "邀请好友奖励表按邀请人数分档。",
+      "key_information": [
+        "奖励与邀请人数档位相关",
+        "表格适合回答奖励标准"
+      ],
+      "prompt_usage": "回答邀请好友活动奖励如何计算。",
+      "intent_tags": [
+        "invite",
+        "reward_table",
+        "campaign"
+      ]
+    },
+    {
+      "image_id": "img_0087",
+      "annotation_status": "reviewed",
+      "image_type": "marketing_visual",
+      "importance": "low",
+      "visual_summary": "新人惊喜礼包落地页。",
+      "key_information": [
+        "页面为新人礼包营销承接",
+        "规则细节有限"
+      ],
+      "prompt_usage": "作为新人礼包活动入口或宣传页补充。",
+      "intent_tags": [
+        "marketing",
+        "new_user",
+        "campaign"
+      ]
+    },
+    {
+      "image_id": "img_0088",
+      "annotation_status": "reviewed",
+      "image_type": "reward_table",
+      "importance": "critical",
+      "visual_summary": "奖励规则表按邀请人数设置出额和首借成功比例。",
+      "key_information": [
+        "表格包含邀请人数档位",
+        "关联出额/首借成功比例等指标"
+      ],
+      "prompt_usage": "回答邀请活动达标条件、奖励档位和统计口径。",
+      "intent_tags": [
+        "invite",
+        "reward_table",
+        "campaign"
+      ]
+    },
+    {
+      "image_id": "img_0089",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "supplemental",
+      "visual_summary": "集卡活动翻卡和奖品页面。",
+      "key_information": [
+        "页面展示翻卡/集卡玩法",
+        "包含奖品展示"
+      ],
+      "prompt_usage": "补充集卡活动玩法路径和奖品展示。",
+      "intent_tags": [
+        "campaign",
+        "card_collection",
+        "reward"
+      ]
+    },
+    {
+      "image_id": "img_0090",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "首页借款额度卡、特权入口和底部弹窗。",
+      "key_information": [
+        "首页展示借款额度卡",
+        "有特权/权益入口",
+        "底部弹窗用于引导预约或权益"
+      ],
+      "prompt_usage": "回答预约借款或特权入口在哪里出现。",
+      "intent_tags": [
+        "reserved_loan",
+        "entry",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0091",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "预约借款页面展示金额、期限、还款计划、收款账户和立即预约。",
+      "key_information": [
+        "可选择/查看借款金额和期限",
+        "展示还款计划与收款账户",
+        "按钮为立即预约"
+      ],
+      "prompt_usage": "说明预约借款提交前页面字段和操作步骤。",
+      "intent_tags": [
+        "reserved_loan",
+        "loan",
+        "operation_path"
+      ]
+    },
+    {
+      "image_id": "img_0092",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "借款记录与详情页展示预约中状态和取消订单入口。",
+      "key_information": [
+        "借款记录状态为预约中",
+        "详情页有取消订单入口"
+      ],
+      "prompt_usage": "回答预约订单状态查看和取消入口。",
+      "intent_tags": [
+        "reserved_loan",
+        "status",
+        "cancel"
+      ]
+    },
+    {
+      "image_id": "img_0093",
+      "annotation_status": "reviewed",
+      "image_type": "policy_rule",
+      "importance": "critical",
+      "visual_summary": "取消预约订单弹窗要求选择原因并确认取消。",
+      "key_information": [
+        "弹窗列出取消原因",
+        "需点击确认取消完成操作"
+      ],
+      "prompt_usage": "说明取消预约订单流程、原因选择和确认动作。",
+      "intent_tags": [
+        "reserved_loan",
+        "cancel",
+        "policy"
+      ]
+    },
+    {
+      "image_id": "img_0094",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "首页、我的页和借款详情组成的预约/借款操作链路。",
+      "key_information": [
+        "多页面串联展示入口到详情",
+        "覆盖首页、我的页、借款详情"
+      ],
+      "prompt_usage": "用于回答预约借款完整路径或借款详情入口。",
+      "intent_tags": [
+        "reserved_loan",
+        "operation_path",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0095",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "借款记录页展示现金借款预约中状态。",
+      "key_information": [
+        "借款记录中现金借款状态为预约中",
+        "适合解释当前订单未完成放款"
+      ],
+      "prompt_usage": "回答现金借款预约中状态含义。",
+      "intent_tags": [
+        "reserved_loan",
+        "status",
+        "loan"
+      ]
+    },
+    {
+      "image_id": "img_0096",
+      "annotation_status": "reviewed",
+      "image_type": "payment_status",
+      "importance": "critical",
+      "visual_summary": "借款记录页展示预约审核中状态。",
+      "key_information": [
+        "预约订单状态为审核中",
+        "说明还未进入最终放款/完成状态"
+      ],
+      "prompt_usage": "回答预约审核中代表什么、用户需等待什么。",
+      "intent_tags": [
+        "reserved_loan",
+        "status",
+        "review"
+      ]
+    },
+    {
+      "image_id": "img_0097",
+      "annotation_status": "reviewed",
+      "image_type": "app_ui_path",
+      "importance": "critical",
+      "visual_summary": "预约借款页和二次确认弹窗，展示50000元、9个月、首月应还和收款银行卡。",
+      "key_information": [
+        "预约金额50000元、期限9个月",
+        "页面展示首月应还和收款银行卡",
+        "二次确认弹窗提示提交预约"
+      ],
+      "prompt_usage": "说明预约借款确认页字段、二次确认和提交前核对信息。",
+      "intent_tags": [
+        "reserved_loan",
+        "confirmation",
+        "operation_path"
+      ]
+    }
+  ]
+}

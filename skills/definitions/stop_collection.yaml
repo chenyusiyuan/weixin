@@ -34,6 +34,10 @@ triggers:
     - 请停止催收，包括发送短信和威胁
     - 请停止催收我
     - 帮我把催收电话停了
+    - 我想屏蔽我的紧急联系人和通讯录里的联系人
+    - 我之前办理的缓催今天到期了，我想再申请十天
+    - 请处理催收信息和催收电话
+    - 我的账单已经逾期，目前还不上，我想申请停止催收
   exclude_keywords:
     - 投诉催收
     - 协商还款
@@ -74,13 +78,14 @@ templates:
     next_step: 确认停催操作完成，提醒还款义务
 
 branch_conditions:
-  - expr: collection_type == AI and overdue_days <= 3
+  - expr: collection_type == "AI" and overdue_days <= 3
     variant: ai_collection_early
     note: AI催收阶段（还款日及账单日后3天内）——有停催权限，不支持降频，仅联系本人
-  - expr: collection_type == IVR
+  - expr: collection_type == "IVR"
     variant: ivr_collection
     note: IVR催收——可操作停催，按客户诉求操作
-  - expr: stop_days_requested <= 15 and target == self
+  - expr: stop_days_requested <= 15 and target == "self"
+    hint: 本人要求停催15天内
     variant: normal_stop
     note: 本人停催15天内——客服直接操作
   - expr: stop_days_requested > 15 and stop_days_requested <= 30

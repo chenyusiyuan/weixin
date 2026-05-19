@@ -1,4 +1,4 @@
-"""Rebuild tests/golden_test.jsonl from sub-agent batch outputs.
+"""Rebuild raw_test.jsonl from sub-agent batch outputs.
 
 Sources:
   - tests/verification/batch_*_output.jsonl : sub-agent labels (call_id, skill_id, confidence, reason)
@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BATCH_DIR = ROOT / "tests" / "verification"
 RAW_INTENT = ROOT / "tests" / "golden_raw_intent.jsonl"
-OUTPUT = ROOT / "tests" / "golden_test.jsonl"
+OUTPUT = ROOT / "raw_test.jsonl"
 
 
 def main() -> None:

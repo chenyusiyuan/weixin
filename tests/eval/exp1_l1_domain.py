@@ -34,8 +34,42 @@ from fin_copilot.config import get_settings  # noqa: E402
 from scripts.dialog_extract import extract_first_meaningful, extract_first_business_intent  # noqa: E402
 
 TEST_PATH = ROOT / "test.jsonl"
-GOLDEN_PATH = ROOT / "tests" / "golden_test.jsonl"
+GOLDEN_PATH = ROOT / "raw_test.jsonl"
 MAPPING_PATH = ROOT / "scripts" / "references" / "domain_gold_mapping.json"
+EMBED_CACHE_PATH = ROOT / "tests" / ".embed_topk_cache.json"
+QUERY_EMBED_CACHE_PATH = ROOT / "tests" / ".query_embed_cache.json"
+
+
+def load_embed_cache() -> dict[str, list[list]]:
+    if EMBED_CACHE_PATH.exists():
+        try:
+            return json.loads(EMBED_CACHE_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def save_embed_cache(cache: dict) -> None:
+    EMBED_CACHE_PATH.write_text(
+        json.dumps(cache, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def load_query_embed_cache() -> dict[str, list[float]]:
+    if QUERY_EMBED_CACHE_PATH.exists():
+        try:
+            return json.loads(QUERY_EMBED_CACHE_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def save_query_embed_cache(cache: dict[str, list[float]]) -> None:
+    QUERY_EMBED_CACHE_PATH.write_text(
+        json.dumps(cache, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
 
 def load_mapping() -> dict[str, str | None]:
@@ -100,6 +134,12 @@ def run(
 
     records: list[dict] = []
     data_path = GOLDEN_PATH if source == "golden" else TEST_PATH
+    embed_cache = load_embed_cache() if classifier_kind == "embed" else {}
+    query_embed_cache = load_query_embed_cache() if classifier_kind == "embed" else {}
+    cache_hits = 0
+    cache_misses = 0
+    query_cache_hits = 0
+    query_cache_misses = 0
     start_ts = time.monotonic()
     progress_suffix = f"/{limit}" if limit is not None else ""
     if progress_every > 0:
@@ -136,11 +176,36 @@ def run(
                 )
             if not query:
                 continue
-            pred = classifier.classify(query, empty_state())
-            # Top-K recall (embedding classifier supports it; rule classifier only has top-1)
-            topk_preds: list[str] = [pred]
-            if hasattr(classifier, "classify_topk"):
-                topk_preds = [d for d, _ in classifier.classify_topk(query, empty_state(), k=top_k)]
+
+            # Top-K recall (embedding classifier supports it; rule classifier only has top-1).
+            # Share the exact cache format/key with exp2_skill_match.py so
+            # run_golden_full_eval.sh can run Exp1 -> Exp2 without recomputing
+            # the same domain Top-K embeddings.
+            if classifier_kind == "embed" and hasattr(classifier, "classify_topk"):
+                cache_key = f"{query}||k={top_k}"
+                cached = embed_cache.get(cache_key)
+                if cached:
+                    topk_preds = [d for d, _ in cached]
+                    cache_hits += 1
+                else:
+                    q_vec = query_embed_cache.get(query)
+                    if q_vec:
+                        query_cache_hits += 1
+                    else:
+                        q_vec = classifier.embed_query(query)
+                        query_embed_cache[query] = q_vec
+                        query_cache_misses += 1
+                    topk = classifier.classify_topk_from_vector(
+                        q_vec, empty_state(), k=top_k,
+                    )
+                    topk_preds = [d for d, _ in topk]
+                    embed_cache[cache_key] = [[d, s] for d, s in topk]
+                    cache_misses += 1
+                pred = topk_preds[0] if topk_preds else ""
+            else:
+                pred = classifier.classify(query, empty_state())
+                topk_preds: list[str] = [pred]
+
             records.append({
                 "call_id": r.get("call_id"),
                 "level2": level2,
@@ -173,6 +238,22 @@ def run(
             f"top1={running_correct / len(records):.2%} "
             f"top{top_k}={running_topk / len(records):.2%} "
             f"elapsed={elapsed:.1f}s speed={speed:.1f}/s",
+            flush=True,
+        )
+
+    if classifier_kind == "embed":
+        if cache_misses > 0:
+            save_embed_cache(embed_cache)
+        if query_cache_misses > 0:
+            save_query_embed_cache(query_embed_cache)
+        print(
+            f"Embed cache: hits={cache_hits}, misses={cache_misses}, "
+            f"path={EMBED_CACHE_PATH}",
+            flush=True,
+        )
+        print(
+            f"Query embed cache: hits={query_cache_hits}, misses={query_cache_misses}, "
+            f"path={QUERY_EMBED_CACHE_PATH}",
             flush=True,
         )
 
@@ -278,7 +359,7 @@ def main() -> None:
                     help="naive=first k lines; smart=skip greeting/identity; business=also skip 会话流程")
     ap.add_argument("--top-k", type=int, default=3, help="Top-K recall metric (embedding only)")
     ap.add_argument("--source", choices=["test", "golden"], default="test",
-                    help="'test' reads test.jsonl (98 conversations); 'golden' reads tests/golden_test.jsonl")
+                    help="'test' reads test.jsonl (98 conversations); 'golden' reads raw_test.jsonl")
     ap.add_argument("--min-confidence", type=float, default=0.0,
                     help="when --source=golden, skip rows below this confidence")
     ap.add_argument("--limit", type=int, default=None,

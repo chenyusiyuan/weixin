@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -19,13 +20,18 @@ from fin_copilot.agents.longtail_reasoner import LongtailReasoner
 from fin_copilot.compliance.rule_checker import RuleComplianceChecker
 from fin_copilot.config import Settings, get_settings
 from fin_copilot.context.context_manager import ContextManager
+from fin_copilot.knowledge.value_added import ValueAddedKnowledgeRetriever
 from fin_copilot.llm.client import LLMClient
 from fin_copilot.orchestrator import Orchestrator
 from fin_copilot.routers.gateway import router, set_orchestrator
 from fin_copilot.routing.domain_classifier import DomainClassifier
+from fin_copilot.routing.embedding_domain_classifier import EmbeddingDomainClassifier
 from fin_copilot.routing.rule_engine import RuleEngine
+from fin_copilot.routing.skill_embedding_index import SkillEmbeddingIndex
 from fin_copilot.routing.skill_router import SkillRouter
 from fin_copilot.skills.loader import SkillLoader
+
+logger = logging.getLogger(__name__)
 
 
 def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
@@ -40,6 +46,32 @@ def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
         skill_loader,
     )
     domain_classifier = DomainClassifier()
+    skill_embedding_index = None
+    if settings.ENABLE_HYBRID_SKILL_RECALL:
+        try:
+            domain_classifier = EmbeddingDomainClassifier(
+                api_url=settings.EMBED_API_URL,
+                model=settings.EMBED_MODEL,
+                timeout=settings.LLM_TIMEOUT,
+            )
+        except Exception as exc:
+            logger.warning(
+                "hybrid recall disabled: failed to build embedding domain classifier: %s",
+                exc,
+            )
+        else:
+            try:
+                skill_embedding_index = SkillEmbeddingIndex(
+                    skill_loader,
+                    api_url=settings.EMBED_API_URL,
+                    model=settings.EMBED_MODEL,
+                    timeout=settings.LLM_TIMEOUT,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "skill-cos recall disabled: failed to build skill embedding index: %s",
+                    exc,
+                )
 
     llm_client = LLMClient(
         base_url=settings.LLM_API_URL,
@@ -69,6 +101,14 @@ def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
         llm_client=llm_client,
         prompt_path=str(settings.resolve_path(settings.SKILL_PROMPTS_DIR) / "longtail_reasoning.md"),
     )
+    value_added_knowledge = None
+    if settings.ENABLE_VALUE_ADDED_KNOWLEDGE:
+        value_added_knowledge = ValueAddedKnowledgeRetriever(
+            settings.PROJECT_ROOT,
+            services_path=settings.VALUE_ADDED_SERVICES_PATH,
+            text_blocks_path=settings.VALUE_ADDED_TEXT_BLOCKS_PATH,
+            image_blocks_path=settings.VALUE_ADDED_IMAGE_BLOCKS_PATH,
+        )
 
     orchestrator = Orchestrator(
         context_mgr=context_mgr,
@@ -76,10 +116,13 @@ def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
         domain_classifier=domain_classifier,
         skill_router=skill_router,
         skill_loader=skill_loader,
+        skill_embedding_index=skill_embedding_index,
         confidence_auditor=confidence_auditor,
         compliant_generator=compliant_generator,
         compliance_checker=compliance_checker,
         longtail_reasoner=longtail_reasoner,
+        value_added_knowledge=value_added_knowledge,
+        settings=settings,
     )
     return orchestrator, llm_client
 

@@ -1,0 +1,74 @@
+{
+  "scope": "value_added_images",
+  "summary_workbook_skipped": true,
+  "summary_workbook_name": "增值业务大全20260105 (2).xlsx",
+  "image_count": 97,
+  "image_block_count": 97,
+  "annotation_count": 97,
+  "annotation_status_counts": {
+    "reviewed": 97
+  },
+  "importance_counts": {
+    "critical": 87,
+    "supplemental": 6,
+    "low": 4
+  },
+  "image_type_counts": {
+    "app_ui_path": 45,
+    "agreement_long_text": 2,
+    "payment_status": 15,
+    "policy_rule": 9,
+    "backend_console": 12,
+    "marketing_visual": 6,
+    "reward_table": 5,
+    "qr_contact": 3
+  },
+  "images_by_service": {
+    "acceleration_card": 1,
+    "claw_egg_lottery_campaign": 2,
+    "collect_cards_free_order": 1,
+    "credit_risk_check": 20,
+    "debt_consulting_service_fee": 5,
+    "doudou_score": 5,
+    "enforceable_notary": 5,
+    "interest_fee_deduction_coupon": 2,
+    "light_card": 1,
+    "loan_coupon_campaign": 3,
+    "member_benefits": 3,
+    "member_pay_later": 7,
+    "merged_loan_campaign": 3,
+    "phone_credit_coupon": 7,
+    "referral_cash_daily_money": 3,
+    "rejection_cashback": 4,
+    "reserved_loan_campaign": 8,
+    "telemarketing_campaign": 14,
+    "zhonghui_insurance": 3
+  },
+  "contact_sheets": [
+    "sop/structured/value_added_images/contact_sheets/contact_01.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_02.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_03.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_04.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_05.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_06.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_07.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_08.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_09.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_10.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_11.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_12.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_13.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_14.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_15.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_16.jpg",
+    "sop/structured/value_added_images/contact_sheets/contact_17.jpg"
+  ],
+  "errors": [],
+  "outputs": {
+    "inventory": "image_inventory.json",
+    "blocks": "image_blocks.jsonl",
+    "manual_annotations": "manual_image_annotations.json",
+    "images_dir": "images/",
+    "contact_sheets_dir": "contact_sheets/"
+  }
+}

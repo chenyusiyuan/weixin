@@ -27,6 +27,9 @@ triggers:
     - 你们把我之前的贷款合同帮我调取下吧
     - 我需要一份贷款合同的复印件
     - 帮我查一下我的借款合同
+    - 那我要提供哪些材料，你们才能给我处理
+    - 我现在要当时所有的合同，你们为何不提供，就算我注销你们也应该保留我的合同
+    - 既然你们能够给我开发票，为什么注销后又说没有我的个人信息
   exclude_keywords:
     - 结清证明
     - 发票
@@ -57,21 +60,30 @@ templates:
     next_step: 引导APP自助查看，若客户坚持则按一线/二线路径处理
 
 branch_conditions:
-  - expr: loan_status == active and no_overdue
+  - expr: loan_status == "active" and no_overdue
     variant: tier1_active
     note: 还款中未逾期（一线）——询问原因，尝试解决，引导APP查看路径【我的-借款记录-查看合同】
-  - expr: loan_status == active and has_overdue
+  - expr: loan_status == "active" and has_overdue
     variant: tier1_overdue
     note: 还款中已逾期（一线）——询问原因，引导APP查看，坚持则升级二线
-  - expr: loan_status == cleared
+  - expr: loan_status == "cleared"
     variant: tier2_cleared
     note: 已结清订单（二线）——发送电子合同至邮箱，1-3工作日处理
+  - expr: account_cancelled and customer_disputes_data_retention
+    variant: cancelled_retention_dispute
+    note: 客户认为注销后仍应保留所有合同，或以发票/费用信息反问为何没有个人信息时，按注销后个人信息删除或匿名化口径解释，客户坚持则升级
   - expr: account_cancelled
     variant: account_cancelled
     note: 账户已注销——依据《国家标准GB/T 35273-2020》第8.5条说明，数据已处理，无法提供
   - expr: customer_requires_paper_copy
     variant: paper_copy
     note: 要求纸质合同——说明只提供电子版，纸质如有需要引导线下公证
+  - expr: customer_asks_required_materials
+    variant: material_collection
+    note: 客户追问需要哪些材料时，说明需核身并确认订单、合同范围、接收邮箱；涉及诉讼或监管用途的，记录用途并升级二线处理
+  - expr: customer_requires_all_contracts
+    variant: all_contracts_request
+    note: 客户要求当时所有合同时，先确认订单范围和合同类型，可提供电子合同的按邮箱发送，超权限或无法确认的转二线
 compliance:
   forbidden_expressions:
     - 合同已经销毁

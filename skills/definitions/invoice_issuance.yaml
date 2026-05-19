@@ -20,12 +20,18 @@ triggers:
     - 电子发票
     - 贷款发票
     - 利息发票
+    - 本金发票
+    - 发票抬头
+    - 发票内容
   examples:
     - 把我的名下贷款的发票开具下
     - 我要开发票
     - 帮我开一下发票
     - 我需要贷款利息的发票
     - 公司报销需要发票
+    - 为什么本金不支持开具发票
+    - 发票抬头可以修改吗？发票内容可以指定开具吗？
+    - 无法开具发票，部分资方和合作方不支持发票开具
   exclude_keywords:
     - 结清证明
     - 合同
@@ -56,10 +62,10 @@ templates:
     next_step: 根据开票原因判断是否可直接解决，不能则引导APP自助或升级二线
 
 branch_conditions:
-  - expr: platform == doudouqian and self_service_supported
+  - expr: platform == "doudouqian" and self_service_supported
     variant: doudou_self_service
     note: 豆豆钱平台——引导APP自助开具，路径：我的-借款记录-查看详情-更多-开发票
-  - expr: platform == kakadai and self_service_supported
+  - expr: platform == "kakadai" and self_service_supported
     variant: kaka_self_service
     note: 卡卡贷平台——引导APP自助开具，路径：我的-借款记录-右上角"开发票"
   - expr: customer_refuses_self_service
@@ -68,6 +74,15 @@ branch_conditions:
   - expr: invoice_reason_resolvable
     variant: resolve_underlying_issue
     note: 开票原因可直接解决（如还款疑问）——优先解决根本问题，避免不必要开票
+  - expr: customer_asks_principal_invoice
+    variant: principal_invoice_not_supported
+    note: 客户问为什么本金不支持开具发票时，说明本金属于借款本金返还，不属于平台服务收费项目，开票范围以可开具费用和系统页面为准
+  - expr: customer_asks_title_or_content_change
+    variant: invoice_title_content
+    note: 客户询问发票抬头是否可修改或发票内容能否指定时，引导以APP开票页面支持项为准；已开具或系统不支持修改的，升级二线核查
+  - expr: funder_or_partner_not_support_invoice
+    variant: unsupported_funder_partner
+    note: 部分资方和合作方不支持发票开具时，向客户说明限制来源，记录具体订单和开票诉求，客户不接受则升级二线
 compliance:
   forbidden_expressions:
     - 马上就能开好

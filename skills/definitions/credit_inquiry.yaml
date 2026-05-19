@@ -24,6 +24,14 @@ triggers:
     - 征信授权
     - 人行征信
     - 征信评分
+    - 担保代偿
+    - 特殊交易类型
+    - 宽限期
+    - 征信上报通知
+    - 征信多久更新
+    - 征信无资质
+    - 查征记录
+    - 征信政策短信
   examples:
     - 你们有没有上报征信
     - 今天还款会影响我征信吗
@@ -31,6 +39,17 @@ triggers:
     - 为什么我只是一次借款，给我整理好几条查征记录
     - 我的征信上有你们的记录，想了解一下
     - 逾期了会不会影响我的房贷
+    - 修改后征信多久能更新时间
+    - 为什么在逾期记录下还有担保代偿记录
+    - 为什么会有特殊交易类型的记录
+    - 逾期后为什么会有多个征信记录
+    - 为什么担保代偿记录不一致
+    - 逾期多久会上征信，有没有宽限期
+    - 我没有收到征信上报的通知短信
+    - 今天是我的还款日，扣款失败是不是已经上征信了
+    - 凭什么要我提供征信凭证
+    - 你们上报方无资质
+    - 我收到信托短信说可以处理征信，政策是否真实有效
   exclude_keywords:
     - 修改征信
     - 注销征信
@@ -63,24 +82,90 @@ templates:
     next_step: 根据具体征信问题类型提供详细解释
 
 branch_conditions:
-  - expr: inquiry_type == unauthorized_query
+  - expr: inquiry_type == "unauthorized_query"
     variant: unauthorized_query
     note: 未授权查征信——解释所有查询均需授权，引导确认授权记录，安抚情绪
-  - expr: inquiry_type == multiple_queries
+  - expr: inquiry_type == "multiple_queries"
     variant: multiple_queries
     note: 多次查征记录——解释匹配多资方需多次查询，属正常流程，不影响最终授信
-  - expr: inquiry_type == overdue_impact
+  - expr: inquiry_type == "overdue_impact"
     variant: overdue_impact
     note: 逾期影响征信——说明逾期上报规则，宽限期规则，建议按时足额还款
-  - expr: inquiry_type == reporting_rules
+  - expr: inquiry_type == "reporting_rules"
     variant: reporting_rules
     note: 征信上报规则咨询——说明还款日当天显示逾期属系统延迟，实际未逾期不影响征信
-  - expr: inquiry_type == credit_score
+  - expr: inquiry_type == "credit_score"
     variant: credit_score
     note: 征信评分咨询——解释评分影响因素，提供改善建议
-  - expr: inquiry_type == credit_freeze
+  - expr: inquiry_type == "credit_freeze"
     variant: credit_inquiry_general
     note: 其他征信问题——详细了解情况后针对性解答
+  - hint: 客户询问修改后征信多久更新或催促更新
+    variant: credit_update_timeline_after_correction
+    note: |
+      话术主干：说明我司核实无误后会第一时间报送更正信息，后续由人民银行征信系统统一处理。
+      告知通常可在申请处理后约15个工作日再查询征信报告；我司无法直接干预或加速央行征信系统处理。
+      客户催促时记录诉求，但不要承诺具体更新日期。
+  - hint: 客户询问逾期记录下为什么还有担保代偿或特殊交易类型
+    variant: guarantee_compensation_reporting
+    note: |
+      根据人民银行二代征信中心数据采集规则，贷款完整信息需如实上报，包含转担保、担保代偿或特殊交易类型。
+      如客户追问为什么有多个记录，解释贷款逾期后担保公司履责代偿，征信可能显示逾期、转担保、担保代偿等状态。
+      建议客户按账单还款情况正常还款，后续以人行征信报告展示为准。
+  - hint: 客户要求马上还款并删除逾期记录，或质疑担保代偿记录不一致
+    variant: cannot_delete_valid_credit_record
+    note: |
+      说明担保公司根据账单还款情况按规则自动上报人民银行征信中心。
+      不承诺删除逾期、担保代偿或查询记录；如客户认为记录错误，引导提交最新征信报告等凭证，由征信专员核实。
+  - hint: 客户询问逾期多久会上征信或是否有宽限期
+    variant: no_grace_period_credit_reporting
+    note: |
+      说明逾期会按规则上报，具体以征信报告显示为准。
+      建议客户按时足额还款，避免逾期后申请修改征信失败，影响征信记录需较长周期覆盖。
+      不要使用“不会上征信”“缓几天没关系”等绝对话术。
+  - hint: 客户称未收到征信上报通知短信
+    variant: no_credit_report_sms_notice
+    note: |
+      说明借款后的还款记录、逾期或担保代偿会按规则如实上报，通常不一定单独发送“上报成功”短信。
+      具体征信情况以人行征信报告为准。
+  - hint: 还款日当天扣款失败或收到提醒，客户担心已经影响征信
+    variant: repayment_day_deduction_failed_credit_concern
+    note: |
+      递进话术：先说明还款日/账单日当天系统扣款失败提醒主要是提醒客户及时处理。
+      如果客户在还款日当天成功还款，一般不会产生逾期影响，具体以征信报告为准。
+      若确因我司原因影响征信，客户可提供相应凭证，我司协助核实处理；同时建议客户及时主动还款或保持余额充足。
+  - hint: 客户不接受提供凭证，质疑为什么要自己提供征信报告
+    variant: customer_refuses_credit_evidence
+    note: |
+      说明征信报告属于客户个人隐私，我司无法直接查询客户完整征信报告。
+      需要客户确认是否实际产生影响；如确有异常，再提供凭证便于我司协助反馈处理。
+      二次安抚可说明：如果没有影响最好，如确有影响客户仍可联系我们处理。
+  - hint: 客户质疑征信查询次数过多或每次还款都要查征信
+    variant: excessive_query_concern
+    note: |
+      安抚客户对征信查询次数的担忧，说明本次账单日还款判断并不要求客户每次还款都查询征信。
+      可引导客户通过后续一次查询确认是否异常；如无异常，也可侧面印证账单日正常还款不会产生负面影响。
+  - hint: 客户称贷款时是学生，逾期后要求修改征信
+    variant: student_borrower_credit_dispute
+    note: |
+      告知平台不支持向学生身份提供借款，借贷前需签署非在校学生承诺。
+      对客户反馈的问题，收集最新征信报告、学信网带验证码证明等材料，反馈征信专员跟进。
+  - hint: 客户要求提供代偿记录明细或代偿发票，威胁投诉偷税漏税
+    variant: compensation_invoice_or_detail_request
+    note: |
+      说明担保公司代偿本质是替客户向银行履行债务清偿义务，属于风险处置流程，不一定符合商品销售或服务提供的开票条件。
+      如客户坚持索要明细或票据，记录诉求并转相关业务办理/发票或证明流程核实。
+  - hint: 客户质疑上报方无资质
+    variant: reporting_entity_qualification_dispute
+    note: |
+      告知合作资金方或金融机构具备合法合规上报征信的资质和能力，征信记录由资金提供方等合规合作机构按央行规定上报。
+      客户仍不认可时，收集其征信报告中的上报机构信息，转征信专员核实。
+  - hint: 客户收到外部信托或资方短信，询问征信处理政策是否真实有效
+    variant: external_policy_sms_verification
+    note: |
+      先提醒客户谨防不法分子借政策名义诈骗。
+      建议客户直接联系短信内对应的官方机构确认政策真实性和适用条件；是否符合修改条件以对方官方政策确认为准。
+      如客户追问其他资方是否有类似政策，告知当前以各资方官方通知为准，不做泛化承诺。
 compliance:
   forbidden_expressions:
     - 征信没问题

@@ -22,12 +22,18 @@ triggers:
     - 扣了我的钱
     - 莫名扣费
     - 我要退款
+    - 订单宝
+    - 现金借款月奖金
   examples:
     - 把赋强公证的钱退给我
     - 你们收取的赋强公证费用不合理，要退款
     - 我不需要这个加速卡服务，你们必须退费
     - 这个服务为什么扣我的钱，给我退了
     - 我要退增值服务费用
+    - 这个订单宝被扣款了，为什么退不了
+    - 现金借款月奖金扣费了，能不能退
+    - 好了/ok 是的/好/嗯，我确认要退增值服务费
+    - 我没绑定的银行卡为什么会被你们扣钱？你们要负责？
   exclude_keywords:
     - 取消增值服务
     - 取消加速卡
@@ -54,8 +60,16 @@ templates:
     required_slots:
       - customer_name
     next_step: retention_and_process
+  unmatched_non_company_product:
+    script: "客户要求退费的产品或服务未命中已结构化的我司/合作增值服务清单。请先说明当前暂未匹配到对应我司/合作增值服务，继续引导客户补充完整产品/服务名称、扣款方、APP页面入口、订单号或短信主体；若确认非我司产品，告知需联系对应服务方、商户或支付渠道处理，我司无法直接操作退款。"
+    required_slots: []
+    next_step: clarify_product_or_redirect_non_company
 
 branch_conditions:
+  - expr: value_added_match_status == 'unmatched'
+    variant: unmatched_non_company_product
+    hint: 客户要求退费的产品/服务未命中已结构化增值服务清单，疑似非我司或未纳入清单产品
+    note: 不直接承诺退款；先确认产品名称、扣款方、页面入口或短信主体
   - hint: 赋强公证退费，客户坚持退款
     variant: fuqiang_partial_refund
     note: 婉拒后仍坚持，可申请退120元关怀金（建"营业外支出工单"）；60元在订单结清后自动退回；若客户要求全退，解释120+60结构，引导先结清贷款拿回60元
@@ -80,6 +94,12 @@ branch_conditions:
   - hint: 众惠保险退费
     variant: zhonghui_insurance_refund
     note: 引导联系众惠财产相互保险客服热线4008106088
+  - hint: 客户确认增值服务活动后继续退费
+    variant: confirmed_service_refund_request
+    note: 客户回复好了/ok/是的/好/嗯确认服务后，继续核实服务类型、扣款状态、权益是否生效，再按赋强公证/加速卡/拒就返/第三方服务分流
+  - hint: 客户称未绑定银行卡却被扣款
+    variant: unbound_card_deduction_dispute
+    note: 客户说我没绑定的银行卡为什么会被你们扣钱时，先引导核对银行流水扣款方和扣款协议；如为赋强公证或协议内扣款，解释协议及强制执行/代扣依据，客户坚持则升级
 compliance:
   forbidden_expressions:
     - 保证全额退款

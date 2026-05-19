@@ -22,6 +22,7 @@ class CopilotResponse(BaseModel):
 
     warning: Optional[str] = None
     rag_references: list[str] = Field(default_factory=list)
+    knowledge_matches: list[dict[str, Any]] = Field(default_factory=list)
     tools_called: list[str] = Field(default_factory=list)
 
     trace_id: str = ""
