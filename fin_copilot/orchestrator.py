@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import sys
 import time
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from fin_copilot.agents.compliant_generator import CompliantGenerator
@@ -35,6 +36,15 @@ from tools.registry import WRITE_TOOLS  # noqa: E402
 from fin_copilot.demo.verification import get_verification_db  # noqa: E402
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class _PendingExecution:
+    response: CopilotResponse
+    skill_id: str | None = None
+    domain: str | None = None
+    new_slots: dict[str, Any] = field(default_factory=dict)
+    tools_called: list[str] = field(default_factory=list)
 
 
 class Orchestrator:
@@ -104,6 +114,19 @@ class Orchestrator:
             one_shot_cid = self._match_verification_payload(query)
             if one_shot_cid:
                 pass_resp = self._verification_passed(state, one_shot_cid, trace_id)
+                pending_exec = await self._consume_pending_route(state, trace_id)
+                if pending_exec is not None:
+                    response = self._merge_verified_business_response(
+                        state, pending_exec.response,
+                    )
+                    self._finalize(
+                        state, query, response, trace_id, start,
+                        skill_id=pending_exec.skill_id,
+                        domain=pending_exec.domain,
+                        new_slots=pending_exec.new_slots,
+                        tools_called=pending_exec.tools_called,
+                    )
+                    return response
                 # Detect whether this turn carried a business intent beyond
                 # the identity payload. If so, replay it after the pass msg.
                 residual = self._strip_identity_payload(query, one_shot_cid)
@@ -140,6 +163,20 @@ class Orchestrator:
         if state.customer.verification_step not in ("not_started", "passed"):
             verify_resp = self._handle_verification(state, query, trace_id)
             if verify_resp is not None:
+                if state.customer.verification_step == "passed":
+                    pending_exec = await self._consume_pending_route(state, trace_id)
+                    if pending_exec is not None:
+                        response = self._merge_verified_business_response(
+                            state, pending_exec.response,
+                        )
+                        self._finalize(
+                            state, query, response, trace_id, start,
+                            skill_id=pending_exec.skill_id,
+                            domain=pending_exec.domain,
+                            new_slots=pending_exec.new_slots,
+                            tools_called=pending_exec.tools_called,
+                        )
+                        return response
                 self._finalize(state, query, verify_resp, trace_id, start)
                 # If verification just passed and there's a pending query,
                 # re-process it automatically.
@@ -190,7 +227,10 @@ class Orchestrator:
             # If the skill will touch account-level data and user not verified
             # → start verification.
             if requires_identity and not state.customer.verified:
-                verify_resp = self._start_verification(state, query, trace_id)
+                verify_resp = self._start_verification(
+                    state, query, trace_id,
+                    pending_route=self._build_pending_route_a(query, rule_match),
+                )
                 if verify_resp is not None:
                     self._finalize(state, query, verify_resp, trace_id, start)
                     return verify_resp
@@ -352,146 +392,25 @@ class Orchestrator:
             and state.customer.verification_step == "not_started"
             and not skip_identity_for_unmatched_value_added
         ):
-            verify_resp = self._start_verification(state, query, trace_id)
+            verify_resp = self._start_verification(
+                state, query, trace_id,
+                pending_route=self._build_pending_route_b(query, skill_match, domain),
+            )
             if verify_resp is not None:
                 self._finalize(state, query, verify_resp, trace_id, start)
                 return verify_resp
 
-        # Merge extracted slots from routing
-        try:
-            if skill_match.extracted_slots:
-                self.ctx.state_mgr.update_slots(state, skill_match.extracted_slots)
-
-            # Tool execution
-            if skip_identity_for_unmatched_value_added:
-                tools_needed = []
-            elif not state.customer.verified and not self._skill_requires_identity(skill, query):
-                tools_needed = []
-            else:
-                tools_needed = skill_match.tools_needed or skill.get_required_tools()
-            tool_results, tools_called = await self._execute_tools(state, tools_needed)
-
-            # Agent B: Confidence audit
-            audit_domain = skill.domain or domain
-            if skip_identity_for_unmatched_value_added:
-                audit = ConfidenceAuditResult(
-                    score=max(skill_match.confidence, 0.5),
-                    passed=True,
-                    reasons=["value_added_unmatched_clarification"],
-                )
-            else:
-                audit = self.auditor.audit(
-                    skill_match, skill, state, audit_domain, tool_results, query,
-                )
-
-            if not audit.passed:
-                logger.info(
-                    "Audit failed (score=%.2f, reasons=%s), falling through to Chain C",
-                    audit.score, audit.reasons,
-                )
-                # Fall through to Chain C instead of immediate fallback
-                response = await self._execute_route_c(state, query, trace_id)
-                self._finalize(state, query, response, trace_id, start)
-                return response
-
-            # Agent A: Compliant generation
-            # Branch DSL: evaluate expr against slots and pick a deterministic variant
-            # when one matches. Indeterminate/hint-only branches are passed through
-            # to the generator as soft hints.
-            merged_slots = dict(state.slots)
-            for tool_name, result in (tool_results or {}).items():
-                if isinstance(result, dict):
-                    merged_slots.update(result)
-            merged_slots.update(value_added_context.get("slots", {}))
-            matched_variant, hint_branches = select_branch_variant(
-                skill.branch_conditions, merged_slots,
-            )
-            effective_variant = skill_match.template_variant
-            if matched_variant and matched_variant in skill.templates:
-                effective_variant = matched_variant
-
-            recent_text = self.ctx.window.format_for_prompt(state, n_turns=3)
-            gen_result = await self.generator.generate(
-                skill, effective_variant, tool_results,
-                state, recent_text, summary,
-                branch_hints=hint_branches,
-                supplemental_context=value_added_context.get("prompt_text", ""),
-            )
-
-            # Post-compliance check
-            comp = self.compliance.check(
-                gen_result.get("answer", ""),
-                state,
-                skill=skill,
-            )
-
-            if comp.need_handoff:
-                response = CopilotResponse(
-                    output_type="handoff",
-                    answer="您的问题需要人工专员处理，正在为您转接，请稍候。",
-                    route="route_b",
-                    matched_skill_id=skill_match.skill_id,
-                    matched_skill_name=skill.name,
-                    confidence=skill_match.confidence,
-                    trace_id=trace_id,
-                    compliance_passed=False,
-                    compliance_issues=comp.issues,
-                    tools_called=tools_called,
-                    rag_references=value_added_context.get("references", []),
-                    knowledge_matches=value_added_context.get("knowledge_matches", []),
-                )
-            else:
-                response = CopilotResponse(
-                    output_type="bot_reply",
-                    answer=comp.corrected_answer,
-                    next_step_hint=gen_result.get("next_step_hint", ""),
-                    route="route_b",
-                    matched_skill_id=skill_match.skill_id,
-                    matched_skill_name=skill.name,
-                    confidence=skill_match.confidence,
-                    trace_id=trace_id,
-                    compliance_passed=comp.passed,
-                    compliance_issues=comp.issues,
-                    tools_called=tools_called,
-                    rag_references=value_added_context.get("references", []),
-                    knowledge_matches=value_added_context.get("knowledge_matches", []),
-                )
-
-            # Duplicate-reply guard (Chain B): if the newly generated answer is
-            # nearly identical to the previous agent reply AND no slot progress
-            # happened this turn, collapse to a closing probe instead of repeating.
-            if (
-                response.output_type == "bot_reply"
-                and self.settings.ENABLE_INTENT_STICKY
-                and not self.ctx.has_slot_progress(
-                    state, tool_results=tool_results, tools_called=tools_called,
-                )
-            ):
-                ratio = self.ctx.duplicate_ratio(response.answer, state.last_agent_reply)
-                if ratio >= self.ctx.dialogue.duplicate_threshold:
-                    logger.info(
-                        "route_b reply deduplicated (ratio=%.2f) -> closing probe",
-                        ratio,
-                    )
-                    response = self._build_closing_reply(
-                        state, trace_id,
-                        skill_id=skill_match.skill_id,
-                        skill_name=skill.name,
-                    )
-
-            self._finalize(
-                state, query, response, trace_id, start,
-                skill_id=self._intent_skill_for(state, skill_match.skill_id, audit_domain),
-                domain=self._intent_domain_for(state, audit_domain),
-                new_slots=skill_match.extracted_slots, tools_called=tools_called,
-            )
-            return response
-        except Exception as exc:
-            logger.error("Chain B execution failed: %s", exc, exc_info=True)
-            response = self._build_fallback(state, trace_id, "route_b",
-                                            skill_id=skill_match.skill_id)
-            self._finalize(state, query, response, trace_id, start)
-            return response
+        route_b_exec = await self._execute_route_b_from_match(
+            state, query, skill_match, domain, trace_id,
+        )
+        self._finalize(
+            state, query, route_b_exec.response, trace_id, start,
+            skill_id=route_b_exec.skill_id,
+            domain=route_b_exec.domain,
+            new_slots=route_b_exec.new_slots,
+            tools_called=route_b_exec.tools_called,
+        )
+        return route_b_exec.response
 
     async def _route_chain_b(
         self,
@@ -770,7 +689,10 @@ class Orchestrator:
             and not state.customer.verified
             and state.customer.verification_step == "not_started"
         ):
-            verify_resp = self._start_verification(state, query, trace_id)
+            verify_resp = self._start_verification(
+                state, query, trace_id,
+                pending_route=self._build_pending_route_c(query, suggested_tools),
+            )
             if verify_resp is not None:
                 return verify_resp
 
@@ -883,6 +805,280 @@ class Orchestrator:
         return any(keyword in query for keyword in lookup_keywords)
 
     # ==================================================================
+    # Pending verified route — cache the route decision while verification runs
+    # ==================================================================
+
+    @staticmethod
+    def _build_pending_route_a(query: str, rule_match: RuleMatchResult) -> dict[str, Any]:
+        return {
+            "kind": "route_a",
+            "query": query,
+            "rule_id": rule_match.rule_id,
+            "skill_id": rule_match.skill_id,
+            "template_variant": rule_match.template_variant,
+            "tools_needed": list(rule_match.tools_needed or []),
+            "confidence": rule_match.confidence,
+        }
+
+    @staticmethod
+    def _build_pending_route_b(
+        query: str,
+        skill_match: SkillMatch,
+        domain: str,
+    ) -> dict[str, Any]:
+        return {
+            "kind": "route_b",
+            "query": query,
+            "domain": domain,
+            "skill_match": skill_match.model_dump(),
+        }
+
+    @staticmethod
+    def _build_pending_route_c(query: str, suggested_tools: list[str]) -> dict[str, Any]:
+        return {
+            "kind": "route_c",
+            "query": query,
+            "suggested_tools": list(suggested_tools or []),
+        }
+
+    async def _consume_pending_route(
+        self,
+        state: ConversationState,
+        trace_id: str,
+    ) -> _PendingExecution | None:
+        """Execute the cached business route after verification passes.
+
+        This intentionally skips Chain B routing. It either reuses the exact
+        Rule A hit / SkillMatch selected before verification, or resumes the
+        long-tail answer path with the tools previously suggested by Route C.
+        """
+        cust = state.customer
+        pending = dict(cust.pending_route or {})
+        if not pending:
+            return None
+
+        cust.pending_route = {}
+        query = str(pending.get("query") or cust.pending_query or "").strip()
+        cust.pending_query = ""
+
+        try:
+            kind = pending.get("kind")
+            if kind == "route_a":
+                return await self._execute_pending_route_a(state, query, pending, trace_id)
+            if kind == "route_b":
+                match_payload = pending.get("skill_match") or {}
+                skill_match = SkillMatch(**match_payload)
+                return await self._execute_route_b_from_match(
+                    state, query, skill_match, str(pending.get("domain") or ""), trace_id,
+                )
+            if kind == "route_c":
+                response = await self._execute_route_c(state, query, trace_id)
+                return _PendingExecution(response=response, tools_called=response.tools_called)
+        except Exception as exc:
+            logger.error("pending verified route execution failed: %s", exc, exc_info=True)
+            return _PendingExecution(
+                response=self._build_fallback(state, trace_id, "route_pending"),
+            )
+
+        logger.warning("unknown pending route kind: %s", pending.get("kind"))
+        return _PendingExecution(
+            response=self._build_fallback(state, trace_id, "route_pending"),
+        )
+
+    async def _execute_pending_route_a(
+        self,
+        state: ConversationState,
+        query: str,
+        pending: dict[str, Any],
+        trace_id: str,
+    ) -> _PendingExecution:
+        skill_id = str(pending.get("skill_id") or "")
+        skill = self.skill_loader.get_skill(skill_id)
+        if skill is None:
+            response = await self._execute_route_c(state, query, trace_id)
+            return _PendingExecution(response=response, tools_called=response.tools_called)
+
+        variant = str(pending.get("template_variant") or "first_contact")
+        if state.customer.verified and variant == "first_contact" and "follow_up" in skill.templates:
+            variant = "follow_up"
+
+        rule_match = RuleMatchResult(
+            rule_id=str(pending.get("rule_id") or ""),
+            skill_id=skill_id,
+            skill=skill,
+            template_variant=variant,
+            tools_needed=list(pending.get("tools_needed") or skill.get_required_tools()),
+            confidence=float(pending.get("confidence", 1.0) or 1.0),
+        )
+        response = await self._execute_route_a(state, query, rule_match, trace_id)
+        return _PendingExecution(
+            response=response,
+            skill_id=rule_match.skill_id,
+            domain=skill.domain,
+            tools_called=response.tools_called,
+        )
+
+    async def _execute_route_b_from_match(
+        self,
+        state: ConversationState,
+        query: str,
+        skill_match: SkillMatch,
+        domain: str,
+        trace_id: str,
+    ) -> _PendingExecution:
+        """Execute Route B from an already selected SkillMatch."""
+        skill = self.skill_loader.get_skill(skill_match.skill_id)
+        if skill is None:
+            response = await self._execute_route_c(state, query, trace_id)
+            return _PendingExecution(response=response, tools_called=response.tools_called)
+
+        value_added_context = self._retrieve_value_added_knowledge(skill, query)
+        skip_identity_for_unmatched_value_added = (
+            value_added_context.get("slots", {}).get("value_added_match_status")
+            == "unmatched"
+        )
+
+        if (
+            state.customer.verified
+            and skill_match.template_variant == "first_contact"
+            and "follow_up" in skill.templates
+        ):
+            skill_match.template_variant = "follow_up"
+
+        try:
+            if skill_match.extracted_slots:
+                self.ctx.state_mgr.update_slots(state, skill_match.extracted_slots)
+
+            if skip_identity_for_unmatched_value_added:
+                tools_needed = []
+            elif not state.customer.verified and not self._skill_requires_identity(skill, query):
+                tools_needed = []
+            else:
+                tools_needed = skill_match.tools_needed or skill.get_required_tools()
+            tool_results, tools_called = await self._execute_tools(state, tools_needed)
+
+            audit_domain = skill.domain or domain
+            if skip_identity_for_unmatched_value_added:
+                audit = ConfidenceAuditResult(
+                    score=max(skill_match.confidence, 0.5),
+                    passed=True,
+                    reasons=["value_added_unmatched_clarification"],
+                )
+            else:
+                audit = self.auditor.audit(
+                    skill_match, skill, state, audit_domain, tool_results, query,
+                )
+
+            if not audit.passed:
+                logger.info(
+                    "Audit failed (score=%.2f, reasons=%s), falling through to Chain C",
+                    audit.score, audit.reasons,
+                )
+                response = await self._execute_route_c(state, query, trace_id)
+                return _PendingExecution(response=response, tools_called=response.tools_called)
+
+            merged_slots = dict(state.slots)
+            for tool_name, result in (tool_results or {}).items():
+                if isinstance(result, dict):
+                    merged_slots.update(result)
+            merged_slots.update(value_added_context.get("slots", {}))
+            matched_variant, hint_branches = select_branch_variant(
+                skill.branch_conditions, merged_slots,
+            )
+            effective_variant = skill_match.template_variant
+            if matched_variant and matched_variant in skill.templates:
+                effective_variant = matched_variant
+
+            recent_text = self.ctx.window.format_for_prompt(state, n_turns=3)
+            gen_result = await self.generator.generate(
+                skill, effective_variant, tool_results,
+                state, recent_text, state.summary,
+                branch_hints=hint_branches,
+                supplemental_context=value_added_context.get("prompt_text", ""),
+            )
+
+            comp = self.compliance.check(
+                gen_result.get("answer", ""),
+                state,
+                skill=skill,
+            )
+
+            if comp.need_handoff:
+                response = CopilotResponse(
+                    output_type="handoff",
+                    answer="您的问题需要人工专员处理，正在为您转接，请稍候。",
+                    route="route_b",
+                    matched_skill_id=skill_match.skill_id,
+                    matched_skill_name=skill.name,
+                    confidence=skill_match.confidence,
+                    trace_id=trace_id,
+                    compliance_passed=False,
+                    compliance_issues=comp.issues,
+                    tools_called=tools_called,
+                    rag_references=value_added_context.get("references", []),
+                    knowledge_matches=value_added_context.get("knowledge_matches", []),
+                )
+            else:
+                response = CopilotResponse(
+                    output_type="bot_reply",
+                    answer=comp.corrected_answer,
+                    next_step_hint=gen_result.get("next_step_hint", ""),
+                    route="route_b",
+                    matched_skill_id=skill_match.skill_id,
+                    matched_skill_name=skill.name,
+                    confidence=skill_match.confidence,
+                    trace_id=trace_id,
+                    compliance_passed=comp.passed,
+                    compliance_issues=comp.issues,
+                    tools_called=tools_called,
+                    rag_references=value_added_context.get("references", []),
+                    knowledge_matches=value_added_context.get("knowledge_matches", []),
+                )
+
+            if (
+                response.output_type == "bot_reply"
+                and self.settings.ENABLE_INTENT_STICKY
+                and not self.ctx.has_slot_progress(
+                    state, tool_results=tool_results, tools_called=tools_called,
+                )
+            ):
+                ratio = self.ctx.duplicate_ratio(response.answer, state.last_agent_reply)
+                if ratio >= self.ctx.dialogue.duplicate_threshold:
+                    response = self._build_closing_reply(
+                        state, trace_id,
+                        skill_id=skill_match.skill_id,
+                        skill_name=skill.name,
+                    )
+
+            return _PendingExecution(
+                response=response,
+                skill_id=self._intent_skill_for(state, skill_match.skill_id, audit_domain),
+                domain=self._intent_domain_for(state, audit_domain),
+                new_slots=skill_match.extracted_slots,
+                tools_called=tools_called,
+            )
+        except Exception as exc:
+            logger.error("Cached Chain B execution failed: %s", exc, exc_info=True)
+            return _PendingExecution(
+                response=self._build_fallback(
+                    state, trace_id, "route_b", skill_id=skill_match.skill_id,
+                )
+            )
+
+    @staticmethod
+    def _merge_verified_business_response(
+        state: ConversationState,
+        response: CopilotResponse,
+    ) -> CopilotResponse:
+        prefix = f"{state.customer.name_masked or '您'}，身份核实通过。"
+        answer = (response.answer or "").strip()
+        if answer and not answer.startswith(prefix):
+            response.answer = f"{prefix}\n\n{answer}"
+        elif not answer:
+            response.answer = prefix
+        return response
+
+    # ==================================================================
     # Identity Verification (核身)
     # ==================================================================
 
@@ -892,12 +1088,14 @@ class Orchestrator:
         query: str,
         trace_id: str,
         pending_skill: str | None = None,
+        pending_route: dict[str, Any] | None = None,
     ) -> CopilotResponse | None:
         """Initiate identity verification flow. Save original query for later."""
         cust = state.customer
 
         if cust.verification_step == "not_started":
             cust.pending_query = query  # remember the business question
+            cust.pending_route = pending_route or {}
             cust.verification_step = "asking_name"
             return CopilotResponse(
                 output_type="followup",
@@ -972,6 +1170,7 @@ class Orchestrator:
             cust.collected_id_last4 = ""
             cust.candidate_customer_ids = []
             cust.pending_query = ""
+            cust.pending_route = {}
             return CopilotResponse(
                 output_type="followup",
                 answer="好的，已跳过身份核实。未核身状态下仅能咨询通用问题，涉及账户信息的查询需要先完成核身。请问有什么可以帮您的？",

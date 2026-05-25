@@ -194,6 +194,7 @@ async def inject_customer(session_id: str, req: InjectCustomerRequest) -> dict[s
     state.customer.verification_attempts = 0
     state.customer.candidate_customer_ids = []
     state.customer.pending_query = ""
+    state.customer.pending_route = {}
     state.customer.name_masked = str(profile.get("customer_name") or "")
     state.customer.phone_masked = str(profile.get("phone") or profile.get("phone_masked") or "")
     id_last4 = str(profile.get("id_last4") or "")

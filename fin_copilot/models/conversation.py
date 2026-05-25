@@ -29,6 +29,7 @@ class CustomerInfo(BaseModel):
     collected_id_last4: str = ""
     verification_attempts: int = 0
     pending_query: str = ""  # original business query to answer after verification
+    pending_route: dict[str, Any] = Field(default_factory=dict)  # routed business task waiting for verification
     candidate_customer_ids: list[str] = Field(default_factory=list)  # narrowed candidates during verification
 
 
