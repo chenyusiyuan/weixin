@@ -3,7 +3,7 @@ Tool handler: query_ticket
 Returns existing tickets for a customer.
 """
 
-from tools.mock_data import TICKETS, DEFAULT_CUSTOMER_ID
+from tools.demo_data_access import customer_id_from_state, list_customer_payloads
 
 
 async def query_ticket(state: dict) -> dict:
@@ -16,11 +16,7 @@ async def query_ticket(state: dict) -> dict:
     Returns:
         Dict with ticket list and total count.
     """
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
-    tickets: list[dict] = TICKETS.get(customer_id, [])
-    return {
-        "tickets": [dict(t) for t in tickets],
-        "total_count": len(tickets),
-    }
+    customer_id = customer_id_from_state(state)
+    result = list_customer_payloads("tickets", customer_id, "tickets")
+    result.pop("customer_id", None)
+    return result

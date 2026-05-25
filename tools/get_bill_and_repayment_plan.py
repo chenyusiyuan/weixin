@@ -3,7 +3,7 @@ Tool handler: get_bill_and_repayment_plan
 Returns current bill details, overdue info, and repayment schedule.
 """
 
-from tools.mock_data import BILLS, DEFAULT_CUSTOMER_ID
+from tools.demo_data_access import customer_id_from_state, get_customer_payload
 
 
 async def get_bill_and_repayment_plan(state: dict) -> dict:
@@ -16,8 +16,5 @@ async def get_bill_and_repayment_plan(state: dict) -> dict:
     Returns:
         Bill details including overdue info, fee breakdown, and deduction records.
     """
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
-    bill = BILLS.get(customer_id, BILLS[DEFAULT_CUSTOMER_ID])
-    return dict(bill)
+    customer_id = customer_id_from_state(state)
+    return get_customer_payload("bills", customer_id)

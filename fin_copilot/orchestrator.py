@@ -32,7 +32,7 @@ if str(_project_root) not in sys.path:
 
 from tools.executor import execute_tools  # noqa: E402
 from tools.registry import WRITE_TOOLS  # noqa: E402
-from tools.mock_data import VERIFICATION_DB  # noqa: E402
+from fin_copilot.demo.verification import get_verification_db  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ class Orchestrator:
         # Proactive verification gate — fires on *every* turn so that a
         # user who volunteers 「名+手机+身份证后四位」 in any utterance gets
         # verified immediately, even if the step machine said not_started.
-        # Matches VERIFICATION_DB via _match_verification_payload.
+        # Matches demo verification data via _match_verification_payload.
         # ----------------------------------------------------------
         if not state.customer.verified:
             one_shot_cid = self._match_verification_payload(query)
@@ -991,9 +991,9 @@ class Orchestrator:
                     route="route_a", confidence=1.0, trace_id=trace_id,
                 )
 
-            # Immediately match name against VERIFICATION_DB
+            # Immediately match name against demo verification data
             candidates = []
-            for cid, vdata in VERIFICATION_DB.items():
+            for cid, vdata in get_verification_db().items():
                 if (name == vdata["real_name"]
                         or name in vdata["real_name"]
                         or vdata["real_name"] in name):
@@ -1037,7 +1037,7 @@ class Orchestrator:
             # Verify phone against remaining candidates
             narrowed = []
             for cid in cust.candidate_customer_ids:
-                if VERIFICATION_DB[cid]["phone"] == phone:
+                if get_verification_db()[cid]["phone"] == phone:
                     narrowed.append(cid)
 
             if not narrowed:
@@ -1060,10 +1060,9 @@ class Orchestrator:
             cust.collected_phone = phone
             cust.candidate_customer_ids = narrowed
             cust.verification_step = "asking_id"
-            masked_phone = phone[:3] + "****" + phone[-4:]
             return CopilotResponse(
                 output_type="followup",
-                answer=f"手机号 {masked_phone} 核实通过。最后请提供您身份证号的后四位。",
+                answer=f"手机号 {phone} 核实通过。最后请提供您身份证号的后四位。",
                 next_step_hint="等待客户提供身份证后四位",
                 route="route_a", confidence=1.0, trace_id=trace_id,
             )
@@ -1080,7 +1079,7 @@ class Orchestrator:
             # Verify against remaining candidates
             matched_cid = None
             for cid in cust.candidate_customer_ids:
-                if VERIFICATION_DB[cid]["id_last4"] == id_last4:
+                if get_verification_db()[cid]["id_last4"] == id_last4:
                     matched_cid = cid
                     break
 
@@ -1136,7 +1135,7 @@ class Orchestrator:
             return None
 
         phone = phone_match.group()
-        for cid, vdata in VERIFICATION_DB.items():
+        for cid, vdata in get_verification_db().items():
             if (
                 vdata["real_name"] in query
                 and vdata["phone"] == phone
@@ -1149,7 +1148,7 @@ class Orchestrator:
     def _strip_identity_payload(query: str, matched_cid: str) -> str:
         """Remove the identity tokens from a query that also carried business intent."""
         import re
-        vdata = VERIFICATION_DB.get(matched_cid) or {}
+        vdata = get_verification_db().get(matched_cid) or {}
         residual = query
         # Strip name, phone, and id4
         name = vdata.get("real_name", "")
@@ -1177,7 +1176,7 @@ class Orchestrator:
     ) -> CopilotResponse:
         """Complete verification and set customer context."""
         cust = state.customer
-        vdata = VERIFICATION_DB[matched_cid]
+        vdata = get_verification_db()[matched_cid]
 
         cust.verified = True
         cust.verification_level = "full"
@@ -1187,13 +1186,14 @@ class Orchestrator:
         cust.candidate_customer_ids = []
 
         name = vdata["real_name"]
-        cust.name_masked = name[0] + "*" + name[-1] if len(name) >= 3 else name[0] + "*"
+        cust.name_masked = name
         phone = vdata["phone"]
-        cust.phone_masked = phone[:3] + "****" + phone[-4:]
+        cust.phone_masked = phone
         cust.id_last4 = vdata["id_last4"]
 
         self.ctx.state_mgr.update_slots(state, {
             "customer_name": cust.name_masked,
+            "phone": cust.phone_masked,
             "phone_masked": cust.phone_masked,
             "id_last4": cust.id_last4,
         })

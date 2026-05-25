@@ -93,6 +93,10 @@ class LongtailReasoner:
             if answer:
                 return answer
 
+        tool_answer = self._tool_result_fallback(query, tool_results or {}, suggested_tools)
+        if tool_answer:
+            return tool_answer
+
         # Fallback: safe response
         return self._safe_fallback(query, suggested_tools)
 
@@ -200,6 +204,69 @@ class LongtailReasoner:
             "rag_references": [],
             "tools_called": tools_called,
         }
+
+    @staticmethod
+    def _tool_result_fallback(
+        query: str,
+        tool_results: dict[str, Any],
+        suggested_tools: list[str],
+    ) -> dict[str, Any] | None:
+        """Build deterministic replies from high-confidence tool fields."""
+        duration_markers = ("逾期多久", "逾期多长时间", "多少天", "逾期天数")
+        if not any(marker in query for marker in duration_markers):
+            return None
+
+        bill = tool_results.get("get_bill_and_repayment_plan")
+        loan = tool_results.get("get_loan_service_info")
+        profile = tool_results.get("get_customer_profile")
+        if not isinstance(bill, dict):
+            bill = {}
+        if not isinstance(loan, dict):
+            loan = {}
+        if not isinstance(profile, dict):
+            profile = {}
+
+        overdue_days = bill.get("overdue_days")
+        if overdue_days is None:
+            overdue_days = LongtailReasoner._loan_overdue_days(loan)
+        if overdue_days is None:
+            return None
+
+        customer_name = str(profile.get("customer_name") or "").strip()
+        prefix = f"{customer_name}您好，" if customer_name else "您好，"
+        overdue_amount = bill.get("overdue_amount")
+        answer = f"{prefix}查询到您当前账单逾期 {LongtailReasoner._format_number(overdue_days)} 天"
+        if overdue_amount not in (None, ""):
+            answer += f"，逾期金额 {LongtailReasoner._format_number(overdue_amount)} 元"
+        answer += "。以上信息仅供参考，具体以业务确认为准"
+
+        return {
+            "answer": answer,
+            "next_step_hint": "已根据账单还款信息回答逾期时长",
+            "warning": "⚠️ 该回答无SOP覆盖，请坐席核实后使用",
+            "rag_references": [],
+            "tools_called": suggested_tools,
+        }
+
+    @staticmethod
+    def _loan_overdue_days(loan: dict[str, Any]) -> Any:
+        details = loan.get("loans_detail")
+        if not isinstance(details, list):
+            return None
+        overdue_values = [
+            item.get("overdue_days")
+            for item in details
+            if isinstance(item, dict) and item.get("overdue_days") is not None
+        ]
+        if not overdue_values:
+            return None
+        return max(overdue_values)
+
+    @staticmethod
+    def _format_number(value: Any) -> str:
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+        return str(value)
 
     @staticmethod
     def _safe_fallback(query: str, suggested_tools: list[str]) -> dict[str, Any]:

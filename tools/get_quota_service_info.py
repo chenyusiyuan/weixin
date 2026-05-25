@@ -3,7 +3,7 @@ Tool handler: get_quota_service_info
 Returns credit quota breakdown and assessment result.
 """
 
-from tools.mock_data import QUOTAS, DEFAULT_CUSTOMER_ID
+from tools.demo_data_access import customer_id_from_state, get_customer_payload
 
 
 async def get_quota_service_info(state: dict) -> dict:
@@ -16,8 +16,5 @@ async def get_quota_service_info(state: dict) -> dict:
     Returns:
         Quota details including total, available, used amounts and assessment.
     """
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
-    quota = QUOTAS.get(customer_id, QUOTAS[DEFAULT_CUSTOMER_ID])
-    return dict(quota)
+    customer_id = customer_id_from_state(state)
+    return get_customer_payload("quotas", customer_id)

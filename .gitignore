@@ -25,6 +25,8 @@ tests/merged_turn_filter/*
 nohup.out
 /tmp/*.json
 /tmp/*.log
+demo_data/*.sqlite3
+demo_data/*.sqlite3-*
 
 # local tooling state (Claude Code / OMC / OMX)
 .claude/

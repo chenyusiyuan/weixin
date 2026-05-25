@@ -3,7 +3,7 @@ Tool handler: get_membership_service_info
 Returns membership status, type, privileges, and cancellation eligibility.
 """
 
-from tools.mock_data import MEMBERSHIPS, DEFAULT_CUSTOMER_ID
+from tools.demo_data_access import customer_id_from_state, get_customer_payload
 
 
 async def get_membership_service_info(state: dict) -> dict:
@@ -16,8 +16,5 @@ async def get_membership_service_info(state: dict) -> dict:
     Returns:
         Membership details including status, privileges, and refund eligibility.
     """
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
-    membership = MEMBERSHIPS.get(customer_id, MEMBERSHIPS[DEFAULT_CUSTOMER_ID])
-    return dict(membership)
+    customer_id = customer_id_from_state(state)
+    return get_customer_payload("memberships", customer_id)

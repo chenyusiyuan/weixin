@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>金融客服坐席 Demo</title>
+    <link rel="stylesheet" href="/demo-assets/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">W</div>
+          <div>
+            <h1>坐席 Demo</h1>
+            <p>话术推荐工作台</p>
+          </div>
+        </div>
+        <div class="view-switch">
+          <button id="chatViewBtn" class="active" type="button">对话</button>
+          <button id="adminViewBtn" type="button">数据后台</button>
+        </div>
+        <button id="newSessionBtn" class="primary wide" type="button">新增对话</button>
+        <div class="sidebar-title">对话历史</div>
+        <div id="sessionList" class="session-list"></div>
+      </aside>
+
+      <main id="chatView" class="chat-layout">
+        <section class="chat-main">
+          <header class="topbar">
+            <div>
+              <h2 id="sessionTitle">新对话</h2>
+              <p id="sessionSub">保留真实核身流程，也可一键注入客户</p>
+            </div>
+            <div class="topbar-actions">
+              <label class="model-control">模型
+                <select id="llmProfileSelect"></select>
+              </label>
+              <div class="customer-actions">
+                <button data-customer="C100" type="button">注入 C100</button>
+                <button data-customer="C101" type="button">注入 C101</button>
+                <button data-customer="C102" type="button">注入 C102</button>
+              </div>
+            </div>
+          </header>
+          <div id="healthStrip" class="health-strip"></div>
+          <div id="messages" class="messages"></div>
+          <form id="chatForm" class="composer">
+            <textarea id="chatInput" placeholder="输入客户原话，例如：我想协商还款" rows="2"></textarea>
+            <button class="primary" type="submit">发送</button>
+          </form>
+        </section>
+
+        <aside class="inspector">
+          <div class="panel-head">
+            <h3>客户信息</h3>
+            <button id="probeHealthBtn" type="button">刷新客户</button>
+          </div>
+          <div id="responseSummary" class="summary-grid"></div>
+          <div id="responseJson" class="customer-context"></div>
+        </aside>
+      </main>
+
+      <main id="adminView" class="admin-layout hidden">
+        <section class="admin-nav">
+          <h2>数据后台</h2>
+          <div id="resourceNav" class="resource-nav"></div>
+          <button id="resetDataBtn" class="danger subtle" type="button">重置 mock 数据</button>
+        </section>
+
+        <section class="admin-content">
+          <div class="admin-toolbar">
+            <div>
+              <h2 id="resourceTitle">客户人设</h2>
+              <p id="resourceHint">选择记录后可编辑 JSON 字段</p>
+            </div>
+            <div class="inline-controls">
+              <input id="ownerFilter" placeholder="按 customer_id 过滤" />
+              <button id="loadResourceBtn" type="button">刷新</button>
+              <button id="newRecordBtn" class="primary" type="button">新建记录</button>
+            </div>
+          </div>
+          <div class="data-workspace">
+            <div id="recordList" class="record-list"></div>
+            <div class="editor">
+              <div class="field-row">
+                <label>owner_id<input id="editOwner" /></label>
+                <label>record_id<input id="editRecordId" /></label>
+              </div>
+              <div id="quickFields" class="quick-fields"></div>
+              <label class="json-editor-label">完整 JSON</label>
+              <textarea id="payloadEditor" class="payload-editor"></textarea>
+              <div class="editor-actions">
+                <button id="saveRecordBtn" class="primary" type="button">保存</button>
+                <button id="deleteRecordBtn" class="danger" type="button">删除</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="/demo-assets/app.js"></script>
+  </body>
+</html>

@@ -1,9 +1,9 @@
 """
 Tool handler: get_customer_profile
-Returns masked customer identity and account status.
+Returns demo customer identity and account status.
 """
 
-from tools.mock_data import CUSTOMERS, DEFAULT_CUSTOMER_ID
+from tools.demo_data_access import customer_id_from_state, get_customer_payload
 
 
 async def get_customer_profile(state: dict) -> dict:
@@ -14,10 +14,7 @@ async def get_customer_profile(state: dict) -> dict:
         state: Pipeline state dict; may contain 'customer' with 'customer_id'.
 
     Returns:
-        Customer profile dict with masked PII fields.
+        Customer profile dict with full demo customer fields.
     """
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
-    profile = CUSTOMERS.get(customer_id, CUSTOMERS[DEFAULT_CUSTOMER_ID])
-    return dict(profile)
+    customer_id = customer_id_from_state(state)
+    return get_customer_payload("customers", customer_id)

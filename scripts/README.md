@@ -8,6 +8,7 @@
 |---|---|
 | `run_golden_full_eval.sh` | 旧单 query `raw_test.jsonl` 的 Exp1/Exp2/Exp3 总入口 |
 | `tests/eval/merged_multi_turn_skill_recall.py` | 当前多轮电话 call 级 TopK 评测 |
+| `run_multiturn_model_profiles.sh` | Flash/Pro 多轮评测命令矩阵，默认直接按映射表计分、不跑 LLM audit |
 | `eval_real_multiturn_branch_selection.py` | 多轮场景下 branch 选择诊断 |
 | `eval_real_query_branch_selection.py` | 单 query 场景下 branch 选择诊断 |
 | `eval_tool_flow_branch_selection.py` | mock tool flow 场景下 branch 选择诊断 |
@@ -35,4 +36,3 @@
 | `validate_skills.py` | 校验 Skill registry 和 YAML |
 | `build_value_added_text_blocks.py` | 构建增值服务文本知识块 |
 | `build_value_added_image_blocks.py` | 构建增值服务图片知识块 |
-

@@ -3,7 +3,7 @@ Tool handler: get_loan_service_info
 Returns loan status, disbursement progress, and contract details.
 """
 
-from tools.mock_data import LOANS, DEFAULT_CUSTOMER_ID
+from tools.demo_data_access import customer_id_from_state, get_customer_payload
 
 
 async def get_loan_service_info(state: dict) -> dict:
@@ -16,8 +16,5 @@ async def get_loan_service_info(state: dict) -> dict:
     Returns:
         Loan details including status, disbursement info, and product name.
     """
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
-    loan = LOANS.get(customer_id, LOANS[DEFAULT_CUSTOMER_ID])
-    return dict(loan)
+    customer_id = customer_id_from_state(state)
+    return get_customer_payload("loans", customer_id)

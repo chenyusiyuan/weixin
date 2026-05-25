@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 # Ensure project root is in sys.path for tools.* imports
 _project_root = Path(__file__).resolve().parent.parent
@@ -20,10 +22,13 @@ from fin_copilot.agents.longtail_reasoner import LongtailReasoner
 from fin_copilot.compliance.rule_checker import RuleComplianceChecker
 from fin_copilot.config import Settings, get_settings
 from fin_copilot.context.context_manager import ContextManager
+from fin_copilot.demo.store import get_demo_store
 from fin_copilot.knowledge.value_added import ValueAddedKnowledgeRetriever
 from fin_copilot.llm.client import LLMClient
+from fin_copilot.llm.profiles import load_llm_profiles
 from fin_copilot.orchestrator import Orchestrator
-from fin_copilot.routers.gateway import router, set_orchestrator
+from fin_copilot.routers.demo import router as demo_router
+from fin_copilot.routers.gateway import router, set_llm_client, set_orchestrator
 from fin_copilot.routing.domain_classifier import DomainClassifier
 from fin_copilot.routing.embedding_domain_classifier import EmbeddingDomainClassifier
 from fin_copilot.routing.rule_engine import RuleEngine
@@ -73,11 +78,14 @@ def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
                     exc,
                 )
 
+    llm_profiles, default_llm_profile_id = load_llm_profiles(settings)
     llm_client = LLMClient(
         base_url=settings.LLM_API_URL,
         api_key=settings.LLM_API_KEY,
         model=settings.LLM_MODEL,
         timeout=settings.LLM_TIMEOUT,
+        profiles=llm_profiles,
+        default_profile_id=default_llm_profile_id,
     )
 
     skill_router = SkillRouter(
@@ -134,11 +142,14 @@ _llm_client: LLMClient | None = None
 async def lifespan(app: FastAPI):
     global _llm_client
     settings = get_settings()
+    get_demo_store()
     orchestrator, _llm_client = build_orchestrator(settings)
     set_orchestrator(orchestrator)
+    set_llm_client(_llm_client)
     yield
     if _llm_client:
         await _llm_client.close()
+    set_llm_client(None)
 
 
 app = FastAPI(
@@ -148,3 +159,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(router)
+app.include_router(demo_router)
+
+_demo_static_dir = _project_root / "static" / "demo"
+app.mount("/demo-assets", StaticFiles(directory=str(_demo_static_dir)), name="demo-assets")
+
+
+@app.get("/demo", include_in_schema=False)
+async def demo_workspace():
+    return FileResponse(_demo_static_dir / "index.html")

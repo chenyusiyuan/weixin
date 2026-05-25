@@ -48,14 +48,8 @@
     },
     {
       "intent": "还款相关/存对公还款",
-      "skill_ids": [
-        "repayment_method_inquiry",
-        "repayment_status_issue",
-        "overpayment_refund",
-        "post_loan_verification",
-        "repayment_result_query"
-      ],
-      "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假、对公还款结果查询"
+      "skill_ids": ["repayment_method_inquiry", "repayment_status_issue", "overpayment_refund", "post_loan_verification"],
+      "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假；对公还款结果查询归入还款相关/还款咨询"
     },
     {
       "intent": "还款相关/聚合码还款问题",
@@ -96,24 +90,12 @@
         "value_added_service_inquiry",
         "light_card_cancel_refund"
       ],
-      "notes": "merged 中会员退费常混入会员、优享卡、轻享卡、权益月卡/增值服务等产品服务；skill 按咨询/取消/退费动作识别，具体产品由结构化知识召回命中"
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
     },
     {
       "intent": "营销活动/新活动咨询",
-      "skill_ids": [
-        "value_added_service_inquiry",
-        "cancel_value_added_service",
-        "refund_value_added_service",
-        "light_card_cancel_refund",
-        "stop_marketing",
-        "member_consultation",
-        "member_cancel",
-        "member_refund",
-        "premium_card_inquiry",
-        "premium_card_cancel",
-        "premium_card_refund"
-      ],
-      "notes": "merged 中新活动咨询按产品/活动粗标，实际 skill 按咨询、取消、退费、停止营销等动作识别；具体服务/产品名由增值服务结构化知识召回"
+      "skill_ids": ["value_added_service_inquiry", "stop_marketing", "member_consultation", "premium_card_inquiry"],
+      "notes": "merged 中新活动咨询保留活动/权益/产品服务咨询与停止营销；涉及取消、退费、退款、关闭续费的会员/优享卡/轻享卡/增值服务样本归入 营销活动/会员退费"
     },
     {
       "intent": "业务办理/账户注销",

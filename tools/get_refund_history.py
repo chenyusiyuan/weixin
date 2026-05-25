@@ -3,16 +3,9 @@
 Returns refund application records for the customer.
 """
 
-from tools.mock_data import DEFAULT_CUSTOMER_ID, REFUND_HISTORY
+from tools.demo_data_access import customer_id_from_state, list_customer_payloads
 
 
 async def get_refund_history(state: dict) -> dict:
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
-    records = REFUND_HISTORY.get(customer_id, REFUND_HISTORY[DEFAULT_CUSTOMER_ID])
-    return {
-        "customer_id": customer_id,
-        "refund_history": records,
-        "total_count": len(records),
-    }
+    customer_id = customer_id_from_state(state)
+    return list_customer_payloads("refund_history", customer_id, "refund_history")

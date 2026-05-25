@@ -3,12 +3,9 @@ Tool handler: submit_ticket
 Creates a new service ticket for a customer.
 """
 
-import asyncio
 import datetime
-from tools.mock_data import TICKETS, DEFAULT_CUSTOMER_ID
-import tools.mock_data as _mock_data
-
-_counter_lock = asyncio.Lock()
+from fin_copilot.demo.store import get_demo_store
+from tools.demo_data_access import customer_id_from_state
 
 
 async def submit_ticket(state: dict) -> dict:
@@ -25,19 +22,18 @@ async def submit_ticket(state: dict) -> dict:
     Returns:
         New ticket confirmation with ticket_id, status, and handling message.
     """
-    customer_id: str = (
-        state.get("customer", {}).get("customer_id") or DEFAULT_CUSTOMER_ID
-    )
+    customer_id = customer_id_from_state(state)
     slots: dict = state.get("slots", {})
     ticket_type: str = slots.get("ticket_type", "咨询")
     ticket_summary: str = slots.get("ticket_summary", "客户发起工单")
 
-    # Generate sequential ticket ID (thread-safe under concurrent async)
-    async with _counter_lock:
-        _mock_data._ticket_counter += 1
-        counter_val = _mock_data._ticket_counter
-    today = datetime.date.today().strftime("%Y%m%d")
-    ticket_id = f"TK{today}{counter_val:03d}"
+    try:
+        ticket_id = get_demo_store().next_ticket_id()
+    except Exception as exc:  # pragma: no cover - defensive runtime guard
+        return {
+            "status": "error",
+            "message": f"demo_store_unavailable: {exc}",
+        }
 
     new_ticket: dict = {
         "ticket_id": ticket_id,
@@ -47,8 +43,14 @@ async def submit_ticket(state: dict) -> dict:
         "summary": ticket_summary,
     }
 
-    # Persist to mock store
-    TICKETS.setdefault(customer_id, []).append(new_ticket)
+    try:
+        get_demo_store().upsert_record("tickets", customer_id, new_ticket, ticket_id)
+    except Exception as exc:  # pragma: no cover - defensive runtime guard
+        return {
+            "ticket_id": ticket_id,
+            "status": "error",
+            "message": f"demo_store_unavailable: {exc}",
+        }
 
     return {
         "ticket_id": ticket_id,

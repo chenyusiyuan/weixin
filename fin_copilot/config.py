@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     LLM_API_URL: str = "http://localhost:11434/v1"
     LLM_API_KEY: str = "ollama"
     LLM_MODEL: str = "qwen2.5:7b"
+    LLM_PROFILES_PATH: str = "config/llm_profiles.json"
 
     # Embedding (Chain C only)
     EMBED_API_URL: str = "http://localhost:11434/api/embed"
@@ -53,6 +54,7 @@ class Settings(BaseSettings):
 
     # Session
     SESSION_TTL_SECONDS: int = 3600
+    DEMO_DB_PATH: str = "demo_data/demo.sqlite3"
 
     # Multi-turn / dialogue state
     ENABLE_INTENT_STICKY: bool = True

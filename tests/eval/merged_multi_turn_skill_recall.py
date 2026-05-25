@@ -996,10 +996,13 @@ def build_metric_breakdown(
     direct_total = sum(row["score"] for row in call_scores)
     audited_total = sum(row["score"] for row in audited_call_scores)
 
-    non_audit_rows = [
-        row for row in call_scores
-        if not (set(row.get("gold_intents", [])) & audit_intents)
-    ]
+    non_audit_rows = (
+        [
+            row for row in call_scores
+            if not (set(row.get("gold_intents", [])) & audit_intents)
+        ]
+        if audit_intents else list(call_scores)
+    )
     non_audit_total = sum(row["score"] for row in non_audit_rows)
     non_audit_denominator = len(non_audit_rows)
 
@@ -1016,7 +1019,10 @@ def build_metric_breakdown(
             "denominator": denominator,
         },
         "non_one_to_many_accuracy": {
-            "scope": "calls_without_one_to_many_audit_intents",
+            "scope": (
+                "calls_without_one_to_many_audit_intents"
+                if audit_intents else "all_calls_audit_disabled"
+            ),
             "score_percent": round(non_audit_total / non_audit_denominator * 100.0, 4)
             if non_audit_denominator else 0.0,
             "total_score": round(non_audit_total, 6),
@@ -1113,7 +1119,10 @@ async def async_main(args: argparse.Namespace) -> int:
         str(settings.resolve_path(settings.SKILL_REGISTRY_PATH)),
     )
     intent_mapping = load_intent_mapping(args.intent_mapping, loader)
-    audit_intents = parse_audit_intents(args.audit_intents, intent_mapping)
+    audit_intents = (
+        parse_audit_intents(args.audit_intents, intent_mapping)
+        if args.llm_audit_one_to_many else set()
+    )
 
     start = time.time()
     query_predictions = await route_all(args, calls, out_dir)
@@ -1136,9 +1145,9 @@ async def async_main(args: argparse.Namespace) -> int:
     )
     if args.llm_audit_one_to_many and audit_intents:
         audited_call_scores = apply_audit_to_scores(call_scores, audit_decisions, audit_intents)
+        write_jsonl(out_dir / "call_scores_llm_audited.jsonl", audited_call_scores)
     else:
         audited_call_scores = list(call_scores)
-    write_jsonl(out_dir / "call_scores_llm_audited.jsonl", audited_call_scores)
 
     metric_breakdown = build_metric_breakdown(
         args=args,
@@ -1166,6 +1175,7 @@ async def async_main(args: argparse.Namespace) -> int:
     print("\n── Merged Multi-turn Skill Recall ──")
     print(f"Output dir: {out_dir}")
     print(f"Route mode: {args.route_mode}")
+    print(f"Intent mapping: {args.intent_mapping}")
     print(f"Calls with queries: {len(calls)}")
     print(f"Query predictions: {len(query_predictions)}")
     print(f"Score: {summary['score_percent']:.2f}%  ({summary['total_score']}/{summary['denominator']})")
@@ -1176,20 +1186,23 @@ async def async_main(args: argparse.Namespace) -> int:
         f"({metric_breakdown['direct_mapped_accuracy']['total_score']}/"
         f"{metric_breakdown['direct_mapped_accuracy']['denominator']})"
     )
-    print(
-        "  2) Non-one-to-many: "
-        f"{metric_breakdown['non_one_to_many_accuracy']['score_percent']:.2f}% "
-        f"({metric_breakdown['non_one_to_many_accuracy']['total_score']}/"
-        f"{metric_breakdown['non_one_to_many_accuracy']['denominator']})"
-    )
-    print(
-        "  3) LLM audited: "
-        f"{metric_breakdown['llm_audited_accuracy']['score_percent']:.2f}% "
-        f"({metric_breakdown['llm_audited_accuracy']['total_score']}/"
-        f"{metric_breakdown['llm_audited_accuracy']['denominator']}; "
-        f"accepted={metric_breakdown['llm_audited_accuracy']['audit_accepted']}, "
-        f"rejected={metric_breakdown['llm_audited_accuracy']['audit_rejected']})"
-    )
+    if metric_breakdown["llm_audited_accuracy"]["enabled"]:
+        print(
+            "  2) Non-one-to-many: "
+            f"{metric_breakdown['non_one_to_many_accuracy']['score_percent']:.2f}% "
+            f"({metric_breakdown['non_one_to_many_accuracy']['total_score']}/"
+            f"{metric_breakdown['non_one_to_many_accuracy']['denominator']})"
+        )
+        print(
+            "  3) LLM audited: "
+            f"{metric_breakdown['llm_audited_accuracy']['score_percent']:.2f}% "
+            f"({metric_breakdown['llm_audited_accuracy']['total_score']}/"
+            f"{metric_breakdown['llm_audited_accuracy']['denominator']}; "
+            f"accepted={metric_breakdown['llm_audited_accuracy']['audit_accepted']}, "
+            f"rejected={metric_breakdown['llm_audited_accuracy']['audit_rejected']})"
+        )
+    else:
+        print("  2) LLM audited: disabled (using intent mapping directly)")
     print(f"Score over calls-with-queries: {summary['score_percent_over_calls_with_queries']:.2f}%")
     print(f"Full-score calls: {summary['full_score_calls']}; zero-score calls: {summary['zero_score_calls']}")
     print(f"Router errors: {summary['router_errors']}")
@@ -1212,8 +1225,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--llm-audit-one-to-many",
         action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Use LLM to audit mapped hits for configured one-to-many intent categories.",
+        default=False,
+        help=(
+            "Optionally use LLM to audit mapped hits for configured one-to-many "
+            "intent categories. Default is disabled because the intent mapping "
+            "file is the scoring source of truth."
+        ),
     )
     parser.add_argument(
         "--audit-intents",

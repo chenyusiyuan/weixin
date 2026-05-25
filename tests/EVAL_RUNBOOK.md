@@ -45,8 +45,10 @@ python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --limit
 - 每通电话有 `K = len(gold_intents)` 个小结标注。
 - 对该电话的每条客户 query 路由出一个 skill。
 - 聚合一通电话内出现次数最多的 TopK skill。
+- `gold_intents` 通过 `scripts/references/merged_intent_skill_mapping.json` 映射到一个或多个可接受 skill。
 - 如果 gold 的 K 个意图中命中 N 个，则该通电话得分为 `N / K`。
 - 总准确率为所有电话得分求和后除以样本数。
+- 默认直接按映射表计分，不再跑 LLM audit；如需额外复核一对多映射命中，可显式加 `--llm-audit-one-to-many`。
 
 当前映射重算口径：
 
