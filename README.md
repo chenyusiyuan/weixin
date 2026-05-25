@@ -14,6 +14,9 @@
 | 小结类别与 SOP/skill 错配审计 | `docs/小结标注_sop映射错配审计.md` |
 | Skill-based 方案原始说明 | `docs/skill-based方案.md` |
 | 当前项目说明长文档 | `docs/项目说明文档.md` |
+| 前后端 Demo 工作台 | `fin_copilot/main.py`、`static/demo/` |
+| LLM 模型配置 | `config/llm_profiles.json` |
+| golden 多模型批处理 | `run_golden_model_matrix.sh` |
 | 历史文档、旧报告、中间产物 | `archive/20260519_eval_chain_cleanup/` |
 
 ## 主链路
@@ -51,10 +54,11 @@ EmbeddingDomain TopK + SkillCos TopM + keyword/prior score
 
 ```text
 fin_copilot/
-├── main.py                         # FastAPI 应用入口与组件装配
+├── main.py                         # FastAPI 应用入口、组件装配、/demo 静态页挂载
 ├── orchestrator.py                 # 三链路主编排器
 ├── config.py                       # 路径、LLM、embedding、路由参数
 ├── routers/gateway.py              # /api/chat 网关
+├── routers/demo.py                 # /api/demo/* 工作台接口
 ├── context/                        # 滑动窗口、滚动摘要、结构化状态
 ├── routing/                        # 规则、域分类、embedding 域分类、skill router
 ├── skills/loader.py                # Skill YAML 加载
@@ -79,6 +83,11 @@ tools/
 ├── registry.py                      # 已注册 9 个 mock 业务工具
 ├── executor.py                      # 工具并行执行与缓存
 └── get_*.py                         # 账单、额度、会员、通话、短信、退款、停催等查询
+
+static/demo/
+├── index.html                       # 坐席工作台页面，由 FastAPI 直接服务
+├── app.js                           # 会话、模型、客户注入、数据后台交互
+└── styles.css                       # 工作台样式
 ```
 
 ## Skill 与 SOP
@@ -121,7 +130,7 @@ python3 -m pytest tests/unit/test_skill_schema.py
 | `get_stop_collection_history` | 停催记录 |
 | `get_refund_history` | 退款/退费记录 |
 
-## API 与本地运行
+## 前后端与本地运行
 
 安装依赖：
 
@@ -129,13 +138,15 @@ python3 -m pytest tests/unit/test_skill_schema.py
 pip install -r requirements.txt
 ```
 
-配置 `.env`：
+LLM 模型配置以 `config/llm_profiles.json` 为主。每个 profile 同时配置 `api_url`、`model`、`timeout`，API key 默认从 `.env` 的 `LLM_API_KEY` 读取；如果 profile 自己写了 `api_key`，则使用 profile 内配置。
+
+最小 `.env`：
 
 ```env
-LLM_API_URL=https://api.deepseek.com/v1
 LLM_API_KEY=your-api-key
-LLM_MODEL=deepseek-chat
 ```
+
+`LLM_API_URL` / `LLM_MODEL` / `LLM_TIMEOUT` 仍保留为兼容 fallback，但日常切模型应改 `config/llm_profiles.json` 或在请求/评测命令里传 profile id。
 
 启动服务：
 
@@ -143,15 +154,46 @@ LLM_MODEL=deepseek-chat
 uvicorn fin_copilot.main:app --host 0.0.0.0 --port 8000
 ```
 
-调用接口：
+后端入口：
+
+| 地址 | 用途 |
+|---|---|
+| `GET /api/health` | 基础健康检查 |
+| `POST /api/chat` | 生产式对话网关 |
+| `GET /demo` | 本地坐席 Demo 工作台 |
+| `GET /demo-assets/*` | Demo 前端静态资源 |
+| `GET /api/demo/health?probe=true` | Demo 健康检查，可探测 LLM/Embedding |
+| `GET /api/demo/llm-profiles` | 返回 `config/llm_profiles.json` 中可选模型 |
+| `POST /api/demo/chat/stream` | Demo 流式对话，返回 NDJSON 事件 |
+| `GET/POST/PUT/DELETE /api/demo/data/{resource}` | mock 数据后台 |
+| `GET /api/demo/tools`、`/skills`、`/rules` | 查看工具、skill、规则配置 |
+
+生产式调用示例：
 
 ```bash
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id": "s1", "user_text": "怎么对公还款"}'
+  -d '{
+    "session_id": "s1",
+    "user_text": "怎么对公还款",
+    "llm_profile_id": "deepseek-v4-flash"
+  }'
 ```
 
-CLI 演示：
+前端 Demo 不需要单独构建。启动 FastAPI 后浏览器打开：
+
+```text
+http://localhost:8000/demo
+```
+
+Demo 工作台能力：
+
+- 对话页：新建会话、选择模型、发送客户原话、查看 route / skill / tools / trace。
+- 模型选择：来自 `/api/demo/llm-profiles`；会话开始后模型会固定，避免同一通电话中途切模型。
+- 客户注入：可一键注入 `C100` / `C101` / `C102`，用于跳过真实核身、直接测试业务链路。
+- 数据后台：编辑 `customers`、账单、会员、额度、退款、停催等 mock 数据，并可重置为默认数据。
+
+CLI 手工演示：
 
 ```bash
 python3 -m fin_copilot.cli_demo
@@ -175,14 +217,22 @@ python3 -m fin_copilot.cli_demo
 主评测入口：
 
 ```bash
-python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --concurrency 8
+python3 tests/eval/merged_multi_turn_skill_recall.py \
+  --route-mode router \
+  --model deepseek-v4-flash \
+  --llm-timeout 120 \
+  --concurrency 8
 ```
 
 快速 smoke：
 
 ```bash
 python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode skill-cos --limit 20
-python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --limit 20
+python3 tests/eval/merged_multi_turn_skill_recall.py \
+  --route-mode router \
+  --model qwen3.6-flash \
+  --llm-timeout 120 \
+  --limit 20
 ```
 
 计分逻辑：
@@ -205,12 +255,67 @@ tests/reports/merged_multi_turn_after_corporate_repay_tuning_20260427/query_pred
 tests/reports/merged_mapping_recalc_from_previous_20260519/summary_after_empty_only_patch.json
 ```
 
+## Golden 模型批处理
+
+当前多轮 golden 批处理优先使用根目录脚本：
+
+```bash
+# 只打印每个模型的一行完整命令，不发起模型请求
+bash run_golden_model_matrix.sh
+
+# 跑单个模型
+LIMIT=20 bash run_golden_model_matrix.sh run qwen3.6-flash
+
+# 顺序跑 config/llm_profiles.json 里的全部模型
+bash run_golden_model_matrix.sh run-all
+```
+
+这个脚本中的每一行都显式传入：
+
+```text
+--model <config 中的 profile id 或 model 名>
+--llm-timeout <本次批处理 timeout>
+--concurrency <适合该模型批跑的并发>
+--no-llm-audit-one-to-many
+```
+
+输出目录默认是：
+
+```text
+tests/reports/golden_model_matrix_<timestamp>/<model>/
+```
+
+模型选择规则：
+
+- `--model` 会在 `config/llm_profiles.json` 里按 profile id 优先匹配，其次按 `model` 字段匹配。
+- 命中后使用同一个 profile 中的 `api_url`、`api_key`、`model`。
+- `--llm-timeout` 只覆盖本次 batch 的 timeout，不回写配置文件。
+- 未知模型会直接失败，并打印当前 config 中所有可用 profile。
+- route cache key 已包含 profile id、model、api_url、timeout，避免不同模型复用同一份预测缓存。
+
+DeepSeek 专用的历史 profile 脚本仍保留：
+
+```bash
+bash scripts/run_multiturn_model_profiles.sh
+bash scripts/run_multiturn_model_profiles.sh run flash_full_fast
+bash scripts/run_multiturn_model_profiles.sh run pro_safe
+```
+
+如果要跑旧单 query 的完整三阶段 wrapper，也可以传同样的模型参数：
+
+```bash
+MODEL=deepseek-v4-flash LLM_TIMEOUT=120 bash scripts/run_golden_full_eval.sh
+
+# 先看 Exp2/Exp3 实际命令，不消耗模型调用
+DRY_RUN=1 MODEL=deepseek-v4-flash LLM_TIMEOUT=120 bash scripts/run_golden_full_eval.sh
+```
+
 ## 旧单 query 评测
 
 旧评测入口仍保留，用于看单 query 的 L1/L2/L3 能力：
 
 ```bash
-bash scripts/run_golden_full_eval.sh
+MODEL=deepseek-v4-flash LLM_TIMEOUT=120 bash scripts/run_golden_full_eval.sh
 ```
 
 底层实验：
@@ -304,6 +409,7 @@ python3 scripts/validate_skills.py
 python3 -m pytest tests/unit/test_skill_schema.py tests/unit/test_value_added_knowledge.py
 python3 -m json.tool scripts/references/merged_intent_skill_mapping.json >/dev/null
 python3 tests/eval/merged_multi_turn_skill_recall.py --help
+bash -n run_golden_model_matrix.sh scripts/run_multiturn_model_profiles.sh
 bash -n scripts/run_golden_full_eval.sh
 ```
 

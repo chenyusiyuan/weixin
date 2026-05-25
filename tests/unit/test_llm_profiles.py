@@ -13,6 +13,7 @@ from fin_copilot.llm.profiles import (
     LLMProfile,
     load_llm_profiles,
     reset_active_llm_profile,
+    select_llm_profile,
     set_active_llm_profile,
 )
 
@@ -94,6 +95,72 @@ def test_load_llm_profiles_refreshes_env_api_key(tmp_path: Path):
     env_path.write_text("LLM_API_KEY=second-key\n", encoding="utf-8")
     profiles, _default_id = load_llm_profiles(_Settings(tmp_path))
     assert profiles[0].api_key == "second-key"
+
+
+def test_select_llm_profile_by_id_or_model_with_timeout_override(tmp_path: Path):
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "llm_profiles.json").write_text(
+        json.dumps(
+            {
+                "default_profile_id": "fast",
+                "profiles": [
+                    {
+                        "id": "fast",
+                        "api_url": "http://fast.local/v1",
+                        "api_key": "fast-key",
+                        "model": "fast-model",
+                        "timeout": 12,
+                    },
+                    {
+                        "id": "slow",
+                        "api_url": "http://slow.local/v1",
+                        "api_key": "slow-key",
+                        "model": "slow-model",
+                        "timeout": 30,
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    selected_by_id = select_llm_profile("slow", _Settings(tmp_path), timeout=90)
+    selected_by_model = select_llm_profile("fast-model", _Settings(tmp_path))
+    default = select_llm_profile(None, _Settings(tmp_path))
+
+    assert selected_by_id.id == "slow"
+    assert selected_by_id.model == "slow-model"
+    assert selected_by_id.timeout == 90
+    assert selected_by_model.id == "fast"
+    assert default.id == "fast"
+
+
+def test_select_llm_profile_unknown_model_fails_fast(tmp_path: Path):
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "llm_profiles.json").write_text(
+        json.dumps(
+            {
+                "profiles": [
+                    {
+                        "id": "known",
+                        "api_url": "http://known.local/v1",
+                        "model": "known-model",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    try:
+        select_llm_profile("missing", _Settings(tmp_path))
+    except ValueError as exc:
+        assert "unknown LLM profile/model" in str(exc)
+        assert "known(known-model)" in str(exc)
+    else:  # pragma: no cover
+        raise AssertionError("select_llm_profile should reject unknown models")
 
 
 def test_llm_client_uses_active_profile():

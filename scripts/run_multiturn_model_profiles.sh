@@ -2,6 +2,8 @@
 set -Eeuo pipefail
 
 # DeepSeek Flash / Pro multi-turn golden evaluation command matrix.
+# Models are selected through config/llm_profiles.json via --model, not by
+# overriding LLM_MODEL in the environment.
 #
 # Default behavior only prints commands:
 #   bash scripts/run_multiturn_model_profiles.sh
@@ -44,9 +46,10 @@ run_cmd() {
 
 profile_flash_probe() {
   run_cmd flash_probe \
-    env LLM_MODEL=deepseek-v4-flash LLM_TIMEOUT=60 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-flash \
+    --llm-timeout 60 \
     --limit "${LIMIT:-1}" \
     --concurrency 1 \
     --progress-every 1 \
@@ -57,9 +60,10 @@ profile_flash_probe() {
 
 profile_flash_smoke() {
   run_cmd flash_smoke \
-    env LLM_MODEL=deepseek-v4-flash LLM_TIMEOUT=60 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-flash \
+    --llm-timeout 60 \
     --limit "${LIMIT:-20}" \
     --concurrency 4 \
     --progress-every 5 \
@@ -69,9 +73,10 @@ profile_flash_smoke() {
 
 profile_flash_full() {
   run_cmd flash_full \
-    env LLM_MODEL=deepseek-v4-flash LLM_TIMEOUT=60 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-flash \
+    --llm-timeout 60 \
     --concurrency 4 \
     --progress-every 25 \
     --no-llm-audit-one-to-many \
@@ -80,9 +85,10 @@ profile_flash_full() {
 
 profile_flash_full_fast() {
   run_cmd flash_full_fast \
-    env LLM_MODEL=deepseek-v4-flash LLM_TIMEOUT=90 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-flash \
+    --llm-timeout 90 \
     --concurrency 8 \
     --progress-every 25 \
     --no-llm-audit-one-to-many \
@@ -91,9 +97,10 @@ profile_flash_full_fast() {
 
 profile_flash_route_only() {
   run_cmd flash_route_only \
-    env LLM_MODEL=deepseek-v4-flash LLM_TIMEOUT=60 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-flash \
+    --llm-timeout 60 \
     --concurrency 4 \
     --progress-every 25 \
     --no-llm-audit-one-to-many \
@@ -102,9 +109,10 @@ profile_flash_route_only() {
 
 profile_pro_probe() {
   run_cmd pro_probe \
-    env LLM_MODEL=deepseek-v4-pro LLM_TIMEOUT=180 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-pro \
+    --llm-timeout 180 \
     --limit "${LIMIT:-1}" \
     --concurrency 1 \
     --progress-every 1 \
@@ -115,9 +123,10 @@ profile_pro_probe() {
 
 profile_pro_smoke() {
   run_cmd pro_smoke \
-    env LLM_MODEL=deepseek-v4-pro LLM_TIMEOUT=180 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-pro \
+    --llm-timeout 180 \
     --limit "${LIMIT:-20}" \
     --concurrency 1 \
     --progress-every 1 \
@@ -127,9 +136,10 @@ profile_pro_smoke() {
 
 profile_pro_safe() {
   run_cmd pro_safe \
-    env LLM_MODEL=deepseek-v4-pro LLM_TIMEOUT=180 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-pro \
+    --llm-timeout 180 \
     --concurrency 1 \
     --progress-every 10 \
     --no-llm-audit-one-to-many \
@@ -138,9 +148,10 @@ profile_pro_safe() {
 
 profile_pro_route_only() {
   run_cmd pro_route_only \
-    env LLM_MODEL=deepseek-v4-pro LLM_TIMEOUT=180 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-pro \
+    --llm-timeout 180 \
     --concurrency 1 \
     --progress-every 10 \
     --no-llm-audit-one-to-many \
@@ -149,9 +160,10 @@ profile_pro_route_only() {
 
 profile_pro_parallel_risky() {
   run_cmd pro_parallel_risky \
-    env LLM_MODEL=deepseek-v4-pro LLM_TIMEOUT=240 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-pro \
+    --llm-timeout 240 \
     --concurrency 2 \
     --progress-every 10 \
     --no-llm-audit-one-to-many \
@@ -160,9 +172,10 @@ profile_pro_parallel_risky() {
 
 profile_flash_full_with_audit() {
   run_cmd flash_full_with_audit \
-    env LLM_MODEL=deepseek-v4-flash LLM_TIMEOUT=90 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-flash \
+    --llm-timeout 90 \
     --concurrency 4 \
     --progress-every 25 \
     --llm-audit-one-to-many \
@@ -172,9 +185,10 @@ profile_flash_full_with_audit() {
 
 profile_pro_safe_with_audit() {
   run_cmd pro_safe_with_audit \
-    env LLM_MODEL=deepseek-v4-pro LLM_TIMEOUT=240 \
     "$PYTHON_BIN" "$EVAL_SCRIPT" \
     --route-mode router \
+    --model deepseek-v4-pro \
+    --llm-timeout 240 \
     --concurrency 1 \
     --progress-every 10 \
     --llm-audit-one-to-many \

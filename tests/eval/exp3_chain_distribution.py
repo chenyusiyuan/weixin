@@ -37,6 +37,7 @@ if str(_project_root) not in sys.path:
     sys.path.insert(0, str(_project_root))
 
 from fin_copilot.config import get_settings  # noqa: E402
+from fin_copilot.llm.profiles import select_llm_profile  # noqa: E402
 from fin_copilot.main import build_orchestrator  # noqa: E402
 
 
@@ -128,14 +129,23 @@ async def run_one(orch, idx: int, rec: dict, *, verified: bool = True) -> dict |
     }
 
 
-async def run_eval(args) -> None:
+async def run_eval(args) -> int:
+    settings = get_settings()
+    try:
+        llm_profile = select_llm_profile(args.model, settings, timeout=args.llm_timeout)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
     records = load_records(args.source)
     if args.limit:
         records = records[: args.limit]
     print(f"[exp3] loaded {len(records)} records from source={args.source}")
-
-    settings = get_settings()
-    orch, llm_client = build_orchestrator(settings)
+    print(
+        f"[exp3] LLM profile: {llm_profile.id}  model={llm_profile.model}  "
+        f"url={llm_profile.api_url}  timeout={llm_profile.timeout:g}s"
+    )
+    orch, llm_client = build_orchestrator(settings, llm_profile=llm_profile)
 
     sem = asyncio.Semaphore(args.concurrency)
     results: list[dict] = []
@@ -160,6 +170,7 @@ async def run_eval(args) -> None:
         print(f"[exp3] wrote per-record JSON → {args.json}")
 
     print_report(results, args.source)
+    return 0
 
 
 def print_report(results: list[dict], source: str) -> None:
@@ -229,6 +240,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--limit", type=int, default=0,
                    help="truncate to first N records (0 = all)")
     p.add_argument("--concurrency", type=int, default=10)
+    p.add_argument("--model", "--llm-profile", dest="model", default=None,
+                   help="LLM profile id or model name from config/llm_profiles.json")
+    p.add_argument("--llm-timeout", type=float, default=None,
+                   help="override selected profile timeout for this batch run")
     p.add_argument("--json", default="", help="per-record JSON output path")
     p.add_argument("--pre-verified", action="store_true", default=True,
                    help="pre-seed each session as verified (default on)")
@@ -238,4 +253,4 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    asyncio.run(run_eval(parse_args()))
+    raise SystemExit(asyncio.run(run_eval(parse_args())))

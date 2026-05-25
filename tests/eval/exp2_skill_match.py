@@ -36,6 +36,7 @@ if str(ROOT) not in sys.path:
 
 from fin_copilot.config import get_settings  # noqa: E402
 from fin_copilot.llm.client import LLMClient  # noqa: E402
+from fin_copilot.llm.profiles import select_llm_profile  # noqa: E402
 from fin_copilot.models.conversation import ConversationState, CustomerInfo, IntentState  # noqa: E402
 from fin_copilot.routing.domain_classifier import DomainClassifier  # noqa: E402
 from fin_copilot.routing.embedding_domain_classifier import EmbeddingDomainClassifier  # noqa: E402
@@ -137,8 +138,15 @@ async def run(
     prior_skill_weight: float,
     prior_domain_weight: float,
     prior_keyword_weight: float,
+    llm_model: str | None,
+    llm_timeout: float | None,
 ) -> int:
     settings = get_settings()
+    try:
+        llm_profile = select_llm_profile(llm_model, settings, timeout=llm_timeout)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
     skill_gold = load_skill_gold()
 
     loader = SkillLoader(
@@ -146,10 +154,12 @@ async def run(
         str(settings.resolve_path(settings.SKILL_REGISTRY_PATH)),
     )
     llm_client = LLMClient(
-        base_url=settings.LLM_API_URL,
-        api_key=settings.LLM_API_KEY,
-        model=settings.LLM_MODEL,
-        timeout=settings.LLM_TIMEOUT,
+        base_url=llm_profile.api_url,
+        api_key=llm_profile.api_key,
+        model=llm_profile.model,
+        timeout=llm_profile.timeout,
+        profiles=[llm_profile],
+        default_profile_id=llm_profile.id,
     )
     retriever = FewShotRetriever() if use_fewshot else None
     router = SkillRouter(
@@ -378,6 +388,10 @@ async def run(
                 "candidate_priors": candidate_priors,
             })
 
+    print(
+        f"LLM profile: {llm_profile.id}  model={llm_profile.model}  "
+        f"url={llm_profile.api_url}  timeout={llm_profile.timeout:g}s"
+    )
     print(f"Prepared {len(pending)} records. Dispatching router with concurrency={router_concurrency}.")
     if classifier_kind == "embed":
         print(f"Embed cache: hits={cache_hits}, misses={cache_misses}")
@@ -525,6 +539,7 @@ async def run(
                 "extract": extract_mode,
                 "first_n": first_n,
                 "limit": limit,
+                "llm_profile": llm_profile.public_dict(),
                 "multi_domain_k": multi_domain_k,
                 "skill_cos_top_m": skill_cos_top_m,
                 "candidate_source": candidate_source,
@@ -586,6 +601,10 @@ def main() -> None:
                     help="add top-M skill cosine candidates and priors (0 disables)")
     ap.add_argument("--candidate-source", choices=["domain", "skill", "hybrid"], default="hybrid",
                     help="candidate pool for Router: domain Top-K skills, skill-cos Top-M skills, or union")
+    ap.add_argument("--model", "--llm-profile", dest="model", default=None,
+                    help="LLM profile id or model name from config/llm_profiles.json")
+    ap.add_argument("--llm-timeout", type=float, default=None,
+                    help="override selected profile timeout for this batch run")
     ap.add_argument("--max-candidates", type=int, default=0,
                     help="cap sorted candidates before Router (0 = no cap)")
     ap.add_argument("--prior-skill-weight", type=float, default=0.65,
@@ -595,14 +614,15 @@ def main() -> None:
     ap.add_argument("--prior-keyword-weight", type=float, default=0.10,
                     help="weight for keyword overlap prior score")
     args = ap.parse_args()
-    asyncio.run(run(
+    raise SystemExit(asyncio.run(run(
         args.classifier, args.first_n, args.extract, args.limit, args.json_out,
         args.multi_domain_k, args.fewshot, args.fewshot_k,
         args.source, args.min_confidence, args.concurrency,
         args.skill_cos_top_m, args.candidate_source,
         args.max_candidates,
         args.prior_skill_weight, args.prior_domain_weight, args.prior_keyword_weight,
-    ))
+        args.model, args.llm_timeout,
+    )))
 
 
 if __name__ == "__main__":

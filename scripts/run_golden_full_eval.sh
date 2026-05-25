@@ -17,6 +17,7 @@ set -Eeuo pipefail
 #   SKILL_COS_TOP_M=0 MAX_CANDIDATES=0 bash scripts/run_golden_full_eval.sh
 #   CANDIDATE_SOURCE=domain bash scripts/run_golden_full_eval.sh
 #   MAX_CANDIDATES=20 bash scripts/run_golden_full_eval.sh
+#   MODEL=deepseek-v4-flash LLM_TIMEOUT=120 bash scripts/run_golden_full_eval.sh
 #   RUN_EXP3=0 bash scripts/run_golden_full_eval.sh
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -35,6 +36,8 @@ PRIOR_SKILL_WEIGHT="${PRIOR_SKILL_WEIGHT:-0.65}"
 PRIOR_DOMAIN_WEIGHT="${PRIOR_DOMAIN_WEIGHT:-0.25}"
 PRIOR_KEYWORD_WEIGHT="${PRIOR_KEYWORD_WEIGHT:-0.10}"
 MIN_CONFIDENCE="${MIN_CONFIDENCE:-0.0}"
+MODEL="${MODEL:-}"
+LLM_TIMEOUT="${LLM_TIMEOUT:-}"
 LIMIT="${LIMIT:-}"
 PROGRESS_EVERY="${PROGRESS_EVERY:-50}"
 USE_FEWSHOT="${USE_FEWSHOT:-0}"
@@ -222,7 +225,7 @@ JSON
 
 log "Output dir: $OUT_DIR"
 log "Golden records: $GOLDEN_COUNT"
-log "Config: CLASSIFIER=$CLASSIFIER DOMAIN_TOP_K=$DOMAIN_TOP_K SKILL_MULTI_DOMAIN_K=$SKILL_MULTI_DOMAIN_K SKILL_COS_TOP_M=$SKILL_COS_TOP_M CANDIDATE_SOURCE=$CANDIDATE_SOURCE MAX_CANDIDATES=$MAX_CANDIDATES PRIOR_WEIGHTS=$PRIOR_SKILL_WEIGHT/$PRIOR_DOMAIN_WEIGHT/$PRIOR_KEYWORD_WEIGHT CONCURRENCY=$CONCURRENCY EXP3_CONCURRENCY=$EXP3_CONCURRENCY MIN_CONFIDENCE=$MIN_CONFIDENCE LIMIT=${LIMIT:-none} PROGRESS_EVERY=$PROGRESS_EVERY USE_FEWSHOT=$USE_FEWSHOT RUN_EXP1=$RUN_EXP1 RUN_EXP2=$RUN_EXP2 RUN_EXP3=$RUN_EXP3"
+log "Config: CLASSIFIER=$CLASSIFIER DOMAIN_TOP_K=$DOMAIN_TOP_K SKILL_MULTI_DOMAIN_K=$SKILL_MULTI_DOMAIN_K SKILL_COS_TOP_M=$SKILL_COS_TOP_M CANDIDATE_SOURCE=$CANDIDATE_SOURCE MAX_CANDIDATES=$MAX_CANDIDATES PRIOR_WEIGHTS=$PRIOR_SKILL_WEIGHT/$PRIOR_DOMAIN_WEIGHT/$PRIOR_KEYWORD_WEIGHT CONCURRENCY=$CONCURRENCY EXP3_CONCURRENCY=$EXP3_CONCURRENCY MIN_CONFIDENCE=$MIN_CONFIDENCE MODEL=${MODEL:-config-default} LLM_TIMEOUT=${LLM_TIMEOUT:-profile-default} LIMIT=${LIMIT:-none} PROGRESS_EVERY=$PROGRESS_EVERY USE_FEWSHOT=$USE_FEWSHOT RUN_EXP1=$RUN_EXP1 RUN_EXP2=$RUN_EXP2 RUN_EXP3=$RUN_EXP3"
 
 if [[ "$RUN_EXP1" == "1" ]]; then
   exp1_cmd=(
@@ -261,6 +264,12 @@ if [[ "$RUN_EXP2" == "1" ]]; then
   if [[ -n "$LIMIT" ]]; then
     exp2_cmd+=(--limit "$LIMIT")
   fi
+  if [[ -n "$MODEL" ]]; then
+    exp2_cmd+=(--model "$MODEL")
+  fi
+  if [[ -n "$LLM_TIMEOUT" ]]; then
+    exp2_cmd+=(--llm-timeout "$LLM_TIMEOUT")
+  fi
   if [[ "$USE_FEWSHOT" == "1" ]]; then
     exp2_cmd+=(--fewshot --fewshot-k "$FEWSHOT_K")
   fi
@@ -278,6 +287,12 @@ if [[ "$RUN_EXP3" == "1" ]]; then
   )
   if [[ -n "$LIMIT" ]]; then
     exp3_cmd+=(--limit "$LIMIT")
+  fi
+  if [[ -n "$MODEL" ]]; then
+    exp3_cmd+=(--model "$MODEL")
+  fi
+  if [[ -n "$LLM_TIMEOUT" ]]; then
+    exp3_cmd+=(--llm-timeout "$LLM_TIMEOUT")
   fi
   run_step "exp3_chain_distribution" "${exp3_cmd[@]}"
 else

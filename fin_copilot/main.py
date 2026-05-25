@@ -25,7 +25,7 @@ from fin_copilot.context.context_manager import ContextManager
 from fin_copilot.demo.store import get_demo_store
 from fin_copilot.knowledge.value_added import ValueAddedKnowledgeRetriever
 from fin_copilot.llm.client import LLMClient
-from fin_copilot.llm.profiles import load_llm_profiles
+from fin_copilot.llm.profiles import LLMProfile, load_llm_profiles
 from fin_copilot.orchestrator import Orchestrator
 from fin_copilot.routers.demo import router as demo_router
 from fin_copilot.routers.gateway import router, set_llm_client, set_orchestrator
@@ -39,7 +39,10 @@ from fin_copilot.skills.loader import SkillLoader
 logger = logging.getLogger(__name__)
 
 
-def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
+def build_orchestrator(
+    settings: Settings,
+    llm_profile: LLMProfile | None = None,
+) -> tuple[Orchestrator, LLMClient]:
     """Wire all components together and return (orchestrator, llm_client)."""
     skill_loader = SkillLoader(
         str(settings.resolve_path(settings.SKILL_DEFINITIONS_DIR)),
@@ -79,11 +82,14 @@ def build_orchestrator(settings: Settings) -> tuple[Orchestrator, LLMClient]:
                 )
 
     llm_profiles, default_llm_profile_id = load_llm_profiles(settings)
+    if llm_profile is not None:
+        llm_profiles = [llm_profile]
+        default_llm_profile_id = llm_profile.id
     llm_client = LLMClient(
-        base_url=settings.LLM_API_URL,
-        api_key=settings.LLM_API_KEY,
-        model=settings.LLM_MODEL,
-        timeout=settings.LLM_TIMEOUT,
+        base_url=llm_profile.api_url if llm_profile else settings.LLM_API_URL,
+        api_key=llm_profile.api_key if llm_profile else settings.LLM_API_KEY,
+        model=llm_profile.model if llm_profile else settings.LLM_MODEL,
+        timeout=llm_profile.timeout if llm_profile else settings.LLM_TIMEOUT,
         profiles=llm_profiles,
         default_profile_id=default_llm_profile_id,
     )

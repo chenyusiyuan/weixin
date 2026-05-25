@@ -46,6 +46,7 @@ if str(ROOT) not in sys.path:
 
 from fin_copilot.config import get_settings  # noqa: E402
 from fin_copilot.llm.client import LLMClient  # noqa: E402
+from fin_copilot.llm.profiles import LLMProfile, select_llm_profile  # noqa: E402
 from fin_copilot.models.conversation import ConversationState, CustomerInfo, IntentState, Message  # noqa: E402
 from fin_copilot.routing.embedding_domain_classifier import EmbeddingDomainClassifier  # noqa: E402
 from fin_copilot.routing.fewshot_retriever import FewShotRetriever  # noqa: E402
@@ -263,6 +264,7 @@ class QueryRouter:
         prior_keyword_weight: float,
         use_fewshot: bool,
         fewshot_k: int,
+        llm_profile: LLMProfile | None,
     ) -> None:
         self.route_mode = route_mode
         self.multi_domain_k = multi_domain_k
@@ -293,12 +295,16 @@ class QueryRouter:
         self.retriever = FewShotRetriever() if use_fewshot and route_mode == "router" else None
         self.llm_client: LLMClient | None = None
         self.router: SkillRouter | None = None
+        self.llm_profile: LLMProfile | None = None
         if route_mode == "router":
+            self.llm_profile = llm_profile or select_llm_profile(None, settings)
             self.llm_client = LLMClient(
-                base_url=settings.LLM_API_URL,
-                api_key=settings.LLM_API_KEY,
-                model=settings.LLM_MODEL,
-                timeout=settings.LLM_TIMEOUT,
+                base_url=self.llm_profile.api_url,
+                api_key=self.llm_profile.api_key,
+                model=self.llm_profile.model,
+                timeout=self.llm_profile.timeout,
+                profiles=[self.llm_profile],
+                default_profile_id=self.llm_profile.id,
             )
             self.router = SkillRouter(
                 llm_client=self.llm_client,
@@ -496,6 +502,7 @@ def route_cache_key(
     *,
     context_key: str = "",
 ) -> str:
+    llm_profile = getattr(args, "resolved_llm_profile", None)
     params = {
         "mode": route_mode,
         "turn_mode": args.turn_mode,
@@ -506,7 +513,10 @@ def route_cache_key(
         "skill_cos_top_m": args.skill_cos_top_m,
         "candidate_source": args.candidate_source,
         "max_candidates": args.max_candidates,
-        "model": get_settings().LLM_MODEL if route_mode == "router" else "",
+        "llm_profile_id": llm_profile.id if route_mode == "router" and llm_profile else "",
+        "llm_model": llm_profile.model if route_mode == "router" and llm_profile else "",
+        "llm_api_url": llm_profile.api_url if route_mode == "router" and llm_profile else "",
+        "llm_timeout": llm_profile.timeout if route_mode == "router" and llm_profile else "",
     }
     return json.dumps(params, ensure_ascii=False, sort_keys=True)
 
@@ -527,6 +537,7 @@ async def route_all(
         prior_keyword_weight=args.prior_keyword_weight,
         use_fewshot=args.use_fewshot,
         fewshot_k=args.fewshot_k,
+        llm_profile=getattr(args, "resolved_llm_profile", None),
     )
     cache = load_route_cache(CACHE_PATH) if args.use_cache else {}
     items = flatten_call_queries(calls)
@@ -760,7 +771,7 @@ def one_to_many_audit_key(
     call: dict[str, Any],
     row: dict[str, Any],
     hit: dict[str, Any],
-    settings_model: str,
+    llm_profile: LLMProfile,
 ) -> str:
     policy = get_audit_intent_policy(hit["intent"])
     payload = {
@@ -772,7 +783,10 @@ def one_to_many_audit_key(
         "matched_skill_ids": hit.get("matched_skill_ids") or [],
         "predicted_topk": row.get("predicted_topk") or [],
         "queries": [q.get("query") for q in call.get("queries", [])],
-        "model": settings_model,
+        "llm_profile_id": llm_profile.id,
+        "llm_model": llm_profile.model,
+        "llm_api_url": llm_profile.api_url,
+        "llm_timeout": llm_profile.timeout,
     }
     return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
@@ -856,11 +870,18 @@ async def audit_one_to_many_hits(
         return []
 
     settings = get_settings()
+    llm_profile = getattr(args, "resolved_llm_profile", None) or select_llm_profile(
+        args.model,
+        settings,
+        timeout=args.llm_timeout,
+    )
     llm_client = LLMClient(
-        base_url=settings.LLM_API_URL,
-        api_key=settings.LLM_API_KEY,
-        model=settings.LLM_MODEL,
-        timeout=settings.LLM_TIMEOUT,
+        base_url=llm_profile.api_url,
+        api_key=llm_profile.api_key,
+        model=llm_profile.model,
+        timeout=llm_profile.timeout,
+        profiles=[llm_profile],
+        default_profile_id=llm_profile.id,
     )
     cache = load_route_cache(AUDIT_CACHE_PATH) if args.use_cache else {}
     calls_by_id = {call["call_id"]: call for call in calls}
@@ -881,7 +902,7 @@ async def audit_one_to_many_hits(
         row: dict[str, Any],
         hit: dict[str, Any],
     ) -> dict[str, Any]:
-        key = one_to_many_audit_key(call, row, hit, settings.LLM_MODEL)
+        key = one_to_many_audit_key(call, row, hit, llm_profile)
         if args.use_cache and key in cache:
             cached = cache[key]
             return dict(cached, from_cache=True)
@@ -1064,8 +1085,10 @@ def build_summary(
         for miss in row["missed_gold_intents"]:
             confusion[(miss["intent"], tuple(row["predicted_topk"]))] += 1
 
+    llm_profile = getattr(args, "resolved_llm_profile", None)
     return {
         "route_mode": args.route_mode,
+        "llm_profile": llm_profile.public_dict() if llm_profile else None,
         "input_calls": str(args.calls),
         "intent_mapping": str(args.intent_mapping),
         "total_merged_samples": total_samples,
@@ -1095,6 +1118,8 @@ def build_summary(
             "max_candidates": args.max_candidates,
             "concurrency": args.concurrency,
             "limit": args.limit,
+            "model_arg": args.model,
+            "llm_timeout_arg": args.llm_timeout,
             "llm_audit_one_to_many": args.llm_audit_one_to_many,
             "audit_intents": args.audit_intents,
             "audit_prompt_version": AUDIT_PROMPT_VERSION,
@@ -1107,13 +1132,26 @@ async def async_main(args: argparse.Namespace) -> int:
     if args.limit:
         calls = calls[:args.limit]
 
+    # Initialise loader once for mapping validation. QueryRouter will initialise
+    # its own loader when routing.
+    settings = get_settings()
+    if args.route_mode == "router" or args.llm_audit_one_to_many:
+        try:
+            args.resolved_llm_profile = select_llm_profile(
+                args.model,
+                settings,
+                timeout=args.llm_timeout,
+            )
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+    else:
+        args.resolved_llm_profile = None
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_dir = args.out_dir or ROOT / "tests" / "reports" / f"merged_multi_turn_{timestamp}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Initialise loader once for mapping validation. QueryRouter will initialise
-    # its own loader when routing.
-    settings = get_settings()
     loader = SkillLoader(
         str(settings.resolve_path(settings.SKILL_DEFINITIONS_DIR)),
         str(settings.resolve_path(settings.SKILL_REGISTRY_PATH)),
@@ -1175,6 +1213,12 @@ async def async_main(args: argparse.Namespace) -> int:
     print("\n── Merged Multi-turn Skill Recall ──")
     print(f"Output dir: {out_dir}")
     print(f"Route mode: {args.route_mode}")
+    if args.resolved_llm_profile is not None:
+        profile = args.resolved_llm_profile
+        print(
+            f"LLM profile: {profile.id}  model={profile.model}  "
+            f"url={profile.api_url}  timeout={profile.timeout:g}s"
+        )
     print(f"Intent mapping: {args.intent_mapping}")
     print(f"Calls with queries: {len(calls)}")
     print(f"Query predictions: {len(query_predictions)}")
@@ -1215,6 +1259,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--intent-mapping", type=Path, default=MAPPING_PATH)
     parser.add_argument("--out-dir", type=Path, default=None)
     parser.add_argument("--route-mode", choices=["router", "skill-cos"], default="router")
+    parser.add_argument(
+        "--model",
+        "--llm-profile",
+        dest="model",
+        default=None,
+        help=(
+            "LLM profile id or model name from config/llm_profiles.json. "
+            "If omitted, the configured default_profile_id is used."
+        ),
+    )
+    parser.add_argument(
+        "--llm-timeout",
+        type=float,
+        default=None,
+        help="Override the selected profile timeout for this batch run.",
+    )
     parser.add_argument("--turn-mode", choices=["sequential", "independent"], default="sequential")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--concurrency", type=int, default=6)

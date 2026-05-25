@@ -76,6 +76,54 @@ def get_llm_profile(profile_id: str | None, settings: Any) -> LLMProfile:
     return by_id[default_id]
 
 
+def select_llm_profile(
+    model_or_profile_id: str | None,
+    settings: Any,
+    *,
+    timeout: float | None = None,
+) -> LLMProfile:
+    """Select a configured profile by profile id or model name.
+
+    CLI tools intentionally call this strict selector so an unknown model name
+    fails fast instead of silently falling back to the default profile.
+    """
+    profiles, default_id = load_llm_profiles(settings)
+    if not profiles:
+        raise ValueError("no LLM profiles configured")
+
+    selector = (model_or_profile_id or "").strip()
+    selected: LLMProfile | None = None
+    if selector:
+        selected = next((profile for profile in profiles if profile.id == selector), None)
+        if selected is None:
+            model_matches = [profile for profile in profiles if profile.model == selector]
+            if len(model_matches) == 1:
+                selected = model_matches[0]
+            elif len(model_matches) > 1:
+                matched_ids = ", ".join(profile.id for profile in model_matches)
+                raise ValueError(
+                    f"model {selector!r} matches multiple profiles: {matched_ids}; "
+                    "pass a profile id"
+                )
+        if selected is None:
+            available = ", ".join(
+                f"{profile.id}({profile.model})"
+                for profile in profiles
+            )
+            raise ValueError(
+                f"unknown LLM profile/model {selector!r}; available: {available}"
+            )
+    else:
+        by_id = {profile.id: profile for profile in profiles}
+        selected = by_id[default_id]
+
+    if timeout is None:
+        return selected
+    if timeout <= 0:
+        raise ValueError(f"LLM timeout must be > 0, got {timeout!r}")
+    return _replace_timeout(selected, timeout)
+
+
 def public_llm_profiles(settings: Any) -> dict[str, Any]:
     profiles, default_id = load_llm_profiles(settings)
     return {
@@ -174,4 +222,15 @@ def _replace_default(profile: LLMProfile, is_default: bool) -> LLMProfile:
         model=profile.model,
         timeout=profile.timeout,
         is_default=is_default,
+    )
+
+
+def _replace_timeout(profile: LLMProfile, timeout: float) -> LLMProfile:
+    return LLMProfile(
+        id=profile.id,
+        api_url=profile.api_url,
+        api_key=profile.api_key,
+        model=profile.model,
+        timeout=float(timeout),
+        is_default=profile.is_default,
     )
