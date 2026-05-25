@@ -8,6 +8,7 @@
 |---|---|
 | `run_golden_full_eval.sh` | 旧单 query `raw_test.jsonl` 的 Exp1/Exp2/Exp3 总入口 |
 | `tests/eval/merged_multi_turn_skill_recall.py` | 当前多轮电话 call 级 TopK 评测 |
+| `../run_golden_model_matrix.sh` | 根目录多模型 golden 命令矩阵 |
 | `run_multiturn_model_profiles.sh` | Flash/Pro 多轮评测命令矩阵，默认直接按映射表计分、不跑 LLM audit |
 | `eval_real_multiturn_branch_selection.py` | 多轮场景下 branch 选择诊断 |
 | `eval_real_query_branch_selection.py` | 单 query 场景下 branch 选择诊断 |
@@ -17,13 +18,15 @@
 
 | 脚本 | 用途 |
 |---|---|
-| `prepare_merged_turn_labeling_chunks.py` | 从 `merged.jsonl` 切多轮电话标注 chunk |
+| `prepare_merged_turn_labeling_chunks.py` | 从 `原始300条数据.jsonl` 切多轮电话标注 chunk，旧文档中也称 `merged.jsonl` |
 | `merge_merged_turn_labels.py` | 合并 chunk 标签，生成可测 query |
 | `export_raw_scorable_queries.py` | 导出原话客户 query |
 | `apply_raw_query_split_decisions.py` | 应用 query 拆分决策 |
 | `export_merged_raw_eval_dataset.py` | 导出当前 `golden_test.jsonl` |
 | `export_golden_test.py` | 导出旧单 query 测试集 |
 | `rebuild_golden_from_batches.py` | 从历史 batch 标注重建 `raw_test.jsonl` |
+
+这些数据构建脚本主要用于追溯和重建；历史中间产物不随交付保留，需要时从 tracked 源数据重新生成。
 
 ## 审计与辅助
 

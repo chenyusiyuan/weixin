@@ -24,7 +24,11 @@ Examples:
 
   # Full router run. Use LIMIT first; full 1519 query run can take a while.
   python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --limit 20
-  python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --concurrency 8
+  python3 tests/eval/merged_multi_turn_skill_recall.py \
+    --route-mode router \
+    --model deepseek-v4-flash \
+    --llm-timeout 120 \
+    --concurrency 8
 """
 
 from __future__ import annotations

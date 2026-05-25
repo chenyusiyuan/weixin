@@ -1,7 +1,9 @@
 """Exp 2 — Skill Match Accuracy.
 
-Evaluates the L1 → Skill Router pipeline against gold skill_id labels
-from test.jsonl. Gold labels are derived from `服务标签` via
+By default evaluates the L1 -> Skill Router pipeline against the current
+single-query golden set ``raw_test.jsonl``. The legacy ``test.jsonl`` source is
+still available with ``--source test`` when that file exists locally; in that
+mode gold labels are derived from `服务标签` via
 `scripts/references/skill_gold_mapping.json`.
 
 For each call:
@@ -17,8 +19,8 @@ Outputs:
   - Sample errors
 
 Usage:
-    python scripts/eval_skill_match.py --classifier embed --smart
-    python scripts/eval_skill_match.py --classifier embed --smart --first-n 3 --limit 20
+    python tests/eval/exp2_skill_match.py --limit 20
+    python tests/eval/exp2_skill_match.py --source test --limit 20
 """
 
 from __future__ import annotations
@@ -591,8 +593,8 @@ def main() -> None:
                     help="L1 Top-K domains to include as candidates (1 = single-domain as before)")
     ap.add_argument("--fewshot", action="store_true", help="use few-shot retrieval in Router")
     ap.add_argument("--fewshot-k", type=int, default=5, help="number of fewshot examples to inject")
-    ap.add_argument("--source", choices=["test", "golden"], default="test",
-                    help="'test' reads test.jsonl (98 conversations); 'golden' reads raw_test.jsonl")
+    ap.add_argument("--source", choices=["test", "golden"], default="golden",
+                    help="'golden' reads raw_test.jsonl; 'test' reads legacy test.jsonl if present")
     ap.add_argument("--min-confidence", type=float, default=0.0,
                     help="when --source=golden, skip rows with confidence below this threshold")
     ap.add_argument("--concurrency", type=int, default=10,

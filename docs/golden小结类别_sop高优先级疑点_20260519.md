@@ -2,7 +2,7 @@
 
 这份文件保持原始 golden test 口径，只排除已补足的空 gold 两通；其他疑似漏标仅作为人工确认清单，不写回数据。
 
-- 来源：`tests/reports/merged_mapping_recalc_from_previous_20260519/high_priority_mapping_issues_empty_only_patch.jsonl`
+- 来源口径：历史本机 mapping recalc 输出；原始 report 产物不随交付保留，本文保留疑点清单结果。
 - 数量：`42`
 
 | 类型 | 数量 |

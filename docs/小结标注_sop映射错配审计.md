@@ -3,7 +3,7 @@
 ## 1. 本次口径
 
 - 输入标注：`/Users/bytedance/Project/weixin/标注维度.xlsx`，其中 `小结类型` 为二级小结，`三级分类摘录` 为完整三级小结。
-- 当前 golden 数据：`golden_test.jsonl`，共 `295` 通有可测 query 的电话，`398` 个 gold intent 标注；`merged.jsonl` 原始文件有少量非严格 JSONL 行，评测链路已做修复/抽取。
+- 当前 golden 数据：`golden_test.jsonl`，共 `295` 通有可测 query 的电话，`400` 个 gold intent 标注；多轮原始来源为 `原始300条数据.jsonl`，旧文档中也称 `merged.jsonl`，其中少量非严格 JSONL 行已在评测链路中修复/抽取。
 - 映射目标：把 golden 的二级小结意图映射到当前 `skills/definitions/*.yaml` 和其背后的 `sop/` 资产；只允许一种规则方向：每个 golden 二级小结映射到一个或多个 SOP/skill；不在映射表中设置 SOP -> 小结的反向关系，也不把多个小结复用同一 SOP 写成规则类型。
 - 重要原则：这里不是修改生产 skill 结构，而是建立评测口径映射；生产链路中更细的产品、服务商、reference 命中仍应由知识召回层补充。
 
@@ -11,19 +11,19 @@
 
 | golden 小结 | 次数 | 小结到 SOP 映射 | 当前 skill/SOP 结论 |
 |---|---:|---|---|
-| 催收相关/协商还款 | 70 | 单 SOP | 逾期/未逾期协商延期、减免、分期、还本金等 |
+| 催收相关/协商还款 | 71 | 单 SOP | 逾期/未逾期协商延期、减免、分期、还本金等 |
 | 催收相关/要求停催 | 50 | 单 SOP | 本人/联系人停催、缓催、降频 |
-| 还款相关/还款咨询 | 46 | 多 SOP | merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等 |
+| 还款相关/还款咨询 | 51 | 多 SOP | merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等 |
 | 还款相关/账单信息查询 | 32 | 多 SOP | 证据型多 SOP：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景 |
-| 还款相关/存对公还款 | 32 | 多 SOP | 对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假、对公还款结果查询 |
-| 还款相关/提前清贷 | 27 | 单 SOP | 提前还款、提前结清、清贷 |
+| 还款相关/存对公还款 | 27 | 多 SOP | 对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假、对公还款结果查询 |
+| 还款相关/提前清贷 | 28 | 单 SOP | 提前还款、提前结清、清贷 |
 | 催收相关/投诉催收 | 19 | 单 SOP | 频繁骚扰、威胁、联系三方等催收投诉 |
-| 营销活动/会员退费 | 18 | 多 SOP | merged 中会员退费常混入会员、优享卡、轻享卡、权益月卡/增值服务等产品服务；skill 按咨询/取消/退费动作识别，具体产品由结构化知识召回命中 |
-| 业务办理/账户注销 | 15 | 多 SOP | 注销账户、注销账号、特殊账户注销 |
+| 营销活动/会员退费 | 22 | 多 SOP | merged 中会员退费常混入会员、优享卡、轻享卡、权益月卡/增值服务等产品服务；skill 按咨询/取消/退费动作识别，具体产品由结构化知识召回命中 |
+| 业务办理/账户注销 | 16 | 多 SOP | 注销账户、注销账号、特殊账户注销 |
 | 业务办理/征信相关 | 14 | 多 SOP | 征信查询、修改征信、注销授信额度、征信影响 |
-| 业务办理/结清证明 | 11 | 单 SOP | 开具结清证明 |
+| 业务办理/结清证明 | 12 | 单 SOP | 开具结清证明 |
 | 产品与信息/非我司产品 | 10 | 多 SOP | 非我司/导流/未命中产品服务不按产品名单独建 skill：增值服务未命中链路负责澄清与引导，贷款咨询/放款进度/贷后核实/扣款查询负责对应业务场景 |
-| 营销活动/新活动咨询 | 10 | 多 SOP | merged 中新活动咨询按产品/活动粗标，实际 skill 按咨询、取消、退费、停止营销等动作识别；具体服务/产品名由增值服务结构化知识召回 |
+| 营销活动/新活动咨询 | 4 | 多 SOP | merged 中新活动咨询按产品/活动粗标，实际 skill 按咨询、取消、退费、停止营销等动作识别；具体服务/产品名由增值服务结构化知识召回 |
 | 申请咨询/额度获取咨询 | 7 | 多 SOP | 额度获取、额度咨询、无额度 |
 | 催收相关/核实催收信息 | 6 | 单 SOP | 核实催收人员、催收短信、贷后信息真假 |
 | 还款相关/聚合码还款问题 | 5 | 单 SOP | 微信/支付宝/二维码/聚合码还款 |
@@ -43,19 +43,19 @@
 
 | golden 小结 | 次数 | 小结到 SOP 映射 | 建议 skill | 对应 SOP/reference | 错配说明/确认点 |
 |---|---:|---|---|---|---|
-| 催收相关/协商还款 | 70 | 单 SOP | `overdue_negotiation`(协商还款) | `sop/逾期问题/协商还款QA.xlsx` | 逾期/未逾期协商延期、减免、分期、还本金等 |
+| 催收相关/协商还款 | 71 | 单 SOP | `overdue_negotiation`(协商还款) | `sop/逾期问题/协商还款QA.xlsx` | 逾期/未逾期协商延期、减免、分期、还本金等 |
 | 催收相关/要求停催 | 50 | 单 SOP | `stop_collection`(要求停催) | `sop/逾期问题/要求停催QA.xlsx` | 本人/联系人停催、缓催、降频 |
-| 还款相关/还款咨询 | 46 | 多 SOP | `repayment_method_inquiry`(咨询还款方式)<br>`repayment_status_issue`(还款状态异常)<br>`repayment_result_query`(查询还款结果)<br>`deduction_issues`(扣款相关问题咨询)<br>`early_deduction`(未到还款日被提前扣款)<br>`bill_date_credit_impact`(账单日还款是否影响征信) | `sop/还款问题/1.咨询还款方式.xlsx`<br>`sop/还款问题/3.还款失败怎么处理？.xlsx`<br>`sop/还款问题/5.已还款怎么没更新？.xlsx`<br>`sop/还款问题/4.如何查询还款结果？.xlsx`<br>`sop/还款问题/9.扣款相关问题咨询.xlsx`<br>`sop/还款问题/6.未到还款日被提前扣款.xlsx`<br>`sop/还款问题/8.账单日还款是否影响征信？.xlsx` | 二级小结过粗，三级包含还款失败、还款中、部分扣款、账单冻结、征信影响、微信/支付宝还款等；需映射到多个还款/扣款 SOP。 |
+| 还款相关/还款咨询 | 51 | 多 SOP | `repayment_method_inquiry`(咨询还款方式)<br>`repayment_status_issue`(还款状态异常)<br>`repayment_result_query`(查询还款结果)<br>`deduction_issues`(扣款相关问题咨询)<br>`early_deduction`(未到还款日被提前扣款)<br>`bill_date_credit_impact`(账单日还款是否影响征信) | `sop/还款问题/1.咨询还款方式.xlsx`<br>`sop/还款问题/3.还款失败怎么处理？.xlsx`<br>`sop/还款问题/5.已还款怎么没更新？.xlsx`<br>`sop/还款问题/4.如何查询还款结果？.xlsx`<br>`sop/还款问题/9.扣款相关问题咨询.xlsx`<br>`sop/还款问题/6.未到还款日被提前扣款.xlsx`<br>`sop/还款问题/8.账单日还款是否影响征信？.xlsx` | 二级小结过粗，三级包含还款失败、还款中、部分扣款、账单冻结、征信影响、微信/支付宝还款等；需映射到多个还款/扣款 SOP。 |
 | 还款相关/账单信息查询 | 32 | 多 SOP | `fee_detail_query`(查询费用明细及综合费率)<br>`bill_deduction_query`(查询账单扣款情况)<br>`deduction_issues`(扣款相关问题咨询)<br>`repayment_status_issue`(还款状态异常)<br>`repayment_result_query`(查询还款结果)<br>`early_loan_clearance`(提前清贷需求)<br>`clearance_certificate`(开具结清证明) | `sop/费用问题/6.查询费用明细（待还&已还）及综合费率.xlsx`<br>`sop/费用问题/7.查询账单扣款情况.xlsx`<br>`sop/还款问题/9.扣款相关问题咨询.xlsx`<br>`sop/还款问题/3.还款失败怎么处理？.xlsx`<br>`sop/还款问题/5.已还款怎么没更新？.xlsx`<br>`sop/还款问题/4.如何查询还款结果？.xlsx`<br>`sop/还款问题/2.提前清贷需求.xlsx`<br>`sop/业务场景办理问题/开具结清证明QA.xlsx` | 标注名像账单查询，但真实样本会展开到费用明细、账单扣款、还款结果、还款未更新、提前结清金额、结清证明；属于证据型多 SOP。 |
-| 还款相关/存对公还款 | 32 | 多 SOP | `repayment_method_inquiry`(咨询还款方式)<br>`repayment_status_issue`(还款状态异常)<br>`overpayment_refund`(客户对公转账出错退溢余)<br>`post_loan_verification`(核实贷后信息)<br>`repayment_result_query`(查询还款结果) | `sop/还款问题/1.咨询还款方式.xlsx`<br>`sop/还款问题/3.还款失败怎么处理？.xlsx`<br>`sop/还款问题/5.已还款怎么没更新？.xlsx`<br>`sop/逾期问题/核实贷后信息QA.xlsx`<br>`sop/还款问题/4.如何查询还款结果？.xlsx` | 标注聚合了对公账号/方式、转账未入账、账号核实、对公转错/转多退溢余、还款结果；不是单一退溢余 SOP。 |
-| 还款相关/提前清贷 | 27 | 单 SOP | `early_loan_clearance`(提前清贷需求) | `sop/还款问题/2.提前清贷需求.xlsx` | 提前还款、提前结清、清贷 |
+| 还款相关/存对公还款 | 27 | 多 SOP | `repayment_method_inquiry`(咨询还款方式)<br>`repayment_status_issue`(还款状态异常)<br>`overpayment_refund`(客户对公转账出错退溢余)<br>`post_loan_verification`(核实贷后信息)<br>`repayment_result_query`(查询还款结果) | `sop/还款问题/1.咨询还款方式.xlsx`<br>`sop/还款问题/3.还款失败怎么处理？.xlsx`<br>`sop/还款问题/5.已还款怎么没更新？.xlsx`<br>`sop/逾期问题/核实贷后信息QA.xlsx`<br>`sop/还款问题/4.如何查询还款结果？.xlsx` | 标注聚合了对公账号/方式、转账未入账、账号核实、对公转错/转多退溢余、还款结果；不是单一退溢余 SOP。 |
+| 还款相关/提前清贷 | 28 | 单 SOP | `early_loan_clearance`(提前清贷需求) | `sop/还款问题/2.提前清贷需求.xlsx` | 提前还款、提前结清、清贷 |
 | 催收相关/投诉催收 | 19 | 单 SOP | `collection_complaint`(投诉催收) | `sop/逾期问题/投诉催收QA.xlsx` | 频繁骚扰、威胁、联系三方等催收投诉 |
-| 营销活动/会员退费 | 18 | 多 SOP | `member_refund`(退会员费用)<br>`member_cancel`(取消会员)<br>`member_consultation`(会员咨询)<br>`premium_card_refund`(退优享卡费用)<br>`premium_card_cancel`(取消优享卡)<br>`premium_card_inquiry`(优享卡咨询)<br>`refund_value_added_service`(退增值服务费)<br>`cancel_value_added_service`(取消增值服务)<br>`value_added_service_inquiry`(增值服务咨询)<br>`light_card_cancel_refund`(轻享卡取消退费) | `sop/会员问题/3.怎么退会员费用？.xlsx`<br>`sop/会员问题/2.怎么取消会员（先享后付）？.xlsx`<br>`sop/会员问题/1.什么是会员（会员咨询）？.xlsx`<br>`sop/优享卡问题/3.怎么退优享卡费用？.xlsx`<br>`sop/优享卡问题/2.怎么取消优享卡？.xlsx`<br>`sop/优享卡问题/1.咨询优享卡是什么？有什么权益？.xlsx`<br>`sop/活动问题/3.怎么退增值服务费QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/活动问题/2.怎么取消增值服务QA.xlsx`<br>`sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/活动问题/5.怎么取消(退)轻享卡QA.xlsx` | 标注使用“会员退费”承载会员、优享卡、轻享卡、权益月卡、增值服务的咨询/取消/退费；产品名应由知识召回或 reference 确认。 |
-| 业务办理/账户注销 | 15 | 多 SOP | `account_cancellation`(注销账户)<br>`special_account_cancellation`(特殊场景注销账户)<br>`deactivated_customer_service`(已注销客户进线服务) | `sop/账户问题/注销账户QA.xlsx`<br>`sop/账户问题/特殊场景注销账号QA.xlsx`<br>`sop/账户问题/已注销客户进线办理业务QA.xlsx` | gold 按注销原因标，SOP/skill 区分普通注销、特殊注销、已注销客户进线。 |
+| 营销活动/会员退费 | 22 | 多 SOP | `member_refund`(退会员费用)<br>`member_cancel`(取消会员)<br>`member_consultation`(会员咨询)<br>`premium_card_refund`(退优享卡费用)<br>`premium_card_cancel`(取消优享卡)<br>`premium_card_inquiry`(优享卡咨询)<br>`refund_value_added_service`(退增值服务费)<br>`cancel_value_added_service`(取消增值服务)<br>`value_added_service_inquiry`(增值服务咨询)<br>`light_card_cancel_refund`(轻享卡取消退费) | `sop/会员问题/3.怎么退会员费用？.xlsx`<br>`sop/会员问题/2.怎么取消会员（先享后付）？.xlsx`<br>`sop/会员问题/1.什么是会员（会员咨询）？.xlsx`<br>`sop/优享卡问题/3.怎么退优享卡费用？.xlsx`<br>`sop/优享卡问题/2.怎么取消优享卡？.xlsx`<br>`sop/优享卡问题/1.咨询优享卡是什么？有什么权益？.xlsx`<br>`sop/活动问题/3.怎么退增值服务费QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/活动问题/2.怎么取消增值服务QA.xlsx`<br>`sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/活动问题/5.怎么取消(退)轻享卡QA.xlsx` | 标注使用“会员退费”承载会员、优享卡、轻享卡、权益月卡、增值服务的咨询/取消/退费；产品名应由知识召回或 reference 确认。 |
+| 业务办理/账户注销 | 16 | 多 SOP | `account_cancellation`(注销账户)<br>`special_account_cancellation`(特殊场景注销账户)<br>`deactivated_customer_service`(已注销客户进线服务) | `sop/账户问题/注销账户QA.xlsx`<br>`sop/账户问题/特殊场景注销账号QA.xlsx`<br>`sop/账户问题/已注销客户进线办理业务QA.xlsx` | gold 按注销原因标，SOP/skill 区分普通注销、特殊注销、已注销客户进线。 |
 | 业务办理/征信相关 | 14 | 多 SOP | `credit_inquiry`(征信问题咨询)<br>`credit_modification`(修改征信)<br>`cancel_credit_authorization`(注销授信额度)<br>`bill_date_credit_impact`(账单日还款是否影响征信) | `sop/业务场景办理问题/征信问题咨询QA.xlsx`<br>`sop/业务场景办理问题/修改征信QA.xlsx`<br>`sop/业务场景办理问题/注销授信额度QA.xlsx`<br>`sop/还款问题/8.账单日还款是否影响征信？.xlsx` | gold 覆盖征信咨询、修改征信、注销授信、还款是否影响征信；需按动作/问题拆。 |
-| 业务办理/结清证明 | 11 | 单 SOP | `clearance_certificate`(开具结清证明) | `sop/业务场景办理问题/开具结清证明QA.xlsx` | 开具结清证明 |
+| 业务办理/结清证明 | 12 | 单 SOP | `clearance_certificate`(开具结清证明) | `sop/业务场景办理问题/开具结清证明QA.xlsx` | 开具结清证明 |
 | 产品与信息/非我司产品 | 10 | 多 SOP | `value_added_service_inquiry`(增值服务咨询)<br>`loan_consultation`(贷款咨询)<br>`disbursement_progress`(放款进度查询)<br>`post_loan_verification`(核实贷后信息)<br>`bill_deduction_query`(查询账单扣款情况) | `sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/贷款问题/贷款咨询QA.xlsx`<br>`sop/贷款问题/放款进度查询QA.xlsx`<br>`sop/逾期问题/核实贷后信息QA.xlsx`<br>`sop/费用问题/7.查询账单扣款情况.xlsx` | 没有干净的单 SOP 承载；真实场景是非我司/导流/合作产品归属澄清，当前只能由产品服务/贷款/放款/贷后核实/扣款查询等能力承接。 |
-| 营销活动/新活动咨询 | 10 | 多 SOP | `value_added_service_inquiry`(增值服务咨询)<br>`cancel_value_added_service`(取消增值服务)<br>`refund_value_added_service`(退增值服务费)<br>`light_card_cancel_refund`(轻享卡取消退费)<br>`stop_marketing`(停止营销)<br>`member_consultation`(会员咨询)<br>`member_cancel`(取消会员)<br>`member_refund`(退会员费用)<br>`premium_card_inquiry`(优享卡咨询)<br>`premium_card_cancel`(取消优享卡)<br>`premium_card_refund`(退优享卡费用) | `sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/活动问题/2.怎么取消增值服务QA.xlsx`<br>`sop/活动问题/3.怎么退增值服务费QA.xlsx`<br>`sop/活动问题/5.怎么取消(退)轻享卡QA.xlsx`<br>`sop/活动问题/4.停止营销QA.xlsx`<br>`sop/会员问题/1.什么是会员（会员咨询）？.xlsx`<br>`sop/会员问题/2.怎么取消会员（先享后付）？.xlsx`<br>`sop/会员问题/3.怎么退会员费用？.xlsx`<br>`sop/优享卡问题/1.咨询优享卡是什么？有什么权益？.xlsx`<br>`sop/优享卡问题/2.怎么取消优享卡？.xlsx`<br>`sop/优享卡问题/3.怎么退优享卡费用？.xlsx` | 标注极粗，混合优惠券、轻享卡、优享卡、保险/活动扣费、服务商引导、停止营销等；应按产品服务族 + 动作映射。 |
+| 营销活动/新活动咨询 | 4 | 多 SOP | `value_added_service_inquiry`(增值服务咨询)<br>`cancel_value_added_service`(取消增值服务)<br>`refund_value_added_service`(退增值服务费)<br>`light_card_cancel_refund`(轻享卡取消退费)<br>`stop_marketing`(停止营销)<br>`member_consultation`(会员咨询)<br>`member_cancel`(取消会员)<br>`member_refund`(退会员费用)<br>`premium_card_inquiry`(优享卡咨询)<br>`premium_card_cancel`(取消优享卡)<br>`premium_card_refund`(退优享卡费用) | `sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/活动问题/2.怎么取消增值服务QA.xlsx`<br>`sop/活动问题/3.怎么退增值服务费QA.xlsx`<br>`sop/活动问题/5.怎么取消(退)轻享卡QA.xlsx`<br>`sop/活动问题/4.停止营销QA.xlsx`<br>`sop/会员问题/1.什么是会员（会员咨询）？.xlsx`<br>`sop/会员问题/2.怎么取消会员（先享后付）？.xlsx`<br>`sop/会员问题/3.怎么退会员费用？.xlsx`<br>`sop/优享卡问题/1.咨询优享卡是什么？有什么权益？.xlsx`<br>`sop/优享卡问题/2.怎么取消优享卡？.xlsx`<br>`sop/优享卡问题/3.怎么退优享卡费用？.xlsx` | 标注极粗，混合优惠券、轻享卡、优享卡、保险/活动扣费、服务商引导、停止营销等；应按产品服务族 + 动作映射。 |
 | 申请咨询/额度获取咨询 | 7 | 多 SOP | `quota_consultation`(额度咨询)<br>`no_quota_issue`(无额度问题) | `sop/额度问题/额度咨询QA.xlsx`<br>`sop/额度问题/无额度问题QA.xlsx` | gold 将获取额度、额度咨询、无额度混在一起，对应 quota_consultation + no_quota_issue。 |
 | 催收相关/核实催收信息 | 6 | 单 SOP | `post_loan_verification`(核实贷后信息) | `sop/逾期问题/核实贷后信息QA.xlsx` | 核实催收人员、催收短信、贷后信息真假 |
 | 还款相关/聚合码还款问题 | 5 | 单 SOP | `repayment_method_inquiry`(咨询还款方式) | `sop/还款问题/1.咨询还款方式.xlsx` | gold 单独标聚合码，但 SOP 属于咨询还款方式的一种渠道。 |
@@ -82,11 +82,11 @@
 
 ### 单 SOP
 
-- `催收相关/协商还款`（70）：逾期/未逾期协商延期、减免、分期、还本金等。
+- `催收相关/协商还款`（71）：逾期/未逾期协商延期、减免、分期、还本金等。
 - `催收相关/要求停催`（50）：本人/联系人停催、缓催、降频。
-- `还款相关/提前清贷`（27）：提前还款、提前结清、清贷。
+- `还款相关/提前清贷`（28）：提前还款、提前结清、清贷。
 - `催收相关/投诉催收`（19）：频繁骚扰、威胁、联系三方等催收投诉。
-- `业务办理/结清证明`（11）：开具结清证明。
+- `业务办理/结清证明`（12）：开具结清证明。
 - `催收相关/核实催收信息`（6）：核实催收人员、催收短信、贷后信息真假。
 - `还款相关/聚合码还款问题`（5）：gold 单独标聚合码，但评测只检查是否命中咨询还款方式 SOP。
 - `费用相关/退费进度`（4）：退费未到账、退费进度。
@@ -101,14 +101,14 @@
 
 ### 多 SOP
 
-- `还款相关/还款咨询`（46）：二级小结过粗，三级包含还款失败、还款中、部分扣款、账单冻结、征信影响、微信/支付宝还款等；需要映射到多个还款/扣款 SOP。
+- `还款相关/还款咨询`（51）：二级小结过粗，三级包含还款失败、还款中、部分扣款、账单冻结、征信影响、微信/支付宝还款等；需要映射到多个还款/扣款 SOP。
 - `还款相关/账单信息查询`（32）：标注名像账单查询，但真实样本会展开到费用明细、账单扣款、还款结果、还款未更新、提前结清金额、结清证明；属于证据型多 SOP。
-- `还款相关/存对公还款`（32）：标注聚合了对公账号/方式、转账未入账、账号核实、对公转错/转多退溢余、还款结果；不是单一退溢余 SOP。
-- `营销活动/会员退费`（18）：标注使用“会员退费”承载会员、优享卡、轻享卡、权益月卡、增值服务的咨询/取消/退费；产品名应由知识召回或 reference 确认。
-- `业务办理/账户注销`（15）：gold 按注销原因标，SOP/skill 区分普通注销、特殊注销、已注销客户进线。
+- `还款相关/存对公还款`（27）：标注聚合了对公账号/方式、转账未入账、账号核实、对公转错/转多退溢余、还款结果；不是单一退溢余 SOP。
+- `营销活动/会员退费`（22）：标注使用“会员退费”承载会员、优享卡、轻享卡、权益月卡、增值服务的咨询/取消/退费；产品名应由知识召回或 reference 确认。
+- `业务办理/账户注销`（16）：gold 按注销原因标，SOP/skill 区分普通注销、特殊注销、已注销客户进线。
 - `业务办理/征信相关`（14）：gold 覆盖征信咨询、修改征信、注销授信、还款是否影响征信；需按动作/问题拆。
 - `产品与信息/非我司产品`（10）：没有干净的单 SOP 对应；真实场景是非我司/导流/合作产品归属澄清，当前只能由产品服务/贷款/放款/贷后核实/扣款查询等能力承接。
-- `营销活动/新活动咨询`（10）：标注极粗，混合优惠券、轻享卡、优享卡、保险/活动扣费、服务商引导、停止营销等；应按产品服务族 + 动作映射。
+- `营销活动/新活动咨询`（4）：标注极粗，混合优惠券、轻享卡、优享卡、保险/活动扣费、服务商引导、停止营销等；应按产品服务族 + 动作映射。
 - `申请咨询/额度获取咨询`（7）：gold 将获取额度、额度咨询、无额度混在一起，对应 quota_consultation + no_quota_issue。
 - `费用相关/费用咨询`（5）：费用咨询一线/二线与费用明细在 SOP 中拆开，gold 小结未区分处理层级。
 - `费用相关/要求退费`（4）：gold 退费诉求覆盖一线、二线/内诉、借款争议特殊退费；退溢余三级在 merged 中也出现过，但 SOP 更接近 overpayment_refund。
@@ -117,7 +117,7 @@
 
 说明：下面列的是当前 golden 中“非严格单 SOP 对应/有错配风险”的小结。每个小结下列出所有涉及该 gold intent 的电话样本和抽取出来的客户 query 摘要，需确认映射池是否放宽/收紧。
 
-### 还款相关/还款咨询（46）
+### 还款相关/还款咨询（51）
 
 - 当前建议 skill：`repayment_method_inquiry`(咨询还款方式)<br>`repayment_status_issue`(还款状态异常)<br>`repayment_result_query`(查询还款结果)<br>`deduction_issues`(扣款相关问题咨询)<br>`early_deduction`(未到还款日被提前扣款)<br>`bill_date_credit_impact`(账单日还款是否影响征信)
 - 对应 SOP/reference：`sop/还款问题/1.咨询还款方式.xlsx`<br>`sop/还款问题/3.还款失败怎么处理？.xlsx`<br>`sop/还款问题/5.已还款怎么没更新？.xlsx`<br>`sop/还款问题/4.如何查询还款结果？.xlsx`<br>`sop/还款问题/9.扣款相关问题咨询.xlsx`<br>`sop/还款问题/6.未到还款日被提前扣款.xlsx`<br>`sop/还款问题/8.账单日还款是否影响征信？.xlsx`
@@ -172,7 +172,7 @@
 | 289 | `09626491-2ea8-4334-84f6-5d2a052d4ece` | 还款相关/还款咨询 | [1] 你好，那个还款的事，我这个卡不知道为啥不好使，你得给我发一个那个验证码，前几个月都是这样<br>[2] 你给我发一个那个验证码，前几个月都是公众号，你给我发一个那个二维码，然后我一扫是微信就付过去了 |
 | 294 | `0a26378d-5c9c-45fb-910f-48dc45ec914a` | 还款相关/聚合码还款问题、还款相关/还款咨询、还款相关/存对公还款 | [1] 我银行卡可能还款还不了，后面我要求就是说通过你们的那个客服，用对公对公转账。他给我的银行卡不对的，我现在到atm机上去，那个银行卡输进去是操作有误啊。<br>[2] 对，给我发了一个对公账号。但是我在那个中国银行app上面操作的话根本就转不了，我以为是我银行卡的问题，结果我把钱存到那个农业银行，我到农业银行atm机上面去操作，给你们对公转...<br>[3] 我现在要求对公好吧，因为我一张银行卡是限额的，我不知道是什么原因。<br>[4] 反正你们这边操作不了，卡里有钱主动还款也还不了。我后面要求对公的，我通过这张银行卡的app上面也操作不了。<br>[5] 这个对公账户我Atm机去转账的话，这个对公账户是转不了的。它显示的是操作有误。 |
 
-### 还款相关/存对公还款（32）
+### 还款相关/存对公还款（27）
 
 - 当前建议 skill：`repayment_method_inquiry`(咨询还款方式)<br>`repayment_status_issue`(还款状态异常)<br>`overpayment_refund`(客户对公转账出错退溢余)<br>`post_loan_verification`(核实贷后信息)<br>`repayment_result_query`(查询还款结果)
 - 对应 SOP/reference：`sop/还款问题/1.咨询还款方式.xlsx`<br>`sop/还款问题/3.还款失败怎么处理？.xlsx`<br>`sop/还款问题/5.已还款怎么没更新？.xlsx`<br>`sop/逾期问题/核实贷后信息QA.xlsx`<br>`sop/还款问题/4.如何查询还款结果？.xlsx`
@@ -254,7 +254,7 @@
 | 275 | `08967bb9-ad41-4b0e-8a5d-7c1d7a8b5907` | 营销活动/新活动咨询、还款相关/账单信息查询 | [1] 今天扣了我两笔钱，一个八十九，一个是两千多块钱。我想看一下这两笔钱。 |
 | 297 | `23f82506-aa66-442e-bb35-e95f313eecce` | 还款相关/账单信息查询、营销活动/会员退费 | [1] 啊，我想问一下他的那个173 的，那个还款金是我借他的多少钱呀？那个173 块钱<br>[2] 什么说是我借他的<br>[3] 那个173，他说是什么福利金，福利金是啥呀<br>[4] 这是什么账单的呀<br>[5] 我问一下，你看的我 app是一个2500 ，再放一个500 ，是不是 |
 
-### 还款相关/提前清贷（27）
+### 还款相关/提前清贷（28）
 
 - 当前建议 skill：`early_loan_clearance`(提前清贷需求)
 - 对应 SOP/reference：`sop/还款问题/2.提前清贷需求.xlsx`
@@ -290,7 +290,7 @@
 | 279 | `08e18991-9b8a-442c-9758-fbf0f42a45a2` | 还款相关/提前清贷、产品与信息/非我司产品 | [1] 你好，那个我就是在菊多多平台，借了一笔，咱们应该是合作关系吧。完了好像是豆豆钱给我那个下的款，有一笔应该是还剩890 多吧。这边显示叫微信卡卡贷呃，他每期是898 块8毛三。...<br>[2] 我应该是在菊多多的 app上申请的。你们应该是合作关系，你们豆豆钱应该是放款方<br>[3] 就是我需要提前结清，我需要联系他们是吧 |
 | 290 | `09700e0e-6485-40d4-af0f-83906bc7e270` | 还款相关/提前清贷 | [1] 呃，我就是之前借过，七月份借过1笔8800的，然后的话，我现在需要提前结清，麻烦帮我提前结清一下。<br>[2] 不想再借了，要提前结清，没有资金需求。<br>[3] 我只看见有一个支出91块钱的是什么情况？<br>[4] 明天麻烦再多来一次电话，因为我还有一笔的话是明天的，然后那个因为银行卡被限额。所以麻烦明天回个电话，谢谢。<br>[5] 对对对，到时候回个电话先。 |
 
-### 营销活动/会员退费（18）
+### 营销活动/会员退费（22）
 
 - 当前建议 skill：`member_refund`(退会员费用)<br>`member_cancel`(取消会员)<br>`member_consultation`(会员咨询)<br>`premium_card_refund`(退优享卡费用)<br>`premium_card_cancel`(取消优享卡)<br>`premium_card_inquiry`(优享卡咨询)<br>`refund_value_added_service`(退增值服务费)<br>`cancel_value_added_service`(取消增值服务)<br>`value_added_service_inquiry`(增值服务咨询)<br>`light_card_cancel_refund`(轻享卡取消退费)
 - 对应 SOP/reference：`sop/会员问题/3.怎么退会员费用？.xlsx`<br>`sop/会员问题/2.怎么取消会员（先享后付）？.xlsx`<br>`sop/会员问题/1.什么是会员（会员咨询）？.xlsx`<br>`sop/优享卡问题/3.怎么退优享卡费用？.xlsx`<br>`sop/优享卡问题/2.怎么取消优享卡？.xlsx`<br>`sop/优享卡问题/1.咨询优享卡是什么？有什么权益？.xlsx`<br>`sop/活动问题/3.怎么退增值服务费QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/活动问题/2.怎么取消增值服务QA.xlsx`<br>`sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/活动问题/5.怎么取消(退)轻享卡QA.xlsx`
@@ -317,7 +317,7 @@
 | 296 | `0af7b120-08b8-406c-9c5a-dc115c7d2a7a` | 营销活动/会员退费 | [1] 你这个豆豆钱的会员，为什么老是他自己会扣啊<br>[2] 那你为什么要扣这个会员呢，你把会员退给我，我都不需要这个东西，咋还扣什么会员呀<br>[3] 嗯，你为什么要扣这个会员呢<br>[4] 那我打12345 ，我问问能不能退，好吧<br>[5] 行吧，那你现在帮我处理，不行的话，我就打12345 好吧 |
 | 297 | `23f82506-aa66-442e-bb35-e95f313eecce` | 还款相关/账单信息查询、营销活动/会员退费 | [1] 啊，我想问一下他的那个173 的，那个还款金是我借他的多少钱呀？那个173 块钱<br>[2] 什么说是我借他的<br>[3] 那个173，他说是什么福利金，福利金是啥呀<br>[4] 这是什么账单的呀<br>[5] 我问一下，你看的我 app是一个2500 ，再放一个500 ，是不是 |
 
-### 业务办理/账户注销（15）
+### 业务办理/账户注销（16）
 
 - 当前建议 skill：`account_cancellation`(注销账户)<br>`special_account_cancellation`(特殊场景注销账户)<br>`deactivated_customer_service`(已注销客户进线服务)
 - 对应 SOP/reference：`sop/账户问题/注销账户QA.xlsx`<br>`sop/账户问题/特殊场景注销账号QA.xlsx`<br>`sop/账户问题/已注销客户进线办理业务QA.xlsx`
@@ -364,7 +364,7 @@
 | 273 | `085d2876-12db-420a-8242-a1ae91faa79b` | 还款相关/账单信息查询、业务办理/征信相关 | [1] 你好，我想问一下，我有一笔欠款已经二次分期了，然后我收到一个代偿的短信。<br>[2] 那这个短信提醒不是说一定会上传到那些系统吧？我之前咨询过你们专员，说可能会显示逾期，但现在如果是代偿的话，代偿应该会比逾期要严重很多吧？<br>[3] 那要结清五年之内才会更新，对不对？<br>[4] 那我现在刚刚分期的是36期，也就是三年。三年之后，那就相当于要八年之内这个才会被更新掉吗？<br>[5] 我知道。那能不能申请取消？因为我现在确实已经分期，而且也会按时还，可以取消这个上传的事情吗？ |
 | 295 | `0ac818fc-d1b9-4a89-bc65-0c100b7b2db9` | 业务办理/征信相关 | [1] 你好，之前的几期以为是20号还款，所以都正好晚还了一天，产生逾期了，前段时间联系那个客服，客服说如果说产生逾期的话，再联系我们，说我们帮我处理。你看怎么怎么处理一下这个问题啊。<br>[2] 对，我听他们说我这有逾期。<br>[3] 对呀，我有工作人员，有认识的人我把我的身份证告诉他之后嗯，他帮我查了一下，他说有逾期，然后我们这就20号还款，它就会产生逾期，上征信呀。<br>[4] 前几个月不知道最晚还款日是19号，都一直认为是20号，所以一直都是20号还的。而且在之前一两个月呃，上一个月的上一个月应该是，给我们那边客服打电话，还确认了一下，他说是20号...<br>[5] 我就是想问一下，我如果说是我20号还款的话。他会产生逾期？ |
 
-### 业务办理/结清证明（11）
+### 业务办理/结清证明（12）
 
 - 当前建议 skill：`clearance_certificate`(开具结清证明)
 - 对应 SOP/reference：`sop/业务场景办理问题/开具结清证明QA.xlsx`
@@ -403,7 +403,7 @@
 | 268 | `070593cb-1af1-435c-8745-a56449b3dfec` | 产品与信息/非我司产品、业务办理/结清证明 | [1] 你好，我在咱们平台有一笔借款已经还清了，想要开结清证明。<br>[2] 我要本金一万的那笔。但我是在花鸭平台借的一笔本金9600元的。<br>[3] 是不是不是近一年之内的？<br>[4] 那不对呀，我刚才花鸭平台给我查的是你这边电话。<br>[5] 那你能查到我是通过你这在桔多多借的那笔9600的，是哪天借的吗？ |
 | 279 | `08e18991-9b8a-442c-9758-fbf0f42a45a2` | 还款相关/提前清贷、产品与信息/非我司产品 | [1] 你好，那个我就是在菊多多平台，借了一笔，咱们应该是合作关系吧。完了好像是豆豆钱给我那个下的款，有一笔应该是还剩890 多吧。这边显示叫微信卡卡贷呃，他每期是898 块8毛三。...<br>[2] 我应该是在菊多多的 app上申请的。你们应该是合作关系，你们豆豆钱应该是放款方<br>[3] 就是我需要提前结清，我需要联系他们是吧 |
 
-### 营销活动/新活动咨询（10）
+### 营销活动/新活动咨询（4）
 
 - 当前建议 skill：`value_added_service_inquiry`(增值服务咨询)<br>`cancel_value_added_service`(取消增值服务)<br>`refund_value_added_service`(退增值服务费)<br>`light_card_cancel_refund`(轻享卡取消退费)<br>`stop_marketing`(停止营销)<br>`member_consultation`(会员咨询)<br>`member_cancel`(取消会员)<br>`member_refund`(退会员费用)<br>`premium_card_inquiry`(优享卡咨询)<br>`premium_card_cancel`(取消优享卡)<br>`premium_card_refund`(退优享卡费用)
 - 对应 SOP/reference：`sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/活动问题/2.怎么取消增值服务QA.xlsx`<br>`sop/活动问题/3.怎么退增值服务费QA.xlsx`<br>`sop/活动问题/5.怎么取消(退)轻享卡QA.xlsx`<br>`sop/活动问题/4.停止营销QA.xlsx`<br>`sop/会员问题/1.什么是会员（会员咨询）？.xlsx`<br>`sop/会员问题/2.怎么取消会员（先享后付）？.xlsx`<br>`sop/会员问题/3.怎么退会员费用？.xlsx`<br>`sop/优享卡问题/1.咨询优享卡是什么？有什么权益？.xlsx`<br>`sop/优享卡问题/2.怎么取消优享卡？.xlsx`<br>`sop/优享卡问题/3.怎么退优享卡费用？.xlsx`

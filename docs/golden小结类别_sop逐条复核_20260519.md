@@ -2,10 +2,10 @@
 
 ## 口径
 
-- 路由结果来源：`tests/reports/merged_multi_turn_after_corporate_repay_tuning_20260427/query_predictions.jsonl`。
-- Golden 数据：`golden_test.jsonl`，共 `295` 行，gold intent 标注 `402` 个。
+- 路由结果口径：历史本机多轮 `query_predictions`；原始 report 产物不随交付保留，本文保留逐条复核结果。
+- Golden 数据：`golden_test.jsonl`，共 `295` 行，gold intent 标注 `400` 个。
 - 本版只补足原始 golden 中 `gold_intents` 为空的 2 通电话；其他电话保持原始标注，不写入疑似漏标。
-- 本次没有重跑链路；只基于历史 `query_predictions` 和当前 `golden_test.jsonl` 重算。
+- 本次没有重跑链路；只基于历史 `query_predictions` 口径和当前 `golden_test.jsonl` 重算。
 
 ## 准确率重算
 

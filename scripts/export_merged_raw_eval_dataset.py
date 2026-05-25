@@ -69,7 +69,7 @@ def main() -> None:
             "query": row["query"],
             "gold_intents": gold_intents,
             "gold_intent_count": len(gold_intents),
-            "source": "merged.jsonl",
+            "source": "原始300条数据.jsonl",
         }
         query_rows.append(query_row)
 

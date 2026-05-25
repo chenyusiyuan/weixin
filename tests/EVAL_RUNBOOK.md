@@ -19,25 +19,27 @@ cd /Users/bytedance/Project/weixin
 | `标注维度.xlsx` | - | 小结类别标注维度来源 |
 | `scripts/references/merged_intent_skill_mapping.json` | 27 类 | 小结类别到一个或多个 skill 的映射表 |
 
-历史中间产物已经归档到：
-
-```text
-archive/20260519_eval_chain_cleanup/
-```
-
 ## 多轮真实电话评测
 
 这是当前更贴近真实电话链路的主评测。
 
 ```bash
-python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --concurrency 8
+python3 tests/eval/merged_multi_turn_skill_recall.py \
+  --route-mode router \
+  --model deepseek-v4-flash \
+  --llm-timeout 120 \
+  --concurrency 8
 ```
 
 快速 smoke：
 
 ```bash
 python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode skill-cos --limit 20
-python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --limit 20
+python3 tests/eval/merged_multi_turn_skill_recall.py \
+  --route-mode router \
+  --model deepseek-v4-flash \
+  --llm-timeout 120 \
+  --limit 20
 ```
 
 计分逻辑：
@@ -50,17 +52,7 @@ python3 tests/eval/merged_multi_turn_skill_recall.py --route-mode router --limit
 - 总准确率为所有电话得分求和后除以样本数。
 - 默认直接按映射表计分，不再跑 LLM audit；如需额外复核一对多映射命中，可显式加 `--llm-audit-one-to-many`。
 
-当前映射重算口径：
-
-```text
-tests/reports/merged_mapping_recalc_from_previous_20260519/summary_after_empty_only_patch.json
-```
-
-当前复用的历史预测结果：
-
-```text
-tests/reports/merged_multi_turn_after_corporate_repay_tuning_20260427/query_predictions.jsonl
-```
+注意：`tests/reports/*` 是本地运行产物，默认被 `.gitignore` 忽略。通过 git 交付给其他人时，这些报告目录通常不存在；日常开发按本 runbook 重新生成。
 
 ## 旧单 query 评测
 
@@ -105,11 +97,7 @@ python3 scripts/export_golden_test.py
 python3 scripts/rebuild_golden_from_batches.py
 ```
 
-注意：多轮打标和 query 拆分的旧中间产物已归档。如果要完全复现旧构建过程，先看：
-
-```text
-archive/20260519_eval_chain_cleanup/data_intermediate/merged_turn_filter/
-```
+注意：多轮打标和 query 拆分的旧中间产物不随交付保留。需要重建时按本节脚本从 tracked 源数据重新生成。
 
 ## 映射与错配文档
 
@@ -129,8 +117,8 @@ python3 -m pytest tests/unit/test_skill_schema.py tests/unit/test_value_added_kn
 python3 -m json.tool scripts/references/merged_intent_skill_mapping.json >/dev/null
 ```
 
-完整文件结构和归档说明见：
+完整文件结构和当前交付边界见：
 
 ```text
-docs/当前评测链路与归档索引.md
+docs/当前评测链路索引.md
 ```

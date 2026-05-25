@@ -15,11 +15,6 @@ tests/reports/*
 tests/merged_turn_filter/*
 !tests/merged_turn_filter/README.md
 !tests/merged_turn_filter/chunk_summary.json
-/archive/20260519_eval_chain_cleanup/reports_history/
-/archive/20260519_eval_chain_cleanup/data_intermediate/
-/archive/20260519_eval_chain_cleanup/caches/
-/archive/20260519_eval_chain_cleanup/logs/
-/archive/20260519_eval_chain_cleanup/runtime_noise/
 
 # local logs / runtime
 nohup.out

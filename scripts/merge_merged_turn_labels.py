@@ -1,4 +1,4 @@
-"""Validate and merge LLM customer-turn labels for merged.jsonl.
+"""Validate and merge LLM customer-turn labels for 原始300条数据.jsonl.
 
 Reads:
     tests/merged_turn_filter/chunks/chunk_*.jsonl

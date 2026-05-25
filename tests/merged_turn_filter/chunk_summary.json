@@ -1,18 +1,10 @@
 {
-  "input": "/Users/bytedance/Project/weixin/merged.jsonl",
+  "source": "原始300条数据.jsonl",
+  "purpose": "Denominator metadata for tests/eval/merged_multi_turn_skill_recall.py; historical chunk files are not kept in the delivery repo.",
   "raw_objects": 298,
   "unique_records": 297,
   "duplicate_call_ids_removed": 1,
   "parse_errors": [],
-  "chunk_count": 6,
-  "chunk_paths": [
-    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_01.jsonl",
-    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_02.jsonl",
-    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_03.jsonl",
-    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_04.jsonl",
-    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_05.jsonl",
-    "/Users/bytedance/Project/weixin/tests/merged_turn_filter/chunks/chunk_06.jsonl"
-  ],
   "records_without_gold_intents": 2,
   "records_without_customer_turns": 0
 }

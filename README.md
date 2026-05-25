@@ -8,16 +8,14 @@
 
 | 目的 | 文件 |
 |---|---|
-| 当前评测链路、数据、报告、归档索引 | `docs/当前评测链路与归档索引.md` |
+| 当前评测链路、数据、报告策略 | `docs/当前评测链路索引.md` |
 | 离线评测怎么跑 | `tests/EVAL_RUNBOOK.md` |
 | 当前多轮小结到 skill 映射 | `scripts/references/merged_intent_skill_mapping.json` |
 | 小结类别与 SOP/skill 错配审计 | `docs/小结标注_sop映射错配审计.md` |
-| Skill-based 方案原始说明 | `docs/skill-based方案.md` |
 | 当前项目说明长文档 | `docs/项目说明文档.md` |
 | 前后端 Demo 工作台 | `fin_copilot/main.py`、`static/demo/` |
 | LLM 模型配置 | `config/llm_profiles.json` |
 | golden 多模型批处理 | `run_golden_model_matrix.sh` |
-| 历史文档、旧报告、中间产物 | `archive/20260519_eval_chain_cleanup/` |
 
 ## 主链路
 
@@ -80,7 +78,7 @@ skills/
 rules/rule_engine.json              # Chain A 规则，当前 9 条
 
 tools/
-├── registry.py                      # 已注册 9 个 mock 业务工具
+├── registry.py                      # 已注册 11 个 mock 业务工具
 ├── executor.py                      # 工具并行执行与缓存
 └── get_*.py                         # 账单、额度、会员、通话、短信、退款、停催等查询
 
@@ -243,17 +241,7 @@ python3 tests/eval/merged_multi_turn_skill_recall.py \
 4. 如果 K 个 gold intent 命中 N 个，则该通电话得分 `N / K`。
 5. 总准确率为所有电话得分求和后除以样本数。
 
-当前复用的历史预测结果：
-
-```text
-tests/reports/merged_multi_turn_after_corporate_repay_tuning_20260427/query_predictions.jsonl
-```
-
-当前映射重算结果：
-
-```text
-tests/reports/merged_mapping_recalc_from_previous_20260519/summary_after_empty_only_patch.json
-```
+注意：`tests/reports/*` 是本地运行产物，默认被 `.gitignore` 忽略。通过 git 交付给其他人时，这些目录通常不会存在；日常接手开发应按 `tests/EVAL_RUNBOOK.md` 重新生成。
 
 ## Golden 模型批处理
 
@@ -350,11 +338,7 @@ raw_data.csv / 3000条raw data.jsonl
   -> raw_test.jsonl
 ```
 
-多轮打标、query 拆分、旧 batch 标注等中间产物已经归档：
-
-```text
-archive/20260519_eval_chain_cleanup/data_intermediate/
-```
+多轮打标、query 拆分、旧 batch 标注等历史中间产物不随交付保留；需要时按上面的脚本从 tracked 源数据重新生成。
 
 ## 映射表与人工复核
 
@@ -381,26 +365,9 @@ scripts/references/merged_intent_skill_mapping.json
 | `docs/golden小结类别_sop逐条复核_20260519.md` | 当前逐条复核与计分 |
 | `docs/golden小结类别_sop高优先级疑点_20260519.md` | 人工确认清单，不自动写回 golden |
 
-## 报告与归档
+## 报告与本地产物
 
-`tests/reports/` 当前只保留仍会使用的两类报告：
-
-```text
-tests/reports/merged_multi_turn_after_corporate_repay_tuning_20260427/
-tests/reports/merged_mapping_recalc_from_previous_20260519/
-```
-
-历史文档、旧报告、中间产物、缓存和日志已经归档到：
-
-```text
-archive/20260519_eval_chain_cleanup/
-```
-
-归档明细：
-
-```text
-archive/20260519_eval_chain_cleanup/manifest.json
-```
+`tests/reports/` 是本地运行产物目录，默认被 `.gitignore` 忽略；交付仓库只保留 `tests/reports/README.md`。新评测会按脚本生成带时间戳的报告目录。
 
 ## 常用校验
 
@@ -415,8 +382,8 @@ bash -n scripts/run_golden_full_eval.sh
 
 ## 接手建议
 
-1. 先看 `docs/当前评测链路与归档索引.md`，确认当前数据和报告位置。
+1. 先看 `docs/当前评测链路索引.md`，确认当前数据和报告策略。
 2. 看 `scripts/references/merged_intent_skill_mapping.json`，理解 golden 小结如何映射到 skill。
 3. 用 `tests/EVAL_RUNBOOK.md` 选择多轮电话评测或旧单 query 评测。
 4. 修改 skill 前先跑 `scripts/validate_skills.py`。
-5. 历史报告只在需要追溯时看 `archive/20260519_eval_chain_cleanup/`，日常不要从归档目录作为当前口径继续开发。
+5. 需要复核历史指标时重新跑评测脚本，或从本机另行复制 `tests/reports/` 下的忽略产物。

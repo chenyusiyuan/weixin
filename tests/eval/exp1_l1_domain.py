@@ -1,16 +1,16 @@
 """Exp 1 — L1 Domain Classification Accuracy.
 
-Evaluates fin_copilot.routing.domain_classifier.DomainClassifier against
-the gold labels in test.jsonl.
+By default evaluates against the current single-query golden set
+``raw_test.jsonl``. The legacy ``test.jsonl`` source is still available with
+``--source test`` when that file exists locally.
 
-For each conversation we extract the customer's first utterance (or concat
-the first N customer lines when --first-n > 1) and ask the classifier to
-predict a domain. We compare against the mapped gold domain.
+For each record we extract the customer query and ask the classifier to predict
+a domain. We compare against the mapped gold domain.
 
 Usage:
-    python scripts/eval_l1_domain.py                    # default (first 1 customer msg)
-    python scripts/eval_l1_domain.py --first-n 3        # concat first 3 customer msgs
-    python scripts/eval_l1_domain.py --json report.json # emit JSON too
+    python tests/eval/exp1_l1_domain.py --limit 50
+    python tests/eval/exp1_l1_domain.py --source test   # legacy source, if present
+    python tests/eval/exp1_l1_domain.py --json report.json
 """
 
 from __future__ import annotations
@@ -358,8 +358,8 @@ def main() -> None:
     ap.add_argument("--extract", choices=["naive", "smart", "business"], default="naive",
                     help="naive=first k lines; smart=skip greeting/identity; business=also skip 会话流程")
     ap.add_argument("--top-k", type=int, default=3, help="Top-K recall metric (embedding only)")
-    ap.add_argument("--source", choices=["test", "golden"], default="test",
-                    help="'test' reads test.jsonl (98 conversations); 'golden' reads raw_test.jsonl")
+    ap.add_argument("--source", choices=["test", "golden"], default="golden",
+                    help="'golden' reads raw_test.jsonl; 'test' reads legacy test.jsonl if present")
     ap.add_argument("--min-confidence", type=float, default=0.0,
                     help="when --source=golden, skip rows below this confidence")
     ap.add_argument("--limit", type=int, default=None,

@@ -1,5 +1,5 @@
 {
-  "_comment": "Maps merged.jsonl gold intent labels to acceptable skill_id values. Some merged labels are level-2 coarse labels, so skill_ids may contain multiple acceptable concrete skills.",
+  "_comment": "Maps current multi-turn golden gold_intents to acceptable skill_id values. The source file is golden_test.jsonl, built from 原始300条数据.jsonl; older docs may call that source merged.jsonl. Some labels are level-2 coarse labels, so skill_ids may contain multiple acceptable concrete skills.",
   "mappings": [
     {
       "intent": "催收相关/协商还款",
