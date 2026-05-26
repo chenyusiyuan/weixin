@@ -70,6 +70,29 @@ def test_value_added_retriever_unmatched_non_company_flow():
     assert "不要直接承诺取消" in result["prompt_text"]
 
 
+def test_non_company_product_skill_uses_value_added_unmatched_flow():
+    retriever = ValueAddedKnowledgeRetriever(ROOT)
+
+    result = retriever.retrieve(
+        "这个第三方平台是不是你们公司的",
+        "non_company_product_inquiry",
+    )
+
+    assert result is not None
+    assert result["status"] == "unmatched"
+    assert result["slots"]["value_added_match_status"] == "unmatched"
+    assert result["slots"]["value_added_suspected_non_company_product"] is True
+    assert result["knowledge_matches"] == [{
+        "domain": "活动",
+        "category": "增值服务",
+        "service_id": "",
+        "service_name": "",
+        "match_status": "unmatched",
+        "suspected_non_company_product": True,
+    }]
+    assert "匹配失败/非我司产品处理流程" in result["prompt_text"]
+
+
 def test_value_added_terms_route_to_activity_domain():
     classifier = DomainClassifier()
     state = ConversationState(session_id="domain-smoke")
@@ -77,6 +100,7 @@ def test_value_added_terms_route_to_activity_domain():
     assert classifier.classify("还款无忧服务是什么", state) == "活动"
     assert classifier.classify("债务咨询顾问服务费为什么会产生", state) == "活动"
     assert classifier.classify("我想取消一个赚钱卡，不知道是不是你们的产品", state) == "活动"
+    assert classifier.classify("这个第三方平台是不是你们公司的", state) == "活动"
 
 
 def test_copilot_response_can_expose_knowledge_matches():

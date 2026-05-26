@@ -69,7 +69,7 @@ fin_copilot/
 
 ```text
 skills/
-├── registry.json                   # 54 个 skill，11 个域
+├── registry.json                   # 55 个 skill，11 个域
 ├── definitions/*.yaml              # 每个 skill 一个定义文件
 ├── prompts/skill_routing.md         # Router prompt
 ├── prompts/compliant_gen.md         # 话术生成 prompt

@@ -22,7 +22,7 @@
 | 业务办理/账户注销 | 16 | 多 SOP | 注销账户、注销账号、特殊账户注销 |
 | 业务办理/征信相关 | 14 | 多 SOP | 征信查询、修改征信、注销授信额度、征信影响 |
 | 业务办理/结清证明 | 12 | 单 SOP | 开具结清证明 |
-| 产品与信息/非我司产品 | 10 | 多 SOP | 非我司/导流/未命中产品服务不按产品名单独建 skill：增值服务未命中链路负责澄清与引导，贷款咨询/放款进度/贷后核实/扣款查询负责对应业务场景 |
+| 产品与信息/非我司产品 | 10 | 单 Skill | 不新增产品与信息域；拆成活动域下 `non_company_product_inquiry` 独立统计 skill，运行时仍复用结构化 reference 检索的非我司产品澄清分支 |
 | 营销活动/新活动咨询 | 4 | 多 SOP | merged 中新活动咨询按产品/活动粗标，实际 skill 按咨询、取消、退费、停止营销等动作识别；具体服务/产品名由增值服务结构化知识召回 |
 | 申请咨询/额度获取咨询 | 7 | 多 SOP | 额度获取、额度咨询、无额度 |
 | 催收相关/核实催收信息 | 6 | 单 SOP | 核实催收人员、催收短信、贷后信息真假 |
@@ -54,7 +54,7 @@
 | 业务办理/账户注销 | 16 | 多 SOP | `account_cancellation`(注销账户)<br>`special_account_cancellation`(特殊场景注销账户)<br>`deactivated_customer_service`(已注销客户进线服务) | `sop/账户问题/注销账户QA.xlsx`<br>`sop/账户问题/特殊场景注销账号QA.xlsx`<br>`sop/账户问题/已注销客户进线办理业务QA.xlsx` | gold 按注销原因标，SOP/skill 区分普通注销、特殊注销、已注销客户进线。 |
 | 业务办理/征信相关 | 14 | 多 SOP | `credit_inquiry`(征信问题咨询)<br>`credit_modification`(修改征信)<br>`cancel_credit_authorization`(注销授信额度)<br>`bill_date_credit_impact`(账单日还款是否影响征信) | `sop/业务场景办理问题/征信问题咨询QA.xlsx`<br>`sop/业务场景办理问题/修改征信QA.xlsx`<br>`sop/业务场景办理问题/注销授信额度QA.xlsx`<br>`sop/还款问题/8.账单日还款是否影响征信？.xlsx` | gold 覆盖征信咨询、修改征信、注销授信、还款是否影响征信；需按动作/问题拆。 |
 | 业务办理/结清证明 | 12 | 单 SOP | `clearance_certificate`(开具结清证明) | `sop/业务场景办理问题/开具结清证明QA.xlsx` | 开具结清证明 |
-| 产品与信息/非我司产品 | 10 | 多 SOP | `value_added_service_inquiry`(增值服务咨询)<br>`loan_consultation`(贷款咨询)<br>`disbursement_progress`(放款进度查询)<br>`post_loan_verification`(核实贷后信息)<br>`bill_deduction_query`(查询账单扣款情况) | `sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/贷款问题/贷款咨询QA.xlsx`<br>`sop/贷款问题/放款进度查询QA.xlsx`<br>`sop/逾期问题/核实贷后信息QA.xlsx`<br>`sop/费用问题/7.查询账单扣款情况.xlsx` | 没有干净的单 SOP 承载；真实场景是非我司/导流/合作产品归属澄清，当前只能由产品服务/贷款/放款/贷后核实/扣款查询等能力承接。 |
+| 产品与信息/非我司产品 | 10 | 单 Skill | `non_company_product_inquiry`(非我司产品咨询) | `sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json` | 不新增产品与信息域；该 skill 归属活动域，作为统计映射入口，运行时仍复用结构化 reference 检索，未命中产品/服务清单时走 `unmatched_non_company_product` 分支。 |
 | 营销活动/新活动咨询 | 4 | 多 SOP | `value_added_service_inquiry`(增值服务咨询)<br>`cancel_value_added_service`(取消增值服务)<br>`refund_value_added_service`(退增值服务费)<br>`light_card_cancel_refund`(轻享卡取消退费)<br>`stop_marketing`(停止营销)<br>`member_consultation`(会员咨询)<br>`member_cancel`(取消会员)<br>`member_refund`(退会员费用)<br>`premium_card_inquiry`(优享卡咨询)<br>`premium_card_cancel`(取消优享卡)<br>`premium_card_refund`(退优享卡费用) | `sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/活动问题/2.怎么取消增值服务QA.xlsx`<br>`sop/活动问题/3.怎么退增值服务费QA.xlsx`<br>`sop/活动问题/5.怎么取消(退)轻享卡QA.xlsx`<br>`sop/活动问题/4.停止营销QA.xlsx`<br>`sop/会员问题/1.什么是会员（会员咨询）？.xlsx`<br>`sop/会员问题/2.怎么取消会员（先享后付）？.xlsx`<br>`sop/会员问题/3.怎么退会员费用？.xlsx`<br>`sop/优享卡问题/1.咨询优享卡是什么？有什么权益？.xlsx`<br>`sop/优享卡问题/2.怎么取消优享卡？.xlsx`<br>`sop/优享卡问题/3.怎么退优享卡费用？.xlsx` | 标注极粗，混合优惠券、轻享卡、优享卡、保险/活动扣费、服务商引导、停止营销等；应按产品服务族 + 动作映射。 |
 | 申请咨询/额度获取咨询 | 7 | 多 SOP | `quota_consultation`(额度咨询)<br>`no_quota_issue`(无额度问题) | `sop/额度问题/额度咨询QA.xlsx`<br>`sop/额度问题/无额度问题QA.xlsx` | gold 将获取额度、额度咨询、无额度混在一起，对应 quota_consultation + no_quota_issue。 |
 | 催收相关/核实催收信息 | 6 | 单 SOP | `post_loan_verification`(核实贷后信息) | `sop/逾期问题/核实贷后信息QA.xlsx` | 核实催收人员、催收短信、贷后信息真假 |
@@ -98,6 +98,7 @@
 - `信息维护/资料信息修改`（1）：当前无通用资料修改 SOP/skill，暂按 card_rebinding 兜底；建议人工确认是否补独立能力。
 - `申请咨询/放款时效`（1）：放款时效/进度，评测映射到放款进度查询 SOP。
 - `申请咨询/预约借款`（1）：当前无预约借款专门 SOP/skill，暂时归 loan_consultation；建议人工确认是否补独立能力。
+- `产品与信息/非我司产品`（10）：不新增产品与信息域，评测映射到活动域下 `non_company_product_inquiry` 独立统计 skill，运行时复用 reference 未命中分支。
 
 ### 多 SOP
 
@@ -107,7 +108,6 @@
 - `营销活动/会员退费`（22）：标注使用“会员退费”承载会员、优享卡、轻享卡、权益月卡、增值服务的咨询/取消/退费；产品名应由知识召回或 reference 确认。
 - `业务办理/账户注销`（16）：gold 按注销原因标，SOP/skill 区分普通注销、特殊注销、已注销客户进线。
 - `业务办理/征信相关`（14）：gold 覆盖征信咨询、修改征信、注销授信、还款是否影响征信；需按动作/问题拆。
-- `产品与信息/非我司产品`（10）：没有干净的单 SOP 对应；真实场景是非我司/导流/合作产品归属澄清，当前只能由产品服务/贷款/放款/贷后核实/扣款查询等能力承接。
 - `营销活动/新活动咨询`（4）：标注极粗，混合优惠券、轻享卡、优享卡、保险/活动扣费、服务商引导、停止营销等；应按产品服务族 + 动作映射。
 - `申请咨询/额度获取咨询`（7）：gold 将获取额度、额度咨询、无额度混在一起，对应 quota_consultation + no_quota_issue。
 - `费用相关/费用咨询`（5）：费用咨询一线/二线与费用明细在 SOP 中拆开，gold 小结未区分处理层级。
@@ -386,9 +386,9 @@
 
 ### 产品与信息/非我司产品（10）
 
-- 当前建议 skill：`value_added_service_inquiry`(增值服务咨询)<br>`loan_consultation`(贷款咨询)<br>`disbursement_progress`(放款进度查询)<br>`post_loan_verification`(核实贷后信息)<br>`bill_deduction_query`(查询账单扣款情况)
-- 对应 SOP/reference：`sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`<br>`sop/贷款问题/贷款咨询QA.xlsx`<br>`sop/贷款问题/放款进度查询QA.xlsx`<br>`sop/逾期问题/核实贷后信息QA.xlsx`<br>`sop/费用问题/7.查询账单扣款情况.xlsx`
-- 确认点：没有干净的单 SOP 承载；真实场景是非我司/导流/合作产品归属澄清，当前只能由产品服务/贷款/放款/贷后核实/扣款查询等能力承接。
+- 当前建议 skill：`non_company_product_inquiry`(非我司产品咨询)
+- 对应 SOP/reference：`sop/活动问题/1.增值服务咨询QA.xlsx`<br>`sop/structured/value_added_text/services.json`
+- 确认点：不新增产品与信息域；该 skill 归属活动域，作为统计映射入口，运行时仍复用结构化 reference 检索，未命中产品/服务清单时走 `unmatched_non_company_product` 分支。
 
 | record | call_id | gold_intents | 抽取客户 query |
 |---:|---|---|---|

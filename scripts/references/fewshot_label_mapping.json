@@ -1,6 +1,6 @@
 {
   "_comment": "Maps 清洗后数据1/2.xlsx '小结名称' (level-3 intent label) to skill_id. Used to build few-shot retrieval corpus from 303 dialogs. Review each line. Set skill_id to null to exclude. _support is the count across both xlsx files (deduped).",
-  "_system_skills_reference": "See skills/registry.json — 54 skills across 11 domains (includes 会话流程)",
+  "_system_skills_reference": "See skills/registry.json — 55 skills across 11 domains (includes 会话流程)",
   "mappings": [
     {
       "level3": "催收相关/协商还款/逾期",
@@ -359,14 +359,14 @@
     {
       "level3": "产品与信息/非我司产品/合作/导流产品",
       "support": 6,
-      "skill_id": null,
-      "notes": "非本平台业务"
+      "skill_id": "non_company_product_inquiry",
+      "notes": "活动域下独立统计 skill；运行时走增值服务/产品 reference 检索，未命中时进入非我司产品澄清分支"
     },
     {
       "level3": "产品与信息/非我司产品/非我司产品",
       "support": 3,
-      "skill_id": null,
-      "notes": "非本平台业务"
+      "skill_id": "non_company_product_inquiry",
+      "notes": "活动域下独立统计 skill；运行时走增值服务/产品 reference 检索，未命中时进入非我司产品澄清分支"
     }
   ]
 }

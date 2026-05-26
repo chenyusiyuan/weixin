@@ -1,6 +1,6 @@
 {
-  "version": "2026-04-18-merge-repayment",
-  "total_skills": 54,
+  "version": "2026-05-26-add-non-company-product-skill",
+  "total_skills": 55,
   "domains": {
     "会话流程": {
       "skills": [
@@ -396,6 +396,17 @@
             "轻享卡",
             "轻享卡续费",
             "轻享卡扣费"
+          ]
+        },
+        {
+          "skill_id": "non_company_product_inquiry",
+          "name": "非我司产品咨询",
+          "risk_level": "low",
+          "route_mode": "direct_reply",
+          "keywords_preview": [
+            "不是你们公司",
+            "哪个平台",
+            "非我司产品"
           ]
         },
         {

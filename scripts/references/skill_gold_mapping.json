@@ -1,6 +1,6 @@
 {
   "_comment": "Maps test.jsonl '服务标签' (after stripping backticks) to skill_id. Review each line and change skill_id if wrong. Set skill_id to null to exclude from eval. The _support column is the count in test.jsonl.",
-  "_system_skills_reference": "See skills/registry.json for the full 50-skill list",
+  "_system_skills_reference": "See skills/registry.json for the full 55-skill list",
   "mappings": [
     {
       "tag": "协商还款_金额",
@@ -101,8 +101,8 @@
     {
       "tag": "非我司产品",
       "support": 2,
-      "skill_id": null,
-      "notes": "非本平台业务，排除"
+      "skill_id": "non_company_product_inquiry",
+      "notes": "活动域下独立统计 skill；运行时走增值服务/产品 reference 检索，未命中时进入非我司产品澄清分支"
     },
     {
       "tag": "费用咨询_担保类费用咨询",

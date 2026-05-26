@@ -124,14 +124,8 @@
     },
     {
       "intent": "产品与信息/非我司产品",
-      "skill_ids": [
-        "value_added_service_inquiry",
-        "loan_consultation",
-        "disbursement_progress",
-        "post_loan_verification",
-        "bill_deduction_query"
-      ],
-      "notes": "非我司/导流/未命中产品服务不按产品名单独建 skill：增值服务未命中链路负责澄清与引导，贷款咨询/放款进度/贷后核实/扣款查询负责对应业务场景"
+      "skill_ids": ["non_company_product_inquiry"],
+      "notes": "不新增产品与信息域；非我司/导流/合作方/未知产品归属拆为活动域下独立统计 skill，运行时仍复用活动/增值服务结构化 reference 检索，未命中产品服务清单时走 unmatched_non_company_product 分支"
     },
     {
       "intent": "申请咨询/额度获取咨询",

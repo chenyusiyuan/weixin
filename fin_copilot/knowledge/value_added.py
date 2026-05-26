@@ -18,6 +18,7 @@ VALUE_ADDED_SKILL_IDS: frozenset[str] = frozenset({
     "cancel_value_added_service",
     "refund_value_added_service",
     "light_card_cancel_refund",
+    "non_company_product_inquiry",
 })
 
 SKILL_DEFAULT_SERVICE_ID: dict[str, str] = {

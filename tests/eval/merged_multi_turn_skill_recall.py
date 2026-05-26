@@ -73,7 +73,7 @@ DEFAULT_AUDIT_INTENTS = [
     "产品与信息/非我司产品",
 ]
 
-AUDIT_PROMPT_VERSION = "family-v2-20260427"
+AUDIT_PROMPT_VERSION = "family-v3-20260526"
 
 AUDIT_INTENT_POLICIES: dict[str, dict[str, Any]] = {
     "还款相关/存对公还款": {
@@ -137,8 +137,8 @@ AUDIT_INTENT_POLICIES: dict[str, dict[str, Any]] = {
         "evaluation_unit": "非我司/导流/未命中产品归属业务族",
         "accept_when": [
             "客户主要诉求是在问非我司产品、导流产品、合作方/第三方平台、未知产品归属、非本公司扣费/贷款/服务的来源、处理入口或联系方式。",
-            "当前链路不为每个非我司产品单独建 skill，允许通过增值服务咨询、贷款咨询、放款进度、贷后核实、账单扣款查询等映射内 skill 承接不同落点。",
-            "只要 pred skill 在 acceptable_skill_ids_from_mapping 内，且能把客户引向对应的归属澄清、非我司说明、查询或转接处理，就应判 true。",
+            "当前不新增产品与信息域；该意图拆为活动域下的 non_company_product_inquiry 独立统计 skill，运行时仍由活动/增值服务结构化 reference 检索承接，未命中产品服务清单时走 unmatched_non_company_product 分支。",
+            "pred skill 在 acceptable_skill_ids_from_mapping 内，且能支持 reference 未命中后的归属澄清、非我司说明、查询入口或联系方式引导，即可判 true。",
         ],
         "reject_when": [
             "客户问的是我司明确贷款、账单、还款、催收等普通业务，不涉及非我司/合作方/未知产品归属。",

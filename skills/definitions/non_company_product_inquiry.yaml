@@ -1,0 +1,118 @@
+---
+skill_id: non_company_product_inquiry
+name: 非我司产品咨询
+description: >
+  处理客户询问产品、平台、扣款方、服务方、APP入口或合作方是否属于我司/合作服务的场景。
+  这是活动域下用于统计和评测映射的独立 skill；运行时仍复用结构化增值服务 reference 检索，
+  未命中已收录产品/服务清单时进入非我司产品澄清流程。
+domain: 活动
+intent_hierarchy:
+  l1: 营销活动
+  l2: 非我司产品
+  l3: 产品归属澄清
+route_mode: direct_reply
+risk_level: low
+priority: 10
+
+triggers:
+  keywords:
+    - 非我司产品
+    - 是不是你们公司
+    - 合作方
+    - 不是你们的
+    - 不是你们公司
+    - 是你们公司吗
+    - 是不是你们平台
+    - 哪个平台
+    - 哪家公司
+    - 谁家的产品
+    - 产品归属
+    - 合作关系
+    - 合作放款方
+    - 外部平台
+    - 外部APP
+    - 第三方APP
+    - 别的平台
+    - 机构归属
+    - 官方电话
+    - 第三方平台
+    - 第三方服务
+    - 导流
+    - 扣款方
+    - 扣款主体
+    - 商户名称
+    - 服务商
+  examples:
+    - 这个产品是不是你们公司的
+    - 这个第三方平台是不是你们合作的平台
+    - 外部APP底下显示你们电话，是你们合作方吗
+    - 对方平台把我转到你们这边，你们这边是哪个机构
+    - 我在别的平台看到的贷款是不是你们的
+    - 这个扣款方不是豆豆钱，是谁扣的
+    - 银行说不是你们扣的，我想确认这笔钱是哪家公司扣的
+    - 我没有豆豆钱APP，是在别的平台里面看到你们机构还款
+    - 第三方平台上没还款渠道，就在豆豆钱上有
+    - 我在外部平台申请的借款，你们是不是合作放款方
+    - 对方平台给我查的是你这边电话
+    - 这个服务扣费是不是你们平台的
+    - 我点了一个链接，具体哪个平台不清楚，你们旗下有很多APP吗
+    - 这个产品是不是你们公司能取消
+    - 我想知道这个服务商电话是不是官方的
+  exclude_keywords:
+    - 核实对公账号
+    - 对公账号真假
+    - 工号核实
+    - 调解机构
+    - 投诉催收
+    - 停催
+    - 注销账户
+    - 取消增值服务
+    - 退增值服务费
+    - 退会员费用
+    - 退优享卡费用
+
+tools:
+  required: []
+  optional: []
+
+templates:
+  unmatched_non_company_product:
+    script: "客户提到的产品或服务未命中已结构化的我司/合作增值服务清单。请先说明当前暂未匹配到对应我司/合作增值服务，继续引导客户补充完整产品/服务名称、扣款方、APP页面入口、订单号或短信主体；若确认非我司产品，告知需联系对应服务方、商户或支付渠道处理，我司无法直接操作取消或退款。"
+    required_slots: []
+    next_step: clarify_product_or_redirect_non_company
+  matched_reference:
+    script: "如业务补充知识命中已收录的我司/合作产品或服务，请根据命中的结构化文本块和图片补充块回答，不要扩大解释到未命中的产品。"
+    required_slots: []
+    next_step: answer_with_structured_value_added_knowledge
+
+branch_conditions:
+  - expr: value_added_match_status == 'unmatched'
+    variant: unmatched_non_company_product
+    hint: 客户提到的产品/服务未命中已结构化增值服务清单，疑似非我司或未纳入清单产品
+    note: 先澄清产品名称、扣款方、页面入口或短信主体；不要承认是我司产品，不要承诺取消/退费
+  - expr: value_added_match_status == 'matched'
+    variant: matched_reference
+    hint: 已根据服务别名命中结构化文本块和图片补充块
+    note: 直接依据业务补充知识回答；如客户真实动作是取消或退费，再转对应活动 skill
+
+compliance:
+  forbidden_expressions:
+    - 这个一定是我们公司的
+    - 这个肯定不是我们公司的
+    - 我们可以直接帮您取消第三方服务
+    - 我们可以直接帮您退第三方扣款
+    - 您不用联系服务方
+  required_disclaimer: 未核实前不确认产品归属；第三方产品或服务需联系对应服务方、商户或支付渠道处理。
+  must_include_when:
+    - condition: 客户询问未知产品归属
+      text: 请客户提供产品/平台名称、扣款方或商户名称、APP页面入口、短信主体、订单号等信息后再核实。
+
+escalation:
+  - trigger: 客户怀疑诈骗、被诱导转账或外部人员冒充我司
+  - trigger: 客户提供的产品归属与我司记录存在明显冲突且已产生扣款或还款风险
+
+fallback:
+  answer: "您好，目前仅凭当前信息暂无法确认该产品是否属于我司或合作方。建议您提供完整产品名称、扣款方/商户名称、APP页面入口或短信主体，客服会根据您提供的信息进一步判断；如确认是第三方产品或服务，需要联系对应服务方、商户或支付渠道处理。"
+  next_step: collect_product_evidence
+slot_sources: {}
+escalation_signals: []

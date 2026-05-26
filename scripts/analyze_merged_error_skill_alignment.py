@@ -123,7 +123,7 @@ COARSE_INTENT_DEFAULTS: dict[str, list[str]] = {
         "bill_date_credit_impact",
     ],
     "信息维护/资料信息修改": [],
-    "产品与信息/非我司产品": [],
+    "产品与信息/非我司产品": ["non_company_product_inquiry"],
 }
 
 
@@ -166,7 +166,7 @@ def suggested_skills(intent: str, level3: str, queries: list[str], fewshot: dict
     joined = "\n".join(queries)
 
     if intent == "产品与信息/非我司产品":
-        return [], "current_skill_gap: non-company product has no dedicated skill; exclude or create a skill"
+        return ["non_company_product_inquiry"], "activity-domain standalone stats skill; value-added/product lookup unmatched branch handles non-company product clarification"
 
     if intent == "信息维护/资料信息修改":
         if has_any(joined, ["换卡", "绑卡", "银行卡"]):
