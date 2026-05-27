@@ -18,10 +18,12 @@ tests/merged_turn_filter/*
 
 # local logs / runtime
 nohup.out
+logs/
 /tmp/*.json
 /tmp/*.log
 demo_data/*.sqlite3
 demo_data/*.sqlite3-*
+config/llm_profiles_副本.json
 
 # local tooling state (Claude Code / OMC / OMX)
 .claude/

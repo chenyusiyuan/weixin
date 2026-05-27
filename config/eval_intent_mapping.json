@@ -1,0 +1,2161 @@
+{
+  "source": "scripts/references/merged_intent_skill_mapping.json",
+  "session_flow_skills": [
+    "greeting_opening",
+    "identity_readback",
+    "acknowledgement",
+    "channel_check",
+    "closing"
+  ],
+  "skill_to_intent": {
+    "overdue_negotiation": {
+      "l1": "催收相关",
+      "l2": "协商还款",
+      "label": "催收相关/协商还款",
+      "skill_ids": [
+        "overdue_negotiation"
+      ],
+      "notes": "逾期/未逾期协商延期、减免、分期、还本金等"
+    },
+    "stop_collection": {
+      "l1": "催收相关",
+      "l2": "要求停催",
+      "label": "催收相关/要求停催",
+      "skill_ids": [
+        "stop_collection"
+      ],
+      "notes": "本人/联系人停催、缓催、降频"
+    },
+    "collection_complaint": {
+      "l1": "催收相关",
+      "l2": "投诉催收",
+      "label": "催收相关/投诉催收",
+      "skill_ids": [
+        "collection_complaint"
+      ],
+      "notes": "频繁骚扰、威胁、联系三方等催收投诉"
+    },
+    "post_loan_verification": {
+      "l1": "催收相关",
+      "l2": "核实催收信息",
+      "label": "催收相关/核实催收信息",
+      "skill_ids": [
+        "post_loan_verification"
+      ],
+      "notes": "核实催收人员、催收短信、贷后信息真假"
+    },
+    "close_pre_reminder": {
+      "l1": "催收相关",
+      "l2": "特殊场景",
+      "label": "催收相关/特殊场景",
+      "skill_ids": [
+        "overdue_negotiation",
+        "stop_collection",
+        "post_loan_verification",
+        "close_pre_reminder"
+      ],
+      "notes": "未覆盖 golden 的二级类；标注维度包含特殊资方、灾情用户、其他等宽泛场景，暂无单一专门 SOP，暂按协商还款、停催/贷后核实、关账前提醒等最接近催收承接 skill 映射"
+    },
+    "repayment_method_inquiry": {
+      "l1": "还款相关",
+      "l2": "还款咨询",
+      "label": "还款相关/还款咨询",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "deduction_issues",
+        "early_deduction",
+        "bill_date_credit_impact"
+      ],
+      "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+    },
+    "repayment_status_issue": {
+      "l1": "还款相关",
+      "l2": "还款咨询",
+      "label": "还款相关/还款咨询",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "deduction_issues",
+        "early_deduction",
+        "bill_date_credit_impact"
+      ],
+      "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+    },
+    "repayment_result_query": {
+      "l1": "还款相关",
+      "l2": "还款咨询",
+      "label": "还款相关/还款咨询",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "deduction_issues",
+        "early_deduction",
+        "bill_date_credit_impact"
+      ],
+      "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+    },
+    "deduction_issues": {
+      "l1": "还款相关",
+      "l2": "还款咨询",
+      "label": "还款相关/还款咨询",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "deduction_issues",
+        "early_deduction",
+        "bill_date_credit_impact"
+      ],
+      "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+    },
+    "early_deduction": {
+      "l1": "还款相关",
+      "l2": "还款咨询",
+      "label": "还款相关/还款咨询",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "deduction_issues",
+        "early_deduction",
+        "bill_date_credit_impact"
+      ],
+      "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+    },
+    "bill_date_credit_impact": {
+      "l1": "还款相关",
+      "l2": "还款咨询",
+      "label": "还款相关/还款咨询",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "deduction_issues",
+        "early_deduction",
+        "bill_date_credit_impact"
+      ],
+      "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+    },
+    "fee_detail_query": {
+      "l1": "还款相关",
+      "l2": "账单信息查询",
+      "label": "还款相关/账单信息查询",
+      "skill_ids": [
+        "fee_detail_query",
+        "bill_deduction_query",
+        "deduction_issues",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "early_loan_clearance",
+        "clearance_certificate"
+      ],
+      "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+    },
+    "bill_deduction_query": {
+      "l1": "还款相关",
+      "l2": "账单信息查询",
+      "label": "还款相关/账单信息查询",
+      "skill_ids": [
+        "fee_detail_query",
+        "bill_deduction_query",
+        "deduction_issues",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "early_loan_clearance",
+        "clearance_certificate"
+      ],
+      "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+    },
+    "early_loan_clearance": {
+      "l1": "还款相关",
+      "l2": "账单信息查询",
+      "label": "还款相关/账单信息查询",
+      "skill_ids": [
+        "fee_detail_query",
+        "bill_deduction_query",
+        "deduction_issues",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "early_loan_clearance",
+        "clearance_certificate"
+      ],
+      "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+    },
+    "clearance_certificate": {
+      "l1": "还款相关",
+      "l2": "账单信息查询",
+      "label": "还款相关/账单信息查询",
+      "skill_ids": [
+        "fee_detail_query",
+        "bill_deduction_query",
+        "deduction_issues",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "early_loan_clearance",
+        "clearance_certificate"
+      ],
+      "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+    },
+    "overpayment_refund": {
+      "l1": "还款相关",
+      "l2": "存对公还款",
+      "label": "还款相关/存对公还款",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "overpayment_refund",
+        "post_loan_verification"
+      ],
+      "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假；对公还款结果查询归入还款相关/还款咨询"
+    },
+    "fee_consultation_tier1": {
+      "l1": "费用相关",
+      "l2": "费用咨询",
+      "label": "费用相关/费用咨询",
+      "skill_ids": [
+        "fee_consultation_tier1",
+        "fee_consultation_tier2",
+        "fee_detail_query"
+      ],
+      "notes": "息费、担保费、综合费率、费用明细"
+    },
+    "fee_consultation_tier2": {
+      "l1": "费用相关",
+      "l2": "费用咨询",
+      "label": "费用相关/费用咨询",
+      "skill_ids": [
+        "fee_consultation_tier1",
+        "fee_consultation_tier2",
+        "fee_detail_query"
+      ],
+      "notes": "息费、担保费、综合费率、费用明细"
+    },
+    "fee_refund_tier1": {
+      "l1": "费用相关",
+      "l2": "要求退费",
+      "label": "费用相关/要求退费",
+      "skill_ids": [
+        "fee_refund_tier1",
+        "fee_refund_tier2",
+        "loan_dispute_refund"
+      ],
+      "notes": "要求退费用、退利息、争议退费"
+    },
+    "fee_refund_tier2": {
+      "l1": "费用相关",
+      "l2": "要求退费",
+      "label": "费用相关/要求退费",
+      "skill_ids": [
+        "fee_refund_tier1",
+        "fee_refund_tier2",
+        "loan_dispute_refund"
+      ],
+      "notes": "要求退费用、退利息、争议退费"
+    },
+    "loan_dispute_refund": {
+      "l1": "费用相关",
+      "l2": "要求退费",
+      "label": "费用相关/要求退费",
+      "skill_ids": [
+        "fee_refund_tier1",
+        "fee_refund_tier2",
+        "loan_dispute_refund"
+      ],
+      "notes": "要求退费用、退利息、争议退费"
+    },
+    "fee_refund_status": {
+      "l1": "费用相关",
+      "l2": "退费进度",
+      "label": "费用相关/退费进度",
+      "skill_ids": [
+        "fee_refund_status"
+      ],
+      "notes": "退费未到账、退费进度"
+    },
+    "member_refund": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "member_cancel": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "member_consultation": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "premium_card_refund": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "premium_card_cancel": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "premium_card_inquiry": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "refund_value_added_service": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "cancel_value_added_service": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "value_added_service_inquiry": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "light_card_cancel_refund": {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    "stop_marketing": {
+      "l1": "营销活动",
+      "l2": "新活动咨询",
+      "label": "营销活动/新活动咨询",
+      "skill_ids": [
+        "value_added_service_inquiry",
+        "stop_marketing",
+        "member_consultation",
+        "premium_card_inquiry"
+      ],
+      "notes": "merged 中新活动咨询保留活动/权益/产品服务咨询与停止营销；涉及取消、退费、退款、关闭续费的会员/优享卡/轻享卡/增值服务样本归入 营销活动/会员退费"
+    },
+    "non_company_product_inquiry": {
+      "l1": "营销活动",
+      "l2": "营销电话",
+      "label": "营销活动/营销电话",
+      "skill_ids": [
+        "stop_marketing",
+        "non_company_product_inquiry"
+      ],
+      "notes": "未覆盖 golden 的二级类；停止营销、营销电话归属、非注册/已注销仍被营销等场景暂按停止营销及产品/机构归属澄清承接"
+    },
+    "account_cancellation": {
+      "l1": "业务办理",
+      "l2": "账户注销",
+      "label": "业务办理/账户注销",
+      "skill_ids": [
+        "account_cancellation",
+        "special_account_cancellation",
+        "deactivated_customer_service"
+      ],
+      "notes": "注销账户、注销账号、特殊账户注销"
+    },
+    "special_account_cancellation": {
+      "l1": "业务办理",
+      "l2": "账户注销",
+      "label": "业务办理/账户注销",
+      "skill_ids": [
+        "account_cancellation",
+        "special_account_cancellation",
+        "deactivated_customer_service"
+      ],
+      "notes": "注销账户、注销账号、特殊账户注销"
+    },
+    "deactivated_customer_service": {
+      "l1": "业务办理",
+      "l2": "账户注销",
+      "label": "业务办理/账户注销",
+      "skill_ids": [
+        "account_cancellation",
+        "special_account_cancellation",
+        "deactivated_customer_service"
+      ],
+      "notes": "注销账户、注销账号、特殊账户注销"
+    },
+    "credit_inquiry": {
+      "l1": "业务办理",
+      "l2": "征信相关",
+      "label": "业务办理/征信相关",
+      "skill_ids": [
+        "credit_inquiry",
+        "credit_modification",
+        "cancel_credit_authorization",
+        "bill_date_credit_impact"
+      ],
+      "notes": "征信查询、修改征信、注销授信额度、征信影响"
+    },
+    "credit_modification": {
+      "l1": "业务办理",
+      "l2": "征信相关",
+      "label": "业务办理/征信相关",
+      "skill_ids": [
+        "credit_inquiry",
+        "credit_modification",
+        "cancel_credit_authorization",
+        "bill_date_credit_impact"
+      ],
+      "notes": "征信查询、修改征信、注销授信额度、征信影响"
+    },
+    "cancel_credit_authorization": {
+      "l1": "业务办理",
+      "l2": "征信相关",
+      "label": "业务办理/征信相关",
+      "skill_ids": [
+        "credit_inquiry",
+        "credit_modification",
+        "cancel_credit_authorization",
+        "bill_date_credit_impact"
+      ],
+      "notes": "征信查询、修改征信、注销授信额度、征信影响"
+    },
+    "invoice_issuance": {
+      "l1": "业务办理",
+      "l2": "发票开具",
+      "label": "业务办理/发票开具",
+      "skill_ids": [
+        "invoice_issuance"
+      ],
+      "notes": "开具发票"
+    },
+    "contract_retrieval": {
+      "l1": "业务办理",
+      "l2": "合同调取",
+      "label": "业务办理/合同调取",
+      "skill_ids": [
+        "contract_retrieval"
+      ],
+      "notes": "调取合同、查看协议"
+    },
+    "other_certificate": {
+      "l1": "业务办理",
+      "l2": "逾期还款证明",
+      "label": "业务办理/逾期还款证明",
+      "skill_ids": [
+        "other_certificate"
+      ],
+      "notes": "未覆盖 golden 的二级类；逾期还款证明、非恶意逾期证明等归入开具其他证明 skill"
+    },
+    "loan_consultation": {
+      "l1": "产品与信息",
+      "l2": "下载或登录",
+      "label": "产品与信息/下载或登录",
+      "skill_ids": [
+        "loan_consultation"
+      ],
+      "notes": "未覆盖 golden 的二级类；暂无 APP 下载/登录专门 SOP，暂按贷款咨询中申请入口、APP 操作路径等最近似语义承接"
+    },
+    "quota_consultation": {
+      "l1": "申请咨询",
+      "l2": "额度获取咨询",
+      "label": "申请咨询/额度获取咨询",
+      "skill_ids": [
+        "quota_consultation",
+        "no_quota_issue"
+      ],
+      "notes": "额度获取、额度咨询、无额度"
+    },
+    "no_quota_issue": {
+      "l1": "申请咨询",
+      "l2": "额度获取咨询",
+      "label": "申请咨询/额度获取咨询",
+      "skill_ids": [
+        "quota_consultation",
+        "no_quota_issue"
+      ],
+      "notes": "额度获取、额度咨询、无额度"
+    },
+    "disbursement_progress": {
+      "l1": "申请咨询",
+      "l2": "放款时效",
+      "label": "申请咨询/放款时效",
+      "skill_ids": [
+        "disbursement_progress"
+      ],
+      "notes": "放款时效/进度"
+    },
+    "loan_termination": {
+      "l1": "申请咨询",
+      "l2": "贷款解约",
+      "label": "申请咨询/贷款解约",
+      "skill_ids": [
+        "loan_termination"
+      ],
+      "notes": "未覆盖 golden 的二级类；取消贷款、撤销贷款、解约借款申请等归入贷款解约 skill"
+    },
+    "card_rebinding": {
+      "l1": "信息维护",
+      "l2": "换绑卡",
+      "label": "信息维护/换绑卡",
+      "skill_ids": [
+        "card_rebinding"
+      ],
+      "notes": "换绑还款银行卡"
+    }
+  },
+  "skill_to_intents": {
+    "overdue_negotiation": [
+      {
+        "l1": "催收相关",
+        "l2": "协商还款",
+        "label": "催收相关/协商还款",
+        "skill_ids": [
+          "overdue_negotiation"
+        ],
+        "notes": "逾期/未逾期协商延期、减免、分期、还本金等"
+      },
+      {
+        "l1": "催收相关",
+        "l2": "特殊场景",
+        "label": "催收相关/特殊场景",
+        "skill_ids": [
+          "overdue_negotiation",
+          "stop_collection",
+          "post_loan_verification",
+          "close_pre_reminder"
+        ],
+        "notes": "未覆盖 golden 的二级类；标注维度包含特殊资方、灾情用户、其他等宽泛场景，暂无单一专门 SOP，暂按协商还款、停催/贷后核实、关账前提醒等最接近催收承接 skill 映射"
+      }
+    ],
+    "stop_collection": [
+      {
+        "l1": "催收相关",
+        "l2": "要求停催",
+        "label": "催收相关/要求停催",
+        "skill_ids": [
+          "stop_collection"
+        ],
+        "notes": "本人/联系人停催、缓催、降频"
+      },
+      {
+        "l1": "催收相关",
+        "l2": "特殊场景",
+        "label": "催收相关/特殊场景",
+        "skill_ids": [
+          "overdue_negotiation",
+          "stop_collection",
+          "post_loan_verification",
+          "close_pre_reminder"
+        ],
+        "notes": "未覆盖 golden 的二级类；标注维度包含特殊资方、灾情用户、其他等宽泛场景，暂无单一专门 SOP，暂按协商还款、停催/贷后核实、关账前提醒等最接近催收承接 skill 映射"
+      }
+    ],
+    "collection_complaint": [
+      {
+        "l1": "催收相关",
+        "l2": "投诉催收",
+        "label": "催收相关/投诉催收",
+        "skill_ids": [
+          "collection_complaint"
+        ],
+        "notes": "频繁骚扰、威胁、联系三方等催收投诉"
+      }
+    ],
+    "post_loan_verification": [
+      {
+        "l1": "催收相关",
+        "l2": "核实催收信息",
+        "label": "催收相关/核实催收信息",
+        "skill_ids": [
+          "post_loan_verification"
+        ],
+        "notes": "核实催收人员、催收短信、贷后信息真假"
+      },
+      {
+        "l1": "催收相关",
+        "l2": "特殊场景",
+        "label": "催收相关/特殊场景",
+        "skill_ids": [
+          "overdue_negotiation",
+          "stop_collection",
+          "post_loan_verification",
+          "close_pre_reminder"
+        ],
+        "notes": "未覆盖 golden 的二级类；标注维度包含特殊资方、灾情用户、其他等宽泛场景，暂无单一专门 SOP，暂按协商还款、停催/贷后核实、关账前提醒等最接近催收承接 skill 映射"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "存对公还款",
+        "label": "还款相关/存对公还款",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "overpayment_refund",
+          "post_loan_verification"
+        ],
+        "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假；对公还款结果查询归入还款相关/还款咨询"
+      }
+    ],
+    "close_pre_reminder": [
+      {
+        "l1": "催收相关",
+        "l2": "特殊场景",
+        "label": "催收相关/特殊场景",
+        "skill_ids": [
+          "overdue_negotiation",
+          "stop_collection",
+          "post_loan_verification",
+          "close_pre_reminder"
+        ],
+        "notes": "未覆盖 golden 的二级类；标注维度包含特殊资方、灾情用户、其他等宽泛场景，暂无单一专门 SOP，暂按协商还款、停催/贷后核实、关账前提醒等最接近催收承接 skill 映射"
+      }
+    ],
+    "repayment_method_inquiry": [
+      {
+        "l1": "还款相关",
+        "l2": "还款咨询",
+        "label": "还款相关/还款咨询",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "deduction_issues",
+          "early_deduction",
+          "bill_date_credit_impact"
+        ],
+        "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "存对公还款",
+        "label": "还款相关/存对公还款",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "overpayment_refund",
+          "post_loan_verification"
+        ],
+        "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假；对公还款结果查询归入还款相关/还款咨询"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "聚合码还款问题",
+        "label": "还款相关/聚合码还款问题",
+        "skill_ids": [
+          "repayment_method_inquiry"
+        ],
+        "notes": "微信/支付宝/二维码/聚合码还款"
+      }
+    ],
+    "repayment_status_issue": [
+      {
+        "l1": "还款相关",
+        "l2": "还款咨询",
+        "label": "还款相关/还款咨询",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "deduction_issues",
+          "early_deduction",
+          "bill_date_credit_impact"
+        ],
+        "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "账单信息查询",
+        "label": "还款相关/账单信息查询",
+        "skill_ids": [
+          "fee_detail_query",
+          "bill_deduction_query",
+          "deduction_issues",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "early_loan_clearance",
+          "clearance_certificate"
+        ],
+        "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "存对公还款",
+        "label": "还款相关/存对公还款",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "overpayment_refund",
+          "post_loan_verification"
+        ],
+        "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假；对公还款结果查询归入还款相关/还款咨询"
+      }
+    ],
+    "repayment_result_query": [
+      {
+        "l1": "还款相关",
+        "l2": "还款咨询",
+        "label": "还款相关/还款咨询",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "deduction_issues",
+          "early_deduction",
+          "bill_date_credit_impact"
+        ],
+        "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "账单信息查询",
+        "label": "还款相关/账单信息查询",
+        "skill_ids": [
+          "fee_detail_query",
+          "bill_deduction_query",
+          "deduction_issues",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "early_loan_clearance",
+          "clearance_certificate"
+        ],
+        "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+      }
+    ],
+    "deduction_issues": [
+      {
+        "l1": "还款相关",
+        "l2": "还款咨询",
+        "label": "还款相关/还款咨询",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "deduction_issues",
+          "early_deduction",
+          "bill_date_credit_impact"
+        ],
+        "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "账单信息查询",
+        "label": "还款相关/账单信息查询",
+        "skill_ids": [
+          "fee_detail_query",
+          "bill_deduction_query",
+          "deduction_issues",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "early_loan_clearance",
+          "clearance_certificate"
+        ],
+        "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+      }
+    ],
+    "early_deduction": [
+      {
+        "l1": "还款相关",
+        "l2": "还款咨询",
+        "label": "还款相关/还款咨询",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "deduction_issues",
+          "early_deduction",
+          "bill_date_credit_impact"
+        ],
+        "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+      }
+    ],
+    "bill_date_credit_impact": [
+      {
+        "l1": "还款相关",
+        "l2": "还款咨询",
+        "label": "还款相关/还款咨询",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "deduction_issues",
+          "early_deduction",
+          "bill_date_credit_impact"
+        ],
+        "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+      },
+      {
+        "l1": "业务办理",
+        "l2": "征信相关",
+        "label": "业务办理/征信相关",
+        "skill_ids": [
+          "credit_inquiry",
+          "credit_modification",
+          "cancel_credit_authorization",
+          "bill_date_credit_impact"
+        ],
+        "notes": "征信查询、修改征信、注销授信额度、征信影响"
+      }
+    ],
+    "fee_detail_query": [
+      {
+        "l1": "还款相关",
+        "l2": "账单信息查询",
+        "label": "还款相关/账单信息查询",
+        "skill_ids": [
+          "fee_detail_query",
+          "bill_deduction_query",
+          "deduction_issues",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "early_loan_clearance",
+          "clearance_certificate"
+        ],
+        "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+      },
+      {
+        "l1": "费用相关",
+        "l2": "费用咨询",
+        "label": "费用相关/费用咨询",
+        "skill_ids": [
+          "fee_consultation_tier1",
+          "fee_consultation_tier2",
+          "fee_detail_query"
+        ],
+        "notes": "息费、担保费、综合费率、费用明细"
+      }
+    ],
+    "bill_deduction_query": [
+      {
+        "l1": "还款相关",
+        "l2": "账单信息查询",
+        "label": "还款相关/账单信息查询",
+        "skill_ids": [
+          "fee_detail_query",
+          "bill_deduction_query",
+          "deduction_issues",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "early_loan_clearance",
+          "clearance_certificate"
+        ],
+        "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+      }
+    ],
+    "early_loan_clearance": [
+      {
+        "l1": "还款相关",
+        "l2": "账单信息查询",
+        "label": "还款相关/账单信息查询",
+        "skill_ids": [
+          "fee_detail_query",
+          "bill_deduction_query",
+          "deduction_issues",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "early_loan_clearance",
+          "clearance_certificate"
+        ],
+        "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+      },
+      {
+        "l1": "还款相关",
+        "l2": "提前清贷",
+        "label": "还款相关/提前清贷",
+        "skill_ids": [
+          "early_loan_clearance"
+        ],
+        "notes": "提前还款、提前结清、清贷"
+      }
+    ],
+    "clearance_certificate": [
+      {
+        "l1": "还款相关",
+        "l2": "账单信息查询",
+        "label": "还款相关/账单信息查询",
+        "skill_ids": [
+          "fee_detail_query",
+          "bill_deduction_query",
+          "deduction_issues",
+          "repayment_status_issue",
+          "repayment_result_query",
+          "early_loan_clearance",
+          "clearance_certificate"
+        ],
+        "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+      },
+      {
+        "l1": "业务办理",
+        "l2": "结清证明",
+        "label": "业务办理/结清证明",
+        "skill_ids": [
+          "clearance_certificate"
+        ],
+        "notes": "开具结清证明"
+      }
+    ],
+    "overpayment_refund": [
+      {
+        "l1": "还款相关",
+        "l2": "存对公还款",
+        "label": "还款相关/存对公还款",
+        "skill_ids": [
+          "repayment_method_inquiry",
+          "repayment_status_issue",
+          "overpayment_refund",
+          "post_loan_verification"
+        ],
+        "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假；对公还款结果查询归入还款相关/还款咨询"
+      }
+    ],
+    "fee_consultation_tier1": [
+      {
+        "l1": "费用相关",
+        "l2": "费用咨询",
+        "label": "费用相关/费用咨询",
+        "skill_ids": [
+          "fee_consultation_tier1",
+          "fee_consultation_tier2",
+          "fee_detail_query"
+        ],
+        "notes": "息费、担保费、综合费率、费用明细"
+      }
+    ],
+    "fee_consultation_tier2": [
+      {
+        "l1": "费用相关",
+        "l2": "费用咨询",
+        "label": "费用相关/费用咨询",
+        "skill_ids": [
+          "fee_consultation_tier1",
+          "fee_consultation_tier2",
+          "fee_detail_query"
+        ],
+        "notes": "息费、担保费、综合费率、费用明细"
+      }
+    ],
+    "fee_refund_tier1": [
+      {
+        "l1": "费用相关",
+        "l2": "要求退费",
+        "label": "费用相关/要求退费",
+        "skill_ids": [
+          "fee_refund_tier1",
+          "fee_refund_tier2",
+          "loan_dispute_refund"
+        ],
+        "notes": "要求退费用、退利息、争议退费"
+      }
+    ],
+    "fee_refund_tier2": [
+      {
+        "l1": "费用相关",
+        "l2": "要求退费",
+        "label": "费用相关/要求退费",
+        "skill_ids": [
+          "fee_refund_tier1",
+          "fee_refund_tier2",
+          "loan_dispute_refund"
+        ],
+        "notes": "要求退费用、退利息、争议退费"
+      }
+    ],
+    "loan_dispute_refund": [
+      {
+        "l1": "费用相关",
+        "l2": "要求退费",
+        "label": "费用相关/要求退费",
+        "skill_ids": [
+          "fee_refund_tier1",
+          "fee_refund_tier2",
+          "loan_dispute_refund"
+        ],
+        "notes": "要求退费用、退利息、争议退费"
+      }
+    ],
+    "fee_refund_status": [
+      {
+        "l1": "费用相关",
+        "l2": "退费进度",
+        "label": "费用相关/退费进度",
+        "skill_ids": [
+          "fee_refund_status"
+        ],
+        "notes": "退费未到账、退费进度"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "退费进度",
+        "label": "营销活动/退费进度",
+        "skill_ids": [
+          "fee_refund_status",
+          "refund_value_added_service",
+          "member_refund",
+          "premium_card_refund",
+          "light_card_cancel_refund"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无活动/增值服务退费进度专门 skill，暂以费用退费进度和会员/优享卡/轻享卡/增值服务退费类 skill 作为最近似承接"
+      }
+    ],
+    "member_refund": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "退费进度",
+        "label": "营销活动/退费进度",
+        "skill_ids": [
+          "fee_refund_status",
+          "refund_value_added_service",
+          "member_refund",
+          "premium_card_refund",
+          "light_card_cancel_refund"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无活动/增值服务退费进度专门 skill，暂以费用退费进度和会员/优享卡/轻享卡/增值服务退费类 skill 作为最近似承接"
+      }
+    ],
+    "member_cancel": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      }
+    ],
+    "member_consultation": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "新活动咨询",
+        "label": "营销活动/新活动咨询",
+        "skill_ids": [
+          "value_added_service_inquiry",
+          "stop_marketing",
+          "member_consultation",
+          "premium_card_inquiry"
+        ],
+        "notes": "merged 中新活动咨询保留活动/权益/产品服务咨询与停止营销；涉及取消、退费、退款、关闭续费的会员/优享卡/轻享卡/增值服务样本归入 营销活动/会员退费"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "会员咨询",
+        "label": "营销活动/会员咨询",
+        "skill_ids": [
+          "member_consultation",
+          "premium_card_inquiry",
+          "value_added_service_inquiry"
+        ],
+        "notes": "未覆盖 golden 的二级类；会员/优享卡/权益月卡/增值服务咨询暂按现有会员与增值服务咨询类 skill 承接"
+      }
+    ],
+    "premium_card_refund": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "退费进度",
+        "label": "营销活动/退费进度",
+        "skill_ids": [
+          "fee_refund_status",
+          "refund_value_added_service",
+          "member_refund",
+          "premium_card_refund",
+          "light_card_cancel_refund"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无活动/增值服务退费进度专门 skill，暂以费用退费进度和会员/优享卡/轻享卡/增值服务退费类 skill 作为最近似承接"
+      }
+    ],
+    "premium_card_cancel": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      }
+    ],
+    "premium_card_inquiry": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "新活动咨询",
+        "label": "营销活动/新活动咨询",
+        "skill_ids": [
+          "value_added_service_inquiry",
+          "stop_marketing",
+          "member_consultation",
+          "premium_card_inquiry"
+        ],
+        "notes": "merged 中新活动咨询保留活动/权益/产品服务咨询与停止营销；涉及取消、退费、退款、关闭续费的会员/优享卡/轻享卡/增值服务样本归入 营销活动/会员退费"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "会员咨询",
+        "label": "营销活动/会员咨询",
+        "skill_ids": [
+          "member_consultation",
+          "premium_card_inquiry",
+          "value_added_service_inquiry"
+        ],
+        "notes": "未覆盖 golden 的二级类；会员/优享卡/权益月卡/增值服务咨询暂按现有会员与增值服务咨询类 skill 承接"
+      }
+    ],
+    "refund_value_added_service": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "退费进度",
+        "label": "营销活动/退费进度",
+        "skill_ids": [
+          "fee_refund_status",
+          "refund_value_added_service",
+          "member_refund",
+          "premium_card_refund",
+          "light_card_cancel_refund"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无活动/增值服务退费进度专门 skill，暂以费用退费进度和会员/优享卡/轻享卡/增值服务退费类 skill 作为最近似承接"
+      }
+    ],
+    "cancel_value_added_service": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      }
+    ],
+    "value_added_service_inquiry": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "新活动咨询",
+        "label": "营销活动/新活动咨询",
+        "skill_ids": [
+          "value_added_service_inquiry",
+          "stop_marketing",
+          "member_consultation",
+          "premium_card_inquiry"
+        ],
+        "notes": "merged 中新活动咨询保留活动/权益/产品服务咨询与停止营销；涉及取消、退费、退款、关闭续费的会员/优享卡/轻享卡/增值服务样本归入 营销活动/会员退费"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "会员咨询",
+        "label": "营销活动/会员咨询",
+        "skill_ids": [
+          "member_consultation",
+          "premium_card_inquiry",
+          "value_added_service_inquiry"
+        ],
+        "notes": "未覆盖 golden 的二级类；会员/优享卡/权益月卡/增值服务咨询暂按现有会员与增值服务咨询类 skill 承接"
+      }
+    ],
+    "light_card_cancel_refund": [
+      {
+        "l1": "营销活动",
+        "l2": "会员退费",
+        "label": "营销活动/会员退费",
+        "skill_ids": [
+          "member_refund",
+          "member_cancel",
+          "member_consultation",
+          "premium_card_refund",
+          "premium_card_cancel",
+          "premium_card_inquiry",
+          "refund_value_added_service",
+          "cancel_value_added_service",
+          "value_added_service_inquiry",
+          "light_card_cancel_refund"
+        ],
+        "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "退费进度",
+        "label": "营销活动/退费进度",
+        "skill_ids": [
+          "fee_refund_status",
+          "refund_value_added_service",
+          "member_refund",
+          "premium_card_refund",
+          "light_card_cancel_refund"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无活动/增值服务退费进度专门 skill，暂以费用退费进度和会员/优享卡/轻享卡/增值服务退费类 skill 作为最近似承接"
+      }
+    ],
+    "stop_marketing": [
+      {
+        "l1": "营销活动",
+        "l2": "新活动咨询",
+        "label": "营销活动/新活动咨询",
+        "skill_ids": [
+          "value_added_service_inquiry",
+          "stop_marketing",
+          "member_consultation",
+          "premium_card_inquiry"
+        ],
+        "notes": "merged 中新活动咨询保留活动/权益/产品服务咨询与停止营销；涉及取消、退费、退款、关闭续费的会员/优享卡/轻享卡/增值服务样本归入 营销活动/会员退费"
+      },
+      {
+        "l1": "营销活动",
+        "l2": "营销电话",
+        "label": "营销活动/营销电话",
+        "skill_ids": [
+          "stop_marketing",
+          "non_company_product_inquiry"
+        ],
+        "notes": "未覆盖 golden 的二级类；停止营销、营销电话归属、非注册/已注销仍被营销等场景暂按停止营销及产品/机构归属澄清承接"
+      },
+      {
+        "l1": "产品与信息",
+        "l2": "信息安全",
+        "label": "产品与信息/信息安全",
+        "skill_ids": [
+          "non_company_product_inquiry",
+          "stop_marketing"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无信息安全专门 SOP，涉及未知产品/机构归属时按非我司产品咨询承接，涉及营销触达信息安全反馈时按停止营销承接"
+      }
+    ],
+    "non_company_product_inquiry": [
+      {
+        "l1": "营销活动",
+        "l2": "营销电话",
+        "label": "营销活动/营销电话",
+        "skill_ids": [
+          "stop_marketing",
+          "non_company_product_inquiry"
+        ],
+        "notes": "未覆盖 golden 的二级类；停止营销、营销电话归属、非注册/已注销仍被营销等场景暂按停止营销及产品/机构归属澄清承接"
+      },
+      {
+        "l1": "产品与信息",
+        "l2": "非我司产品",
+        "label": "产品与信息/非我司产品",
+        "skill_ids": [
+          "non_company_product_inquiry"
+        ],
+        "notes": "不新增产品与信息域；非我司/导流/合作方/未知产品归属拆为活动域下独立统计 skill，运行时仍复用活动/增值服务结构化 reference 检索，未命中产品服务清单时走 unmatched_non_company_product 分支"
+      },
+      {
+        "l1": "产品与信息",
+        "l2": "信息安全",
+        "label": "产品与信息/信息安全",
+        "skill_ids": [
+          "non_company_product_inquiry",
+          "stop_marketing"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无信息安全专门 SOP，涉及未知产品/机构归属时按非我司产品咨询承接，涉及营销触达信息安全反馈时按停止营销承接"
+      },
+      {
+        "l1": "产品与信息",
+        "l2": "公司信息",
+        "label": "产品与信息/公司信息",
+        "skill_ids": [
+          "non_company_product_inquiry"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无公司信息专门 SOP，暂按产品、平台、机构归属澄清的最近似 skill 承接"
+      }
+    ],
+    "account_cancellation": [
+      {
+        "l1": "业务办理",
+        "l2": "账户注销",
+        "label": "业务办理/账户注销",
+        "skill_ids": [
+          "account_cancellation",
+          "special_account_cancellation",
+          "deactivated_customer_service"
+        ],
+        "notes": "注销账户、注销账号、特殊账户注销"
+      }
+    ],
+    "special_account_cancellation": [
+      {
+        "l1": "业务办理",
+        "l2": "账户注销",
+        "label": "业务办理/账户注销",
+        "skill_ids": [
+          "account_cancellation",
+          "special_account_cancellation",
+          "deactivated_customer_service"
+        ],
+        "notes": "注销账户、注销账号、特殊账户注销"
+      }
+    ],
+    "deactivated_customer_service": [
+      {
+        "l1": "业务办理",
+        "l2": "账户注销",
+        "label": "业务办理/账户注销",
+        "skill_ids": [
+          "account_cancellation",
+          "special_account_cancellation",
+          "deactivated_customer_service"
+        ],
+        "notes": "注销账户、注销账号、特殊账户注销"
+      }
+    ],
+    "credit_inquiry": [
+      {
+        "l1": "业务办理",
+        "l2": "征信相关",
+        "label": "业务办理/征信相关",
+        "skill_ids": [
+          "credit_inquiry",
+          "credit_modification",
+          "cancel_credit_authorization",
+          "bill_date_credit_impact"
+        ],
+        "notes": "征信查询、修改征信、注销授信额度、征信影响"
+      }
+    ],
+    "credit_modification": [
+      {
+        "l1": "业务办理",
+        "l2": "征信相关",
+        "label": "业务办理/征信相关",
+        "skill_ids": [
+          "credit_inquiry",
+          "credit_modification",
+          "cancel_credit_authorization",
+          "bill_date_credit_impact"
+        ],
+        "notes": "征信查询、修改征信、注销授信额度、征信影响"
+      }
+    ],
+    "cancel_credit_authorization": [
+      {
+        "l1": "业务办理",
+        "l2": "征信相关",
+        "label": "业务办理/征信相关",
+        "skill_ids": [
+          "credit_inquiry",
+          "credit_modification",
+          "cancel_credit_authorization",
+          "bill_date_credit_impact"
+        ],
+        "notes": "征信查询、修改征信、注销授信额度、征信影响"
+      }
+    ],
+    "invoice_issuance": [
+      {
+        "l1": "业务办理",
+        "l2": "发票开具",
+        "label": "业务办理/发票开具",
+        "skill_ids": [
+          "invoice_issuance"
+        ],
+        "notes": "开具发票"
+      }
+    ],
+    "contract_retrieval": [
+      {
+        "l1": "业务办理",
+        "l2": "合同调取",
+        "label": "业务办理/合同调取",
+        "skill_ids": [
+          "contract_retrieval"
+        ],
+        "notes": "调取合同、查看协议"
+      }
+    ],
+    "other_certificate": [
+      {
+        "l1": "业务办理",
+        "l2": "逾期还款证明",
+        "label": "业务办理/逾期还款证明",
+        "skill_ids": [
+          "other_certificate"
+        ],
+        "notes": "未覆盖 golden 的二级类；逾期还款证明、非恶意逾期证明等归入开具其他证明 skill"
+      }
+    ],
+    "loan_consultation": [
+      {
+        "l1": "产品与信息",
+        "l2": "下载或登录",
+        "label": "产品与信息/下载或登录",
+        "skill_ids": [
+          "loan_consultation"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无 APP 下载/登录专门 SOP，暂按贷款咨询中申请入口、APP 操作路径等最近似语义承接"
+      },
+      {
+        "l1": "产品与信息",
+        "l2": "注册申请",
+        "label": "产品与信息/注册申请",
+        "skill_ids": [
+          "loan_consultation"
+        ],
+        "notes": "未覆盖 golden 的二级类；暂无注册申请专门 SOP，暂按贷款咨询中申请入口、注册/申请路径相关语义承接"
+      },
+      {
+        "l1": "申请咨询",
+        "l2": "贷款咨询",
+        "label": "申请咨询/贷款咨询",
+        "skill_ids": [
+          "loan_consultation"
+        ],
+        "notes": "贷款产品咨询"
+      },
+      {
+        "l1": "申请咨询",
+        "l2": "预约借款",
+        "label": "申请咨询/预约借款",
+        "skill_ids": [
+          "loan_consultation"
+        ],
+        "notes": "当前技能体系无预约借款专门 skill，暂按贷款咨询"
+      }
+    ],
+    "quota_consultation": [
+      {
+        "l1": "申请咨询",
+        "l2": "额度获取咨询",
+        "label": "申请咨询/额度获取咨询",
+        "skill_ids": [
+          "quota_consultation",
+          "no_quota_issue"
+        ],
+        "notes": "额度获取、额度咨询、无额度"
+      }
+    ],
+    "no_quota_issue": [
+      {
+        "l1": "申请咨询",
+        "l2": "额度获取咨询",
+        "label": "申请咨询/额度获取咨询",
+        "skill_ids": [
+          "quota_consultation",
+          "no_quota_issue"
+        ],
+        "notes": "额度获取、额度咨询、无额度"
+      }
+    ],
+    "disbursement_progress": [
+      {
+        "l1": "申请咨询",
+        "l2": "放款时效",
+        "label": "申请咨询/放款时效",
+        "skill_ids": [
+          "disbursement_progress"
+        ],
+        "notes": "放款时效/进度"
+      },
+      {
+        "l1": "申请咨询",
+        "l2": "放款结果",
+        "label": "申请咨询/放款结果",
+        "skill_ids": [
+          "disbursement_progress"
+        ],
+        "notes": "放款结果/到账"
+      }
+    ],
+    "loan_termination": [
+      {
+        "l1": "申请咨询",
+        "l2": "贷款解约",
+        "label": "申请咨询/贷款解约",
+        "skill_ids": [
+          "loan_termination"
+        ],
+        "notes": "未覆盖 golden 的二级类；取消贷款、撤销贷款、解约借款申请等归入贷款解约 skill"
+      }
+    ],
+    "card_rebinding": [
+      {
+        "l1": "信息维护",
+        "l2": "换绑卡",
+        "label": "信息维护/换绑卡",
+        "skill_ids": [
+          "card_rebinding"
+        ],
+        "notes": "换绑还款银行卡"
+      },
+      {
+        "l1": "信息维护",
+        "l2": "资料信息修改",
+        "label": "信息维护/资料信息修改",
+        "skill_ids": [
+          "card_rebinding"
+        ],
+        "notes": "当前技能体系无通用资料修改 skill，暂按信息维护中最接近的换绑卡兜底"
+      }
+    ]
+  },
+  "intent_options": [
+    {
+      "l1": "催收相关",
+      "l2": "协商还款",
+      "label": "催收相关/协商还款",
+      "skill_ids": [
+        "overdue_negotiation"
+      ],
+      "notes": "逾期/未逾期协商延期、减免、分期、还本金等"
+    },
+    {
+      "l1": "催收相关",
+      "l2": "要求停催",
+      "label": "催收相关/要求停催",
+      "skill_ids": [
+        "stop_collection"
+      ],
+      "notes": "本人/联系人停催、缓催、降频"
+    },
+    {
+      "l1": "催收相关",
+      "l2": "投诉催收",
+      "label": "催收相关/投诉催收",
+      "skill_ids": [
+        "collection_complaint"
+      ],
+      "notes": "频繁骚扰、威胁、联系三方等催收投诉"
+    },
+    {
+      "l1": "催收相关",
+      "l2": "核实催收信息",
+      "label": "催收相关/核实催收信息",
+      "skill_ids": [
+        "post_loan_verification"
+      ],
+      "notes": "核实催收人员、催收短信、贷后信息真假"
+    },
+    {
+      "l1": "催收相关",
+      "l2": "特殊场景",
+      "label": "催收相关/特殊场景",
+      "skill_ids": [
+        "overdue_negotiation",
+        "stop_collection",
+        "post_loan_verification",
+        "close_pre_reminder"
+      ],
+      "notes": "未覆盖 golden 的二级类；标注维度包含特殊资方、灾情用户、其他等宽泛场景，暂无单一专门 SOP，暂按协商还款、停催/贷后核实、关账前提醒等最接近催收承接 skill 映射"
+    },
+    {
+      "l1": "还款相关",
+      "l2": "还款咨询",
+      "label": "还款相关/还款咨询",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "deduction_issues",
+        "early_deduction",
+        "bill_date_credit_impact"
+      ],
+      "notes": "merged 中该标签较粗，覆盖还款方式、失败/处理中、扣款、征信影响等"
+    },
+    {
+      "l1": "还款相关",
+      "l2": "账单信息查询",
+      "label": "还款相关/账单信息查询",
+      "skill_ids": [
+        "fee_detail_query",
+        "bill_deduction_query",
+        "deduction_issues",
+        "repayment_status_issue",
+        "repayment_result_query",
+        "early_loan_clearance",
+        "clearance_certificate"
+      ],
+      "notes": "证据型一对多：账单金额/剩余本金/欠款、扣款明细或扣款异常、还款后账单未更新/状态异常、提前结清金额/计划、结清证明等；不包含单纯换绑卡、销户、催收、征信/代偿等跑偏场景"
+    },
+    {
+      "l1": "还款相关",
+      "l2": "存对公还款",
+      "label": "还款相关/存对公还款",
+      "skill_ids": [
+        "repayment_method_inquiry",
+        "repayment_status_issue",
+        "overpayment_refund",
+        "post_loan_verification"
+      ],
+      "notes": "对公账户/还款方式咨询、对公转账后未入账或账单未更新、对公转错/多转/少转补差/退溢余、核实专员或对公账号真假；对公还款结果查询归入还款相关/还款咨询"
+    },
+    {
+      "l1": "还款相关",
+      "l2": "聚合码还款问题",
+      "label": "还款相关/聚合码还款问题",
+      "skill_ids": [
+        "repayment_method_inquiry"
+      ],
+      "notes": "微信/支付宝/二维码/聚合码还款"
+    },
+    {
+      "l1": "还款相关",
+      "l2": "提前清贷",
+      "label": "还款相关/提前清贷",
+      "skill_ids": [
+        "early_loan_clearance"
+      ],
+      "notes": "提前还款、提前结清、清贷"
+    },
+    {
+      "l1": "费用相关",
+      "l2": "费用咨询",
+      "label": "费用相关/费用咨询",
+      "skill_ids": [
+        "fee_consultation_tier1",
+        "fee_consultation_tier2",
+        "fee_detail_query"
+      ],
+      "notes": "息费、担保费、综合费率、费用明细"
+    },
+    {
+      "l1": "费用相关",
+      "l2": "要求退费",
+      "label": "费用相关/要求退费",
+      "skill_ids": [
+        "fee_refund_tier1",
+        "fee_refund_tier2",
+        "loan_dispute_refund"
+      ],
+      "notes": "要求退费用、退利息、争议退费"
+    },
+    {
+      "l1": "费用相关",
+      "l2": "退费进度",
+      "label": "费用相关/退费进度",
+      "skill_ids": [
+        "fee_refund_status"
+      ],
+      "notes": "退费未到账、退费进度"
+    },
+    {
+      "l1": "营销活动",
+      "l2": "会员退费",
+      "label": "营销活动/会员退费",
+      "skill_ids": [
+        "member_refund",
+        "member_cancel",
+        "member_consultation",
+        "premium_card_refund",
+        "premium_card_cancel",
+        "premium_card_inquiry",
+        "refund_value_added_service",
+        "cancel_value_added_service",
+        "value_added_service_inquiry",
+        "light_card_cancel_refund"
+      ],
+      "notes": "merged 中会员退费承载会员、优享卡、轻享卡、权益月卡/增值服务等产品服务的咨询/取消/退费；取消/关闭续费/退款类 SOP 均纳入该一对多映射，具体产品由结构化知识召回命中"
+    },
+    {
+      "l1": "营销活动",
+      "l2": "新活动咨询",
+      "label": "营销活动/新活动咨询",
+      "skill_ids": [
+        "value_added_service_inquiry",
+        "stop_marketing",
+        "member_consultation",
+        "premium_card_inquiry"
+      ],
+      "notes": "merged 中新活动咨询保留活动/权益/产品服务咨询与停止营销；涉及取消、退费、退款、关闭续费的会员/优享卡/轻享卡/增值服务样本归入 营销活动/会员退费"
+    },
+    {
+      "l1": "营销活动",
+      "l2": "会员咨询",
+      "label": "营销活动/会员咨询",
+      "skill_ids": [
+        "member_consultation",
+        "premium_card_inquiry",
+        "value_added_service_inquiry"
+      ],
+      "notes": "未覆盖 golden 的二级类；会员/优享卡/权益月卡/增值服务咨询暂按现有会员与增值服务咨询类 skill 承接"
+    },
+    {
+      "l1": "营销活动",
+      "l2": "营销电话",
+      "label": "营销活动/营销电话",
+      "skill_ids": [
+        "stop_marketing",
+        "non_company_product_inquiry"
+      ],
+      "notes": "未覆盖 golden 的二级类；停止营销、营销电话归属、非注册/已注销仍被营销等场景暂按停止营销及产品/机构归属澄清承接"
+    },
+    {
+      "l1": "业务办理",
+      "l2": "账户注销",
+      "label": "业务办理/账户注销",
+      "skill_ids": [
+        "account_cancellation",
+        "special_account_cancellation",
+        "deactivated_customer_service"
+      ],
+      "notes": "注销账户、注销账号、特殊账户注销"
+    },
+    {
+      "l1": "业务办理",
+      "l2": "征信相关",
+      "label": "业务办理/征信相关",
+      "skill_ids": [
+        "credit_inquiry",
+        "credit_modification",
+        "cancel_credit_authorization",
+        "bill_date_credit_impact"
+      ],
+      "notes": "征信查询、修改征信、注销授信额度、征信影响"
+    },
+    {
+      "l1": "业务办理",
+      "l2": "结清证明",
+      "label": "业务办理/结清证明",
+      "skill_ids": [
+        "clearance_certificate"
+      ],
+      "notes": "开具结清证明"
+    },
+    {
+      "l1": "业务办理",
+      "l2": "发票开具",
+      "label": "业务办理/发票开具",
+      "skill_ids": [
+        "invoice_issuance"
+      ],
+      "notes": "开具发票"
+    },
+    {
+      "l1": "业务办理",
+      "l2": "合同调取",
+      "label": "业务办理/合同调取",
+      "skill_ids": [
+        "contract_retrieval"
+      ],
+      "notes": "调取合同、查看协议"
+    },
+    {
+      "l1": "业务办理",
+      "l2": "逾期还款证明",
+      "label": "业务办理/逾期还款证明",
+      "skill_ids": [
+        "other_certificate"
+      ],
+      "notes": "未覆盖 golden 的二级类；逾期还款证明、非恶意逾期证明等归入开具其他证明 skill"
+    },
+    {
+      "l1": "产品与信息",
+      "l2": "非我司产品",
+      "label": "产品与信息/非我司产品",
+      "skill_ids": [
+        "non_company_product_inquiry"
+      ],
+      "notes": "不新增产品与信息域；非我司/导流/合作方/未知产品归属拆为活动域下独立统计 skill，运行时仍复用活动/增值服务结构化 reference 检索，未命中产品服务清单时走 unmatched_non_company_product 分支"
+    },
+    {
+      "l1": "产品与信息",
+      "l2": "下载或登录",
+      "label": "产品与信息/下载或登录",
+      "skill_ids": [
+        "loan_consultation"
+      ],
+      "notes": "未覆盖 golden 的二级类；暂无 APP 下载/登录专门 SOP，暂按贷款咨询中申请入口、APP 操作路径等最近似语义承接"
+    },
+    {
+      "l1": "产品与信息",
+      "l2": "产品建议1",
+      "label": "产品与信息/产品建议1",
+      "skill_ids": [],
+      "notes": "未覆盖 golden 的二级类；偏 APP 功能建议、商务合作、产品反馈等非标准客服 SOP 场景，当前无对应 SOP/skill，保留二级分类标签但不进入 skill-SOP 命中评测"
+    },
+    {
+      "l1": "产品与信息",
+      "l2": "信息安全",
+      "label": "产品与信息/信息安全",
+      "skill_ids": [
+        "non_company_product_inquiry",
+        "stop_marketing"
+      ],
+      "notes": "未覆盖 golden 的二级类；暂无信息安全专门 SOP，涉及未知产品/机构归属时按非我司产品咨询承接，涉及营销触达信息安全反馈时按停止营销承接"
+    },
+    {
+      "l1": "产品与信息",
+      "l2": "公司信息",
+      "label": "产品与信息/公司信息",
+      "skill_ids": [
+        "non_company_product_inquiry"
+      ],
+      "notes": "未覆盖 golden 的二级类；暂无公司信息专门 SOP，暂按产品、平台、机构归属澄清的最近似 skill 承接"
+    },
+    {
+      "l1": "产品与信息",
+      "l2": "注册申请",
+      "label": "产品与信息/注册申请",
+      "skill_ids": [
+        "loan_consultation"
+      ],
+      "notes": "未覆盖 golden 的二级类；暂无注册申请专门 SOP，暂按贷款咨询中申请入口、注册/申请路径相关语义承接"
+    },
+    {
+      "l1": "申请咨询",
+      "l2": "额度获取咨询",
+      "label": "申请咨询/额度获取咨询",
+      "skill_ids": [
+        "quota_consultation",
+        "no_quota_issue"
+      ],
+      "notes": "额度获取、额度咨询、无额度"
+    },
+    {
+      "l1": "申请咨询",
+      "l2": "放款时效",
+      "label": "申请咨询/放款时效",
+      "skill_ids": [
+        "disbursement_progress"
+      ],
+      "notes": "放款时效/进度"
+    },
+    {
+      "l1": "申请咨询",
+      "l2": "放款结果",
+      "label": "申请咨询/放款结果",
+      "skill_ids": [
+        "disbursement_progress"
+      ],
+      "notes": "放款结果/到账"
+    },
+    {
+      "l1": "申请咨询",
+      "l2": "贷款咨询",
+      "label": "申请咨询/贷款咨询",
+      "skill_ids": [
+        "loan_consultation"
+      ],
+      "notes": "贷款产品咨询"
+    },
+    {
+      "l1": "申请咨询",
+      "l2": "预约借款",
+      "label": "申请咨询/预约借款",
+      "skill_ids": [
+        "loan_consultation"
+      ],
+      "notes": "当前技能体系无预约借款专门 skill，暂按贷款咨询"
+    },
+    {
+      "l1": "申请咨询",
+      "l2": "贷款解约",
+      "label": "申请咨询/贷款解约",
+      "skill_ids": [
+        "loan_termination"
+      ],
+      "notes": "未覆盖 golden 的二级类；取消贷款、撤销贷款、解约借款申请等归入贷款解约 skill"
+    },
+    {
+      "l1": "信息维护",
+      "l2": "换绑卡",
+      "label": "信息维护/换绑卡",
+      "skill_ids": [
+        "card_rebinding"
+      ],
+      "notes": "换绑还款银行卡"
+    },
+    {
+      "l1": "信息维护",
+      "l2": "资料信息修改",
+      "label": "信息维护/资料信息修改",
+      "skill_ids": [
+        "card_rebinding"
+      ],
+      "notes": "当前技能体系无通用资料修改 skill，暂按信息维护中最接近的换绑卡兜底"
+    },
+    {
+      "l1": "批量问题",
+      "l2": "河南雨灾-727",
+      "label": "批量问题/河南雨灾-727",
+      "skill_ids": [],
+      "notes": "未覆盖 golden 的二级类；历史灾情/专项批量事件标签，当前无对应 SOP/skill，保留二级分类标签但不进入 skill-SOP 命中评测"
+    },
+    {
+      "l1": "批量问题",
+      "l2": "系统批量问题",
+      "label": "批量问题/系统批量问题",
+      "skill_ids": [],
+      "notes": "未覆盖 golden 的二级类；系统故障或批量异常运营标签，当前无对应 SOP/skill，保留二级分类标签但不进入 skill-SOP 命中评测"
+    },
+    {
+      "l1": "批量问题",
+      "l2": "资方批量问题",
+      "label": "批量问题/资方批量问题",
+      "skill_ids": [],
+      "notes": "未覆盖 golden 的二级类；资方侧批量异常运营标签，当前无对应 SOP/skill，保留二级分类标签但不进入 skill-SOP 命中评测"
+    },
+    {
+      "l1": "自定义",
+      "l2": "公众渠道来电",
+      "label": "自定义/公众渠道来电",
+      "skill_ids": [],
+      "notes": "未覆盖 golden 的二级类；公众渠道、媒体、监管或外部入口来电等流转标签，当前无对应 SOP/skill，保留二级分类标签但不进入 skill-SOP 命中评测"
+    },
+    {
+      "l1": "自定义",
+      "l2": "无效会话",
+      "label": "自定义/无效会话",
+      "skill_ids": [],
+      "notes": "未覆盖 golden 的二级类；无有效业务诉求、空转、无法识别或测试类会话，当前无对应 SOP/skill，保留二级分类标签但不进入 skill-SOP 命中评测"
+    }
+  ]
+}

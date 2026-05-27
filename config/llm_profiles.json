@@ -49,30 +49,6 @@
       "api_url": "https://api.bianxie.ai/v1",
       "model": "qwen3.6-plus",
       "timeout": 30
-    },
-    {
-      "id": "coder-claude4.7-opus",
-      "api_url": "https://api.bianxie.ai/v1",
-      "model": "coder-claude4.7-opus",
-      "timeout": 30
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "api_url": "https://api.bianxie.ai/v1",
-      "model": "claude-sonnet-4-6",
-      "timeout": 30
-    },
-    {
-      "id": "claude-sonnet-4-6-thinking",
-      "api_url": "https://api.bianxie.ai/v1",
-      "model": "claude-sonnet-4-6-thinking",
-      "timeout": 30
-    },
-    {
-      "id": "gpt-5.5",
-      "api_url": "https://api.bianxie.ai/v1",
-      "model": "gpt-5.5",
-      "timeout": 30
     }
   ]
 }

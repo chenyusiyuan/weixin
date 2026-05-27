@@ -82,18 +82,14 @@ model_cmd() {
 list_models() {
   # One explicit command line per model profile. The timeout/concurrency values
   # are tuned for batch stability rather than the fastest possible wall-clock.
-  model_cmd ollama-qwen3.5-9b 180 1 10
+  # model_cmd ollama-qwen3.5-9b 180 1 10
   model_cmd kimi-k2.6 180 4 25
   model_cmd MiniMax-M2.7 180 3 25
   model_cmd qwen3.6-flash 120 8 25
   model_cmd deepseek-v4-pro 240 1 10
-  model_cmd deepseek-v4-flash 120 8 25
+  # model_cmd deepseek-v4-flash 120 8 25
   model_cmd glm-5.1 180 3 25
   model_cmd qwen3.6-plus 180 4 25
-  model_cmd coder-claude4.7-opus 360 1 10
-  model_cmd claude-sonnet-4-6 240 2 10
-  model_cmd claude-sonnet-4-6-thinking 420 1 10
-  model_cmd gpt-5.5 360 1 10
 }
 
 if [[ "$MODE" == "help" || "$MODE" == "-h" || "$MODE" == "--help" ]]; then

@@ -83,8 +83,8 @@ tools/
 └── get_*.py                         # 账单、额度、会员、通话、短信、退款、停催等查询
 
 static/demo/
-├── index.html                       # 坐席工作台页面，由 FastAPI 直接服务
-├── app.js                           # 会话、模型、客户注入、数据后台交互
+├── index.html                       # 评测后台页面，由 FastAPI 直接服务
+├── app.js                           # 批量评测、结果分析、数据后台交互
 └── styles.css                       # 工作台样式
 ```
 
@@ -164,6 +164,9 @@ uvicorn fin_copilot.main:app --host 0.0.0.0 --port 8000
 | `GET /api/demo/llm-profiles` | 返回 `config/llm_profiles.json` 中可选模型 |
 | `POST /api/demo/chat/stream` | Demo 流式对话，返回 NDJSON 事件 |
 | `GET/POST/PUT/DELETE /api/demo/data/{resource}` | mock 数据后台 |
+| `POST /api/demo/eval/txt-files/import` | 导入 TXT 会话样本，按“客户/客服”逐行解析 |
+| `POST /api/demo/eval/runs/generate` | 按模型批量生成 TXT 内每句客户 query 的话术推荐 |
+| `GET /api/demo/eval/analytics/summary` | 评测结果分析，支持模型、二级意图、TXT Badcase 筛选 |
 | `GET /api/demo/tools`、`/skills`、`/rules` | 查看工具、skill、规则配置 |
 
 生产式调用示例：
@@ -186,9 +189,12 @@ http://localhost:8000/demo
 
 Demo 工作台能力：
 
-- 对话页：新建会话、选择模型、发送客户原话、查看 route / skill / tools / trace。
-- 模型选择：来自 `/api/demo/llm-profiles`；会话开始后模型会固定，避免同一通电话中途切模型。
-- 客户注入：可一键注入 `C100` / `C101` / `C102`，用于跳过真实核身、直接测试业务链路。
+- 批量评测：导入一个或多个 TXT；严格按行识别 `客户:` / `客服:`，为每句客户 query 生成模型推荐话术。
+- 模型评测：同一个 TXT 可用多个模型分别评测；同一 TXT + 同一模型重复生成会覆盖旧结果。
+- 人工标注：对每条模型回复标记采纳/不采纳；不采纳原因是单轮问题统计，不等同于 Badcase。
+- TXT Badcase：Badcase 是 TXT 级别整段样本标记，只在当前 TXT 详情和结果分析中统计。
+- 意图纠正：可在 TXT 结果中人工纠正主意图，左侧模型视角和结果分析按纠正后的二级分类分组。
+- 结果分析：与“批量评测”“数据后台”平级，按模型、二级意图、状态、TXT Badcase 聚合查看指标。
 - 数据后台：编辑 `customers`、账单、会员、额度、退款、停催等 mock 数据，并可重置为默认数据。
 
 CLI 手工演示：
@@ -206,9 +212,11 @@ python3 -m fin_copilot.cli_demo
 | `原始300条数据.jsonl` | 297 通 | 多轮电话原始来源，原 `merged.jsonl` 改名后文件 |
 | `3000条raw data.jsonl` | 2846 条 | 旧单 query 数据快照，当前与 `raw_test.jsonl` 内容一致 |
 | `标注维度.xlsx` | - | 小结类别标注维度 |
-| `scripts/references/merged_intent_skill_mapping.json` | 27 类 | 小结类别到一个或多个 skill 的映射 |
+| `scripts/references/merged_intent_skill_mapping.json` | 43 条映射 / 42 个二级分组 | 标注维度二级分类到一个或多个 skill 的映射 |
 
 当前 `golden_test.jsonl` 只补了原始空 gold 的 2 通电话，其余标注保持原始 golden 口径。疑似漏标样本只放在人工复核文档里，不直接写回评测集。
+
+批量评测工作台使用 `scripts/references/merged_intent_skill_mapping.json` 作为标注维度事实来源，并通过 `config/eval_intent_mapping.json` 展开给前端和 Demo API 使用。该表覆盖当前主要二级分类；按二级分类去重后有 42 个分组，因为不同一级下存在同名二级分类。
 
 ## 多轮电话评测
 
@@ -256,6 +264,9 @@ LIMIT=20 bash run_golden_model_matrix.sh run qwen3.6-flash
 
 # 顺序跑 config/llm_profiles.json 里的全部模型
 bash run_golden_model_matrix.sh run-all
+
+# 串行跑模型矩阵，并在每个模型结束后刷新 SUMMARY.md
+python3 scripts/run_serial_golden_model_matrix.py --limit 20
 ```
 
 这个脚本中的每一行都显式传入：
@@ -351,10 +362,12 @@ scripts/references/merged_intent_skill_mapping.json
 映射原则是：
 
 ```text
-一个 golden 小结类别 -> 一个或多个可接受 skill_id
+一个标注维度二级分类 -> 一个或多个可接受 skill_id
 ```
 
-也就是说允许一对多，但不把多个小结合成一个 gold 类别。这个映射用于解决标注小结粒度与 SOP/skill 粒度不一致的问题，例如“账单信息查询”“存对公还款”“营销活动/新活动咨询”等粗标签。
+也就是说允许一对多，也保留一个 skill 被多个二级分类接受的关系。这个映射用于解决标注小结粒度与 SOP/skill 粒度不一致的问题，例如“账单信息查询”“存对公还款”“营销活动/新活动咨询”等粗标签。
+
+Demo 批量评测的主意图分组和人工纠正下拉均以这张 mapping 表为准；`config/eval_intent_mapping.json` 保存当前展开快照，Demo API 运行时会按其中的 `source` 重新读取正式 mapping。
 
 相关复核文件：
 

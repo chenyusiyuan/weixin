@@ -130,6 +130,98 @@ class DemoStore:
                 FOREIGN KEY (session_id) REFERENCES demo_sessions(session_id)
                     ON DELETE CASCADE
             );
+
+            CREATE TABLE IF NOT EXISTS eval_txt_files (
+                txt_id TEXT PRIMARY KEY,
+                filename TEXT NOT NULL,
+                raw_text TEXT NOT NULL,
+                messages_json TEXT NOT NULL,
+                dropped_lines_json TEXT NOT NULL DEFAULT '[]',
+                parse_summary_json TEXT NOT NULL DEFAULT '{}',
+                badcase INTEGER NOT NULL DEFAULT 0,
+                badcase_note TEXT NOT NULL DEFAULT '',
+                imported_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS eval_jobs (
+                job_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                llm_profile_id TEXT NOT NULL,
+                total_turns INTEGER NOT NULL DEFAULT 0,
+                completed_turns INTEGER NOT NULL DEFAULT 0,
+                success_turns INTEGER NOT NULL DEFAULT 0,
+                failed_turns INTEGER NOT NULL DEFAULT 0,
+                cancelled INTEGER NOT NULL DEFAULT 0,
+                error TEXT NOT NULL DEFAULT '',
+                config_json TEXT NOT NULL DEFAULT '{}',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS eval_runs (
+                run_id TEXT PRIMARY KEY,
+                txt_id TEXT NOT NULL,
+                llm_profile_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                main_skill_id TEXT NOT NULL DEFAULT '',
+                main_intent_l1 TEXT NOT NULL DEFAULT '',
+                main_intent_l2 TEXT NOT NULL DEFAULT '',
+                main_intent_label TEXT NOT NULL DEFAULT '',
+                intent_error INTEGER NOT NULL DEFAULT 0,
+                corrected_intent_l1 TEXT NOT NULL DEFAULT '',
+                corrected_intent_l2 TEXT NOT NULL DEFAULT '',
+                corrected_intent_label TEXT NOT NULL DEFAULT '',
+                intent_error_note TEXT NOT NULL DEFAULT '',
+                total_turns INTEGER NOT NULL DEFAULT 0,
+                generated_turns INTEGER NOT NULL DEFAULT 0,
+                failed_turns INTEGER NOT NULL DEFAULT 0,
+                accepted_turns INTEGER NOT NULL DEFAULT 0,
+                rejected_turns INTEGER NOT NULL DEFAULT 0,
+                badcase_count INTEGER NOT NULL DEFAULT 0,
+                avg_latency_ms REAL NOT NULL DEFAULT 0,
+                error TEXT NOT NULL DEFAULT '',
+                job_id TEXT NOT NULL DEFAULT '',
+                started_at TEXT NOT NULL,
+                finished_at TEXT NOT NULL DEFAULT '',
+                updated_at TEXT NOT NULL,
+                UNIQUE(txt_id, llm_profile_id),
+                FOREIGN KEY (txt_id) REFERENCES eval_txt_files(txt_id)
+                    ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS eval_turn_results (
+                turn_result_id TEXT PRIMARY KEY,
+                run_id TEXT NOT NULL,
+                txt_id TEXT NOT NULL,
+                message_index INTEGER NOT NULL,
+                user_query TEXT NOT NULL,
+                context_json TEXT NOT NULL DEFAULT '[]',
+                model_answer TEXT NOT NULL DEFAULT '',
+                route TEXT NOT NULL DEFAULT '',
+                matched_skill_id TEXT NOT NULL DEFAULT '',
+                matched_skill_name TEXT NOT NULL DEFAULT '',
+                mapped_intent_json TEXT NOT NULL DEFAULT '{}',
+                tools_called_json TEXT NOT NULL DEFAULT '[]',
+                trace_id TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL,
+                error TEXT NOT NULL DEFAULT '',
+                latency_ms REAL NOT NULL DEFAULT 0,
+                response_json TEXT NOT NULL DEFAULT '{}',
+                annotation_json TEXT NOT NULL DEFAULT '{}',
+                badcase INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (run_id) REFERENCES eval_runs(run_id)
+                    ON DELETE CASCADE,
+                FOREIGN KEY (txt_id) REFERENCES eval_txt_files(txt_id)
+                    ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_eval_runs_txt_profile
+                ON eval_runs(txt_id, llm_profile_id);
+            CREATE INDEX IF NOT EXISTS idx_eval_turn_results_run
+                ON eval_turn_results(run_id, message_index);
             """
         )
         try:
@@ -142,6 +234,28 @@ class DemoStore:
         except sqlite3.OperationalError as exc:
             if "duplicate column name" not in str(exc):
                 raise
+        try:
+            conn.execute("ALTER TABLE eval_txt_files ADD COLUMN badcase INTEGER NOT NULL DEFAULT 0")
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc):
+                raise
+        try:
+            conn.execute("ALTER TABLE eval_txt_files ADD COLUMN badcase_note TEXT NOT NULL DEFAULT ''")
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc):
+                raise
+        for ddl in (
+            "ALTER TABLE eval_runs ADD COLUMN intent_error INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE eval_runs ADD COLUMN corrected_intent_l1 TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE eval_runs ADD COLUMN corrected_intent_l2 TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE eval_runs ADD COLUMN corrected_intent_label TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE eval_runs ADD COLUMN intent_error_note TEXT NOT NULL DEFAULT ''",
+        ):
+            try:
+                conn.execute(ddl)
+            except sqlite3.OperationalError as exc:
+                if "duplicate column name" not in str(exc):
+                    raise
 
     def _seed_records(self, conn: sqlite3.Connection) -> None:
         mock_data = self._load_mock_data_module()
@@ -591,6 +705,644 @@ class DemoStore:
                 (session_id,),
             ).fetchall()
         return [self._message_response(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Batch evaluation workspace
+    # ------------------------------------------------------------------
+
+    def create_eval_txt_file(
+        self,
+        *,
+        filename: str,
+        raw_text: str,
+        messages: list[dict[str, Any]],
+        dropped_lines: list[dict[str, Any]],
+        parse_summary: dict[str, Any],
+    ) -> dict[str, Any]:
+        txt_id = f"txt-{uuid.uuid4().hex[:12]}"
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            filename = self._unique_eval_filename(conn, filename)
+            conn.execute(
+                """
+                INSERT INTO eval_txt_files
+                    (txt_id, filename, raw_text, messages_json, dropped_lines_json,
+                     parse_summary_json, imported_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    txt_id,
+                    filename,
+                    raw_text,
+                    json.dumps(messages, ensure_ascii=False),
+                    json.dumps(dropped_lines, ensure_ascii=False),
+                    json.dumps(parse_summary, ensure_ascii=False),
+                    now,
+                    now,
+                ),
+            )
+        return self.get_eval_txt_file(txt_id) or {}
+
+    @staticmethod
+    def _unique_eval_filename(conn: sqlite3.Connection, filename: str) -> str:
+        clean = (filename or "未命名.txt").strip() or "未命名.txt"
+        existing = {
+            str(row["filename"])
+            for row in conn.execute("SELECT filename FROM eval_txt_files").fetchall()
+        }
+        if clean not in existing:
+            return clean
+
+        path = Path(clean)
+        stem = path.stem or clean
+        suffix = path.suffix if path.suffix else ""
+        counter = 2
+        while True:
+            candidate = f"{stem} ({counter}){suffix}"
+            if candidate not in existing:
+                return candidate
+            counter += 1
+
+    def list_eval_txt_files(self) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT f.*,
+                       COUNT(DISTINCT r.llm_profile_id) AS model_count
+                FROM eval_txt_files f
+                LEFT JOIN eval_runs r ON r.txt_id = f.txt_id
+                GROUP BY f.txt_id
+                ORDER BY f.imported_at DESC
+                """
+            ).fetchall()
+        return [self._eval_file_response(row) for row in rows]
+
+    def get_eval_txt_file(self, txt_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT *, 0 AS model_count FROM eval_txt_files WHERE txt_id = ?",
+                (txt_id,),
+            ).fetchone()
+        return self._eval_file_response(row) if row else None
+
+    def delete_eval_txt_files(self, txt_ids: list[str]) -> int:
+        if not txt_ids:
+            return 0
+        placeholders = ",".join("?" for _ in txt_ids)
+        with self._lock, self._connect() as conn:
+            cur = conn.execute(
+                f"DELETE FROM eval_txt_files WHERE txt_id IN ({placeholders})",
+                txt_ids,
+            )
+        return cur.rowcount
+
+    def update_eval_txt_badcase(self, txt_id: str, *, badcase: bool, note: str = "") -> dict[str, Any]:
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE eval_txt_files
+                SET badcase = ?, badcase_note = ?, updated_at = ?
+                WHERE txt_id = ?
+                """,
+                (1 if badcase else 0, note, now, txt_id),
+            )
+            if cur.rowcount == 0:
+                raise DemoStoreError(f"unknown eval txt file: {txt_id}")
+        file = self.get_eval_txt_file(txt_id)
+        if file is None:
+            raise DemoStoreError(f"unknown eval txt file: {txt_id}")
+        return file
+
+    def list_eval_runs(self, txt_id: str | None = None, llm_profile_id: str | None = None) -> list[dict[str, Any]]:
+        sql = "SELECT * FROM eval_runs WHERE 1=1"
+        params: list[Any] = []
+        if txt_id:
+            sql += " AND txt_id = ?"
+            params.append(txt_id)
+        if llm_profile_id:
+            sql += " AND llm_profile_id = ?"
+            params.append(llm_profile_id)
+        sql += " ORDER BY updated_at DESC"
+        with self._connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [self._eval_run_response(row) for row in rows]
+
+    def get_eval_run(self, txt_id: str, llm_profile_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM eval_runs WHERE txt_id = ? AND llm_profile_id = ?",
+                (txt_id, llm_profile_id),
+            ).fetchone()
+        return self._eval_run_response(row) if row else None
+
+    def get_eval_run_by_id(self, run_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM eval_runs WHERE run_id = ?", (run_id,)).fetchone()
+        return self._eval_run_response(row) if row else None
+
+    def start_eval_run(
+        self,
+        *,
+        txt_id: str,
+        llm_profile_id: str,
+        total_turns: int,
+        job_id: str,
+        retry_failed_only: bool = False,
+    ) -> dict[str, Any]:
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                "SELECT run_id FROM eval_runs WHERE txt_id = ? AND llm_profile_id = ?",
+                (txt_id, llm_profile_id),
+            ).fetchone()
+            if existing:
+                run_id = existing["run_id"]
+                if not retry_failed_only:
+                    conn.execute("DELETE FROM eval_turn_results WHERE run_id = ?", (run_id,))
+                conn.execute(
+                    """
+                    UPDATE eval_runs
+                    SET status = 'running',
+                        total_turns = ?,
+                        generated_turns = CASE WHEN ? THEN generated_turns ELSE 0 END,
+                        failed_turns = CASE WHEN ? THEN failed_turns ELSE 0 END,
+                        accepted_turns = CASE WHEN ? THEN accepted_turns ELSE 0 END,
+                        rejected_turns = CASE WHEN ? THEN rejected_turns ELSE 0 END,
+                        badcase_count = CASE WHEN ? THEN badcase_count ELSE 0 END,
+                        avg_latency_ms = CASE WHEN ? THEN avg_latency_ms ELSE 0 END,
+                        intent_error = CASE WHEN ? THEN intent_error ELSE 0 END,
+                        corrected_intent_l1 = CASE WHEN ? THEN corrected_intent_l1 ELSE '' END,
+                        corrected_intent_l2 = CASE WHEN ? THEN corrected_intent_l2 ELSE '' END,
+                        corrected_intent_label = CASE WHEN ? THEN corrected_intent_label ELSE '' END,
+                        intent_error_note = CASE WHEN ? THEN intent_error_note ELSE '' END,
+                        error = '',
+                        job_id = ?,
+                        started_at = ?,
+                        finished_at = '',
+                        updated_at = ?
+                    WHERE run_id = ?
+                    """,
+                    (
+                        total_turns,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        1 if retry_failed_only else 0,
+                        job_id,
+                        now,
+                        now,
+                        run_id,
+                    ),
+                )
+            else:
+                run_id = f"run-{uuid.uuid4().hex[:12]}"
+                conn.execute(
+                    """
+                    INSERT INTO eval_runs
+                        (run_id, txt_id, llm_profile_id, status, total_turns,
+                         generated_turns, failed_turns, accepted_turns, rejected_turns,
+                         badcase_count, avg_latency_ms, error, job_id, started_at,
+                         finished_at, updated_at)
+                    VALUES (?, ?, ?, 'running', ?, 0, 0, 0, 0, 0, 0, '', ?, ?, '', ?)
+                    """,
+                    (
+                        run_id,
+                        txt_id,
+                        llm_profile_id,
+                        total_turns,
+                        job_id,
+                        now,
+                        now,
+                    ),
+                )
+        run = self.get_eval_run(txt_id, llm_profile_id)
+        if run is None:
+            raise DemoStoreError(f"failed to start eval run for {txt_id}/{llm_profile_id}")
+        return run
+
+    def update_eval_run_intent_review(
+        self,
+        run_id: str,
+        *,
+        intent_error: bool,
+        corrected_intent: dict[str, Any] | None = None,
+        note: str = "",
+    ) -> dict[str, Any]:
+        now = utc_now()
+        corrected_intent = corrected_intent or {}
+        with self._lock, self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE eval_runs
+                SET intent_error = ?,
+                    corrected_intent_l1 = ?,
+                    corrected_intent_l2 = ?,
+                    corrected_intent_label = ?,
+                    intent_error_note = ?,
+                    updated_at = ?
+                WHERE run_id = ?
+                """,
+                (
+                    1 if intent_error else 0,
+                    str(corrected_intent.get("l1") or "") if intent_error else "",
+                    str(corrected_intent.get("l2") or "") if intent_error else "",
+                    str(corrected_intent.get("label") or "") if intent_error else "",
+                    note if intent_error else "",
+                    now,
+                    run_id,
+                ),
+            )
+            if cur.rowcount == 0:
+                raise DemoStoreError(f"unknown eval run: {run_id}")
+        run = self.get_eval_run_by_id(run_id)
+        if run is None:
+            raise DemoStoreError(f"unknown eval run: {run_id}")
+        return run
+
+    def upsert_eval_turn_result(
+        self,
+        *,
+        run_id: str,
+        txt_id: str,
+        message_index: int,
+        user_query: str,
+        context_messages: list[dict[str, Any]],
+        status: str,
+        model_answer: str = "",
+        route: str = "",
+        matched_skill_id: str = "",
+        matched_skill_name: str = "",
+        mapped_intent: dict[str, Any] | None = None,
+        tools_called: list[str] | None = None,
+        trace_id: str = "",
+        error: str = "",
+        latency_ms: float = 0,
+        response: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        turn_result_id = f"{run_id}-m{message_index:04d}"
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            existing = conn.execute(
+                "SELECT annotation_json, badcase, created_at FROM eval_turn_results WHERE turn_result_id = ?",
+                (turn_result_id,),
+            ).fetchone()
+            annotation_json = existing["annotation_json"] if existing else "{}"
+            badcase = int(existing["badcase"]) if existing else 0
+            created_at = existing["created_at"] if existing else now
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO eval_turn_results
+                    (turn_result_id, run_id, txt_id, message_index, user_query,
+                     context_json, model_answer, route, matched_skill_id,
+                     matched_skill_name, mapped_intent_json, tools_called_json,
+                     trace_id, status, error, latency_ms, response_json,
+                     annotation_json, badcase, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    turn_result_id,
+                    run_id,
+                    txt_id,
+                    message_index,
+                    user_query,
+                    json.dumps(context_messages, ensure_ascii=False),
+                    model_answer,
+                    route,
+                    matched_skill_id,
+                    matched_skill_name,
+                    json.dumps(mapped_intent or {}, ensure_ascii=False),
+                    json.dumps(tools_called or [], ensure_ascii=False),
+                    trace_id,
+                    status,
+                    error,
+                    latency_ms,
+                    json.dumps(response or {}, ensure_ascii=False),
+                    annotation_json,
+                    badcase,
+                    created_at,
+                    now,
+                ),
+            )
+        row = self.get_eval_turn_result(turn_result_id)
+        if row is None:
+            raise DemoStoreError(f"failed to save eval turn {turn_result_id}")
+        return row
+
+    def list_eval_turn_results(self, run_id: str) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM eval_turn_results WHERE run_id = ? ORDER BY message_index",
+                (run_id,),
+            ).fetchall()
+        return [self._eval_turn_response(row) for row in rows]
+
+    def get_eval_turn_result(self, turn_result_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM eval_turn_results WHERE turn_result_id = ?",
+                (turn_result_id,),
+            ).fetchone()
+        return self._eval_turn_response(row) if row else None
+
+    def annotate_eval_turn_result(
+        self,
+        turn_result_id: str,
+        *,
+        accepted: bool | None,
+        reject_reasons: list[str],
+        note: str,
+        badcase: bool,
+    ) -> dict[str, Any]:
+        now = utc_now()
+        annotation = {
+            "accepted": accepted,
+            "reject_reasons": reject_reasons,
+            "note": note,
+            "updated_at": now,
+        }
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT run_id FROM eval_turn_results WHERE turn_result_id = ?",
+                (turn_result_id,),
+            ).fetchone()
+            if row is None:
+                raise DemoStoreError(f"unknown eval turn result: {turn_result_id}")
+            # TXT-level Badcase is the only Badcase concept in the eval UI.
+            # The legacy turn column is kept for DB compatibility, but single-turn
+            # rejection is tracked through annotation/rejected_turns instead.
+            conn.execute(
+                """
+                UPDATE eval_turn_results
+                SET annotation_json = ?, badcase = ?, updated_at = ?
+                WHERE turn_result_id = ?
+                """,
+                (
+                    json.dumps(annotation, ensure_ascii=False),
+                    0,
+                    now,
+                    turn_result_id,
+                ),
+            )
+            run_id = row["run_id"]
+        self.refresh_eval_run_summary(run_id)
+        updated = self.get_eval_turn_result(turn_result_id)
+        if updated is None:
+            raise DemoStoreError(f"failed to annotate eval turn {turn_result_id}")
+        return updated
+
+    def finish_eval_run(
+        self,
+        run_id: str,
+        *,
+        status: str,
+        main_skill_id: str = "",
+        main_intent: dict[str, Any] | None = None,
+        error: str = "",
+    ) -> dict[str, Any]:
+        now = utc_now()
+        main_intent = main_intent or {}
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE eval_runs
+                SET status = ?, main_skill_id = ?, main_intent_l1 = ?,
+                    main_intent_l2 = ?, main_intent_label = ?, error = ?,
+                    finished_at = ?, updated_at = ?
+                WHERE run_id = ?
+                """,
+                (
+                    status,
+                    main_skill_id,
+                    str(main_intent.get("l1") or ""),
+                    str(main_intent.get("l2") or ""),
+                    str(main_intent.get("label") or ""),
+                    error,
+                    now,
+                    now,
+                    run_id,
+                ),
+            )
+        return self.refresh_eval_run_summary(run_id)
+
+    def refresh_eval_run_summary(self, run_id: str) -> dict[str, Any]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute(
+                "SELECT status, latency_ms, annotation_json, badcase FROM eval_turn_results WHERE run_id = ?",
+                (run_id,),
+            ).fetchall()
+            generated = sum(1 for row in rows if row["status"] == "success")
+            failed = sum(1 for row in rows if row["status"] == "error")
+            latencies = [float(row["latency_ms"] or 0) for row in rows if row["latency_ms"]]
+            accepted = 0
+            rejected = 0
+            for row in rows:
+                annotation = json.loads(row["annotation_json"] or "{}")
+                if annotation.get("accepted") is True:
+                    accepted += 1
+                elif annotation.get("accepted") is False:
+                    rejected += 1
+            avg_latency = round(sum(latencies) / len(latencies), 2) if latencies else 0
+            conn.execute(
+                """
+                UPDATE eval_runs
+                SET generated_turns = ?, failed_turns = ?, accepted_turns = ?,
+                    rejected_turns = ?, badcase_count = ?, avg_latency_ms = ?,
+                    updated_at = ?
+                WHERE run_id = ?
+                """,
+                (
+                    generated,
+                    failed,
+                    accepted,
+                    rejected,
+                    0,
+                    avg_latency,
+                    utc_now(),
+                    run_id,
+                ),
+            )
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM eval_runs WHERE run_id = ?", (run_id,)).fetchone()
+        if row is None:
+            raise DemoStoreError(f"unknown eval run: {run_id}")
+        return self._eval_run_response(row)
+
+    def create_eval_job(self, llm_profile_id: str, total_turns: int, config: dict[str, Any]) -> dict[str, Any]:
+        job_id = f"job-{uuid.uuid4().hex[:12]}"
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO eval_jobs
+                    (job_id, status, llm_profile_id, total_turns, config_json, created_at, updated_at)
+                VALUES (?, 'running', ?, ?, ?, ?, ?)
+                """,
+                (
+                    job_id,
+                    llm_profile_id,
+                    total_turns,
+                    json.dumps(config, ensure_ascii=False),
+                    now,
+                    now,
+                ),
+            )
+        return self.get_eval_job(job_id) or {}
+
+    def update_eval_job(self, job_id: str, **updates: Any) -> dict[str, Any]:
+        allowed = {
+            "status", "completed_turns", "success_turns", "failed_turns",
+            "cancelled", "error",
+        }
+        pairs = [(key, value) for key, value in updates.items() if key in allowed]
+        if not pairs:
+            return self.get_eval_job(job_id) or {}
+        pairs.append(("updated_at", utc_now()))
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "UPDATE eval_jobs SET "
+                + ", ".join(f"{key} = ?" for key, _ in pairs)
+                + " WHERE job_id = ?",
+                [value for _, value in pairs] + [job_id],
+            )
+        return self.get_eval_job(job_id) or {}
+
+    def increment_eval_job(self, job_id: str, *, success: bool) -> dict[str, Any]:
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE eval_jobs
+                SET completed_turns = completed_turns + 1,
+                    success_turns = success_turns + ?,
+                    failed_turns = failed_turns + ?,
+                    updated_at = ?
+                WHERE job_id = ?
+                """,
+                (1 if success else 0, 0 if success else 1, utc_now(), job_id),
+            )
+        return self.get_eval_job(job_id) or {}
+
+    def get_eval_job(self, job_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM eval_jobs WHERE job_id = ?", (job_id,)).fetchone()
+        return self._eval_job_response(row) if row else None
+
+    def list_eval_jobs(self, limit: int = 30) -> list[dict[str, Any]]:
+        safe_limit = max(1, min(int(limit or 30), 100))
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM eval_jobs ORDER BY updated_at DESC, rowid DESC LIMIT ?",
+                (safe_limit,),
+            ).fetchall()
+        return [self._eval_job_response(row) for row in rows]
+
+    @staticmethod
+    def _eval_file_response(row: sqlite3.Row) -> dict[str, Any]:
+        messages = json.loads(row["messages_json"] or "[]")
+        return {
+            "txt_id": row["txt_id"],
+            "filename": row["filename"],
+            "raw_text": row["raw_text"],
+            "messages": messages,
+            "dropped_lines": json.loads(row["dropped_lines_json"] or "[]"),
+            "parse_summary": json.loads(row["parse_summary_json"] or "{}"),
+            "user_turn_count": sum(1 for item in messages if item.get("role") == "user"),
+            "model_count": int(row["model_count"] or 0) if "model_count" in row.keys() else 0,
+            "badcase": bool(row["badcase"]),
+            "badcase_note": row["badcase_note"],
+            "imported_at": row["imported_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _eval_run_response(row: sqlite3.Row) -> dict[str, Any]:
+        return {
+            "run_id": row["run_id"],
+            "txt_id": row["txt_id"],
+            "llm_profile_id": row["llm_profile_id"],
+            "status": row["status"],
+            "main_skill_id": row["main_skill_id"],
+            "main_intent": {
+                "l1": row["main_intent_l1"],
+                "l2": row["main_intent_l2"],
+                "label": row["main_intent_label"],
+            },
+            "intent_error": bool(row["intent_error"]),
+            "corrected_intent": {
+                "l1": row["corrected_intent_l1"],
+                "l2": row["corrected_intent_l2"],
+                "label": row["corrected_intent_label"],
+            },
+            "effective_intent": {
+                "l1": row["corrected_intent_l1"] if row["intent_error"] and row["corrected_intent_l1"] else row["main_intent_l1"],
+                "l2": row["corrected_intent_l2"] if row["intent_error"] and row["corrected_intent_l2"] else row["main_intent_l2"],
+                "label": row["corrected_intent_label"] if row["intent_error"] and row["corrected_intent_label"] else row["main_intent_label"],
+            },
+            "intent_error_note": row["intent_error_note"],
+            "total_turns": row["total_turns"],
+            "generated_turns": row["generated_turns"],
+            "failed_turns": row["failed_turns"],
+            "accepted_turns": row["accepted_turns"],
+            "rejected_turns": row["rejected_turns"],
+            "issue_count": int(row["rejected_turns"] or 0) + int(row["failed_turns"] or 0),
+            "badcase_count": row["badcase_count"],
+            "avg_latency_ms": row["avg_latency_ms"],
+            "error": row["error"],
+            "job_id": row["job_id"],
+            "started_at": row["started_at"],
+            "finished_at": row["finished_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _eval_turn_response(row: sqlite3.Row) -> dict[str, Any]:
+        return {
+            "turn_result_id": row["turn_result_id"],
+            "run_id": row["run_id"],
+            "txt_id": row["txt_id"],
+            "message_index": row["message_index"],
+            "user_query": row["user_query"],
+            "context_messages": json.loads(row["context_json"] or "[]"),
+            "model_answer": row["model_answer"],
+            "route": row["route"],
+            "matched_skill_id": row["matched_skill_id"],
+            "matched_skill_name": row["matched_skill_name"],
+            "mapped_intent": json.loads(row["mapped_intent_json"] or "{}"),
+            "tools_called": json.loads(row["tools_called_json"] or "[]"),
+            "trace_id": row["trace_id"],
+            "status": row["status"],
+            "error": row["error"],
+            "latency_ms": row["latency_ms"],
+            "response": json.loads(row["response_json"] or "{}"),
+            "annotation": json.loads(row["annotation_json"] or "{}"),
+            "badcase": bool(row["badcase"]),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
+    @staticmethod
+    def _eval_job_response(row: sqlite3.Row) -> dict[str, Any]:
+        return {
+            "job_id": row["job_id"],
+            "status": row["status"],
+            "llm_profile_id": row["llm_profile_id"],
+            "total_turns": row["total_turns"],
+            "completed_turns": row["completed_turns"],
+            "success_turns": row["success_turns"],
+            "failed_turns": row["failed_turns"],
+            "cancelled": bool(row["cancelled"]),
+            "error": row["error"],
+            "config": json.loads(row["config_json"] or "{}"),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
 
     @staticmethod
     def _message_response(row: sqlite3.Row) -> dict[str, Any]:

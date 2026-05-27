@@ -3,71 +3,116 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>金融客服坐席 Demo</title>
-    <link rel="stylesheet" href="/demo-assets/styles.css" />
+    <title>金融客服评测后台</title>
+    <link rel="stylesheet" href="/demo-assets/styles.css?v=20260527-intent-review" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar">
-        <div class="brand">
-          <div class="brand-mark">W</div>
-          <div>
-            <h1>坐席 Demo</h1>
-            <p>话术推荐工作台</p>
-          </div>
-        </div>
         <div class="view-switch">
-          <button id="chatViewBtn" class="active" type="button">对话</button>
+          <button id="evalViewBtn" class="active" type="button">批量评测</button>
+          <button id="analyticsViewBtn" type="button">结果分析</button>
           <button id="adminViewBtn" type="button">数据后台</button>
         </div>
-        <button id="newSessionBtn" class="primary wide" type="button">新增对话</button>
-        <div class="sidebar-title">对话历史</div>
-        <div id="sessionList" class="session-list"></div>
+        <div id="evalSidebarPanel" class="sidebar-panel">
+          <div class="sidebar-title">评测工作台</div>
+          <input id="evalTxtInput" type="file" accept=".txt,text/plain" multiple hidden />
+          <div class="eval-compact-actions">
+            <button id="evalImportBtn" class="primary" type="button">导入 TXT</button>
+            <button id="evalGenerateSelectedBtn" type="button">生成选中</button>
+            <button id="evalDeleteBtn" class="danger" type="button">删除选中</button>
+          </div>
+          <label class="eval-side-label">视角
+            <select id="evalViewSelect"></select>
+          </label>
+          <div class="sidebar-title">TXT 列表</div>
+          <div id="evalFileList" class="eval-file-list"></div>
+        </div>
+        <div id="analyticsSidebarPanel" class="sidebar-panel hidden">
+          <div class="sidebar-title">结果筛选</div>
+          <label class="eval-side-label">模型
+            <select id="analyticsModelFilter"></select>
+          </label>
+          <label class="eval-side-label">二级意图
+            <select id="analyticsIntentFilter">
+              <option value="">全部意图</option>
+            </select>
+          </label>
+          <label class="eval-side-label">状态
+            <select id="analyticsStatusFilter">
+              <option value="">全部状态</option>
+              <option value="completed">已完成</option>
+              <option value="partial_failed">部分失败</option>
+              <option value="error">失败</option>
+              <option value="running">生成中</option>
+              <option value="cancelled">已取消</option>
+            </select>
+          </label>
+          <label class="eval-filter-check">
+            <input id="analyticsBadcaseOnly" type="checkbox" />
+            只看 TXT Badcase
+          </label>
+          <button id="analyticsRefreshBtn" class="primary wide" type="button">刷新看板</button>
+          <button id="analyticsExportBtn" class="wide" type="button">导出看板 JSON</button>
+        </div>
+        <div id="adminSidebarPanel" class="sidebar-panel hidden">
+          <div class="sidebar-title">数据资源</div>
+          <div id="resourceNav" class="resource-nav"></div>
+          <button id="resetDataBtn" class="danger subtle wide" type="button">重置 mock 数据</button>
+        </div>
       </aside>
 
-      <main id="chatView" class="chat-layout">
-        <section class="chat-main">
-          <header class="topbar">
+      <main id="evalView" class="eval-layout">
+        <section class="eval-content">
+          <header class="eval-toolbar">
             <div>
-              <h2 id="sessionTitle">新对话</h2>
-              <p id="sessionSub">保留真实核身流程，也可一键注入客户</p>
+              <h2 id="evalDialogueTitle">评测工作台</h2>
+              <p id="evalDialogueSub">导入 TXT 后，按模型生成每句客户 query 的话术推荐并人工标注</p>
             </div>
-            <div class="topbar-actions">
-              <label class="model-control">模型
-                <select id="llmProfileSelect"></select>
+            <div class="eval-toolbar-actions">
+              <button id="evalProgressBtn" type="button">生成进度</button>
+              <label class="model-control">生成模型
+                <select id="evalModelSelect"></select>
               </label>
-              <div class="customer-actions">
-                <button data-customer="C100" type="button">注入 C100</button>
-                <button data-customer="C101" type="button">注入 C101</button>
-                <button data-customer="C102" type="button">注入 C102</button>
-              </div>
+              <button id="evalRunDialogueBtn" class="primary" type="button">生成当前 TXT</button>
+              <button id="evalExportBtn" type="button">导出结果</button>
             </div>
           </header>
-          <div id="healthStrip" class="health-strip"></div>
-          <div id="messages" class="messages"></div>
-          <form id="chatForm" class="composer">
-            <textarea id="chatInput" placeholder="输入客户原话，例如：我想协商还款" rows="2"></textarea>
-            <button class="primary" type="submit">发送</button>
-          </form>
+          <div id="evalWorkspacePanel" class="eval-workspace-panel">
+            <div id="evalConversation" class="eval-conversation"></div>
+          </div>
         </section>
 
-        <aside class="inspector">
+        <aside class="eval-inspector">
           <div class="panel-head">
-            <h3>客户信息</h3>
-            <button id="probeHealthBtn" type="button">刷新客户</button>
+            <h3>当前结果</h3>
+            <button id="evalResetRatingsBtn" type="button">重置评分</button>
           </div>
-          <div id="responseSummary" class="summary-grid"></div>
-          <div id="responseJson" class="customer-context"></div>
+          <div id="evalRunSummary" class="eval-run-summary"></div>
+          <div id="evalBadcaseList" class="eval-badcase-list"></div>
         </aside>
       </main>
 
-      <main id="adminView" class="admin-layout hidden">
-        <section class="admin-nav">
-          <h2>数据后台</h2>
-          <div id="resourceNav" class="resource-nav"></div>
-          <button id="resetDataBtn" class="danger subtle" type="button">重置 mock 数据</button>
+      <main id="analyticsView" class="analytics-layout hidden">
+        <section class="analytics-content">
+          <header class="analytics-hero">
+            <div>
+              <p>评测结果</p>
+              <h2>结果分析看板</h2>
+              <span id="analyticsSubtitle">按模型、意图和 TXT Badcase 聚合查看话术推荐质量</span>
+            </div>
+            <div class="analytics-hero-actions">
+              <button id="analyticsAllQuickBtn" type="button">全部结果</button>
+              <button id="analyticsBadcaseQuickBtn" class="danger" type="button">只看 TXT Badcase</button>
+            </div>
+          </header>
+          <div id="evalAnalyticsFilters" class="analytics-filter-chips"></div>
+          <div id="evalAnalyticsSummary" class="eval-analytics-summary"></div>
+          <div id="evalAnalyticsTables" class="eval-analytics-tables"></div>
         </section>
+      </main>
 
+      <main id="adminView" class="admin-layout hidden">
         <section class="admin-content">
           <div class="admin-toolbar">
             <div>
@@ -101,6 +146,48 @@
       </main>
     </div>
 
-    <script src="/demo-assets/app.js"></script>
+    <dialog id="evalGenerateDialog" class="eval-dialog">
+      <form method="dialog">
+        <div class="eval-dialog-head">
+          <h3 id="evalGenerateDialogTitle">生成评测</h3>
+          <button id="evalGenerateDialogClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <label>模型
+          <select id="evalGenerateProfileSelect"></select>
+        </label>
+        <div class="eval-dialog-grid">
+          <label>并发
+            <input id="evalGenerateConcurrencyInput" type="number" min="1" max="12" value="3" />
+          </label>
+          <label>超时秒
+            <input id="evalGenerateTimeoutInput" type="number" min="5" max="300" value="60" />
+          </label>
+        </div>
+        <label class="eval-dialog-check">
+          <input id="evalGenerateRetryOnlyInput" type="checkbox" />
+          只重试失败
+        </label>
+        <div class="eval-dialog-actions">
+          <button id="evalGenerateDialogCancel" type="button">取消</button>
+          <button id="evalGenerateDialogStart" class="primary" type="button">开始生成</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="evalProgressDialog" class="eval-dialog eval-progress-dialog">
+      <form method="dialog">
+        <div class="eval-dialog-head">
+          <h3>生成进度</h3>
+          <button id="evalProgressDialogClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <div id="evalProgressList" class="eval-progress-list"></div>
+        <div class="eval-dialog-actions">
+          <button id="evalProgressRefreshBtn" type="button">刷新</button>
+          <button id="evalProgressDialogDone" class="primary" type="button">关闭</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/demo-assets/app.js?v=20260527-intent-options"></script>
   </body>
 </html>

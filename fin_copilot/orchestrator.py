@@ -1443,8 +1443,8 @@ class Orchestrator:
         "你好", "您好", "喂", "嗨", "hi", "hello", "在吗", "在不在",
     ]
     _FAREWELL_KEYWORDS = [
-        "再见", "拜拜", "没事了", "好的谢谢", "谢谢", "没有了",
-        "不用了", "就这些", "可以了",
+        "再见", "拜拜", "没事了", "好的谢谢", "好的感谢", "谢谢",
+        "感谢", "多谢", "辛苦了", "没有了", "不用了", "就这些", "可以了",
     ]
 
     def _check_greeting(
@@ -1518,6 +1518,9 @@ class Orchestrator:
         trace_id: str,
     ) -> CopilotResponse | None:
         """Return a follow_up response when short continuations should stay in-skill."""
+        if state.slots.get("eval_force_contextual_generation"):
+            return None
+
         prior_skill_id = state.intent.current_skill_id
         if not prior_skill_id:
             return None

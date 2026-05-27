@@ -94,6 +94,24 @@ def test_identity_pass_consumes_cached_rule_route_without_rerouting():
     asyncio.run(_run())
 
 
+def test_thanks_with_punctuation_routes_to_closing():
+    async def _run():
+        settings = Settings(
+            ENABLE_HYBRID_SKILL_RECALL=False,
+            ENABLE_VALUE_ADDED_KNOWLEDGE=False,
+        )
+        orch, llm = build_orchestrator(settings)
+        try:
+            resp = await orch.handle_turn("unit-thanks-closing", "好的，感谢")
+            assert resp.route == "route_a"
+            assert "感谢您的来电" in resp.answer
+            assert "想咨询账单" not in resp.answer
+        finally:
+            await llm.close()
+
+    asyncio.run(_run())
+
+
 def test_identity_pass_consumes_cached_route_b_match_without_rerouting():
     async def _run():
         settings = Settings(

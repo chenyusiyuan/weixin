@@ -17,7 +17,7 @@ cd /Users/bytedance/Project/weixin
 | `原始300条数据.jsonl` | 297 通原始电话 | 多轮评测集来源，原 `merged.jsonl` 改名后文件 |
 | `3000条raw data.jsonl` | 2846 条 | 旧单 query 数据快照，当前与 `raw_test.jsonl` 内容一致 |
 | `标注维度.xlsx` | - | 小结类别标注维度来源 |
-| `scripts/references/merged_intent_skill_mapping.json` | 27 类 | 小结类别到一个或多个 skill 的映射表 |
+| `scripts/references/merged_intent_skill_mapping.json` | 43 条映射 / 42 个二级分组 | 标注维度二级分类到一个或多个 skill 的映射表 |
 
 ## 多轮真实电话评测
 
@@ -42,12 +42,18 @@ python3 tests/eval/merged_multi_turn_skill_recall.py \
   --limit 20
 ```
 
+如需按模型逐个串行跑矩阵，并在每个模型结束后刷新聚合报告：
+
+```bash
+python3 scripts/run_serial_golden_model_matrix.py --limit 20
+```
+
 计分逻辑：
 
 - 每通电话有 `K = len(gold_intents)` 个小结标注。
 - 对该电话的每条客户 query 路由出一个 skill。
 - 聚合一通电话内出现次数最多的 TopK skill。
-- `gold_intents` 通过 `scripts/references/merged_intent_skill_mapping.json` 映射到一个或多个可接受 skill。
+- `gold_intents` 通过 `scripts/references/merged_intent_skill_mapping.json` 映射到一个或多个可接受 skill；该表也作为 Demo 批量评测的主意图分组来源。
 - 如果 gold 的 K 个意图中命中 N 个，则该通电话得分为 `N / K`。
 - 总准确率为所有电话得分求和后除以样本数。
 - 默认直接按映射表计分，不再跑 LLM audit；如需额外复核一对多映射命中，可显式加 `--llm-audit-one-to-many`。
@@ -103,7 +109,8 @@ python3 scripts/rebuild_golden_from_batches.py
 
 | 文件 | 用途 |
 |---|---|
-| `scripts/references/merged_intent_skill_mapping.json` | 正式小结到 skill 映射表 |
+| `scripts/references/merged_intent_skill_mapping.json` | 正式标注维度二级分类到 skill 映射表 |
+| `config/eval_intent_mapping.json` | Demo 批量评测展开后的二级分类候选与 skill 反向映射，`source` 指向正式 mapping |
 | `docs/小结标注_sop映射错配审计.md` | 小结类别与 SOP/skill 的错配审计 |
 | `docs/golden小结类别_sop特殊标注全量样本.json` | 特殊标注类别的全量样本 |
 | `docs/golden小结类别_sop逐条复核_20260519.md` | 当前逐条复核结果 |
