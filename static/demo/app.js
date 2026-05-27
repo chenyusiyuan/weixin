@@ -1482,9 +1482,6 @@ function evalIntentReviewEditor(run) {
 
 function intentOptionsWithCurrent(current) {
   const options = [...state.evalIntentOptions];
-  if (current && !options.some((item) => item.l2 === current)) {
-    options.unshift({ l1: "当前", l2: current, label: current });
-  }
   if (!options.length) {
     options.push({ l1: "人工", l2: "未分类", label: "未分类" });
   }

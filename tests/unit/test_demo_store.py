@@ -188,10 +188,10 @@ def test_eval_file_summary_exposes_badcase_flag(tmp_path: Path):
     assert summary["badcase_note"] == "整通异常"
 
 
-def test_eval_intent_options_include_all_golden_categories():
+def test_eval_intent_options_only_include_skill_backed_categories():
     labels = {item["l2"] for item in demo_router._eval_intent_options()}
 
-    assert len(labels) >= 42
+    assert len(labels) >= 36
     assert {
         "聚合码还款问题",
         "提前清贷",
@@ -201,10 +201,23 @@ def test_eval_intent_options_include_all_golden_categories():
         "预约借款",
         "资料信息修改",
         "特殊场景",
-        "产品建议1",
+        "营销电话",
         "贷款解约",
-        "无效会话",
     }.issubset(labels)
+    assert {
+        "产品建议1",
+        "河南雨灾-727",
+        "系统批量问题",
+        "资方批量问题",
+        "公众渠道来电",
+        "无效会话",
+    }.isdisjoint(labels)
+    raw_empty = {
+        item["l2"]
+        for item in demo_router._load_eval_intent_config().get("intent_options") or []
+        if not item.get("skill_ids")
+    }
+    assert {"产品建议1", "公众渠道来电", "无效会话"}.issubset(raw_empty)
     assert demo_router._map_skill_to_intent("loan_termination")["l2"] == "贷款解约"
 
 

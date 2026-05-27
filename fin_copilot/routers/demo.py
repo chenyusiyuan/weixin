@@ -1437,11 +1437,14 @@ def _eval_intent_options() -> list[dict[str, Any]]:
         l2 = str(intent.get("l2") or "")
         if not l2:
             continue
+        skill_ids = [str(skill_id).strip() for skill_id in intent.get("skill_ids") or [] if str(skill_id).strip()]
+        if not skill_ids:
+            continue
         by_l2.setdefault(l2, {
             "l1": str(intent.get("l1") or ""),
             "l2": l2,
             "label": str(intent.get("label") or l2),
-            "skill_ids": list(intent.get("skill_ids") or []),
+            "skill_ids": skill_ids,
             "notes": str(intent.get("notes") or ""),
         })
     for intent in (config.get("skill_to_intent") or {}).values():
